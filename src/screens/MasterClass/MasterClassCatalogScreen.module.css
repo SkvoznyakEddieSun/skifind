@@ -1,0 +1,247 @@
+/* MasterClassCatalogScreen */
+
+.screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  overflow: hidden;
+}
+
+/* ── Header ── */
+.header {
+  background: var(--accent);
+  padding: calc(var(--safe-top) + 14px) 16px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.backBtn {
+  background: rgba(255,255,255,.15);
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 24px;
+  line-height: 1;
+  font-weight: 300;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.headerTitle {
+  font-size: 20px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -0.3px;
+}
+
+/* ── Filter row ── */
+.filterRow {
+  display: flex;
+  gap: 8px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+  flex-shrink: 0;
+}
+
+.filterChip {
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: 1px solid var(--border-strong);
+  background: none;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  font-family: var(--ff);
+  cursor: pointer;
+  transition: all .15s;
+}
+
+.filterChipActive {
+  background: var(--accent);
+  color: var(--accent-text);
+  border-color: var(--accent);
+  font-weight: 700;
+}
+
+/* ── Scroll ── */
+.scroll {
+  flex: 1;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.scroll::-webkit-scrollbar { display: none; }
+
+/* ── Section label ── */
+.sectionLabel {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .7px;
+  color: var(--text-dim);
+  padding: 14px 16px 8px;
+}
+
+/* ── Card ── */
+.card {
+  margin: 0 16px 12px;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--r12);
+  padding: 14px;
+  cursor: pointer;
+  transition: border-color .15s;
+}
+
+.card:active {
+  border-color: var(--accent);
+}
+
+/* Top row */
+.cardTop {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.av {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.av-ice    { background: var(--accent-soft); color: var(--accent); }
+.av-mint   { background: var(--mint);        color: var(--mint-text); }
+.av-purple { background: #e8d5ff;            color: #6b21a8; }
+.av-straw  { background: var(--straw-soft, rgba(200,160,60,.15)); color: var(--straw, #c8a03c); }
+.av-blue   { background: var(--accent);      color: var(--accent-text); }
+
+.cardInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.cardTitle {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cardInstr {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+/* Level badge */
+.levelBadge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 10px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.level-mint   { background: var(--mint);                             color: var(--mint-text); }
+.level-straw  { background: var(--straw-soft, rgba(200,160,60,.18)); color: var(--straw, #9a6f00); }
+.level-purple { background: #ede9fe;                                 color: #6b21a8; }
+
+/* Meta row */
+.cardMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-bottom: 10px;
+}
+
+/* Participants bar */
+.partsRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.partsBar {
+  flex: 1;
+  height: 5px;
+  background: var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.partsFill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 3px;
+  transition: width .3s;
+}
+
+.partsTxt {
+  font-size: 11px;
+  color: var(--text-dim);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Bottom row */
+.cardBottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.cardPrice {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.spotsLeft {
+  font-size: 11px;
+  color: var(--accent);
+  font-weight: 600;
+  margin-top: 1px;
+}
+
+.spotsNone {
+  color: var(--text-dim);
+}
+
+.detailBtn {
+  padding: 9px 16px;
+  border-radius: 20px;
+  background: var(--accent);
+  color: var(--accent-text);
+  border: none;
+  font-size: 13px;
+  font-weight: 700;
+  font-family: var(--ff);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity .15s;
+}
+
+.detailBtn:active { opacity: .8; }

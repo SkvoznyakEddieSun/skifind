@@ -1,0 +1,285 @@
+/* BookingsScreen — scr-bookings */
+
+.screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  overflow: hidden;
+}
+
+/* Topbar */
+.topbar {
+  background: var(--bg);
+  padding: calc(var(--safe-top) + 14px) 22px 14px;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.tbRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.tbTitle {
+  color: var(--text);
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+}
+
+.tbSub {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-top: 2px;
+  font-weight: 400;
+}
+
+/* Scroll */
+.scroll {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: calc(var(--safe-bot) + 80px);
+}
+
+/* List */
+.bookingsList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 22px;
+}
+
+/* Card */
+.bookingCard {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--r16);
+  overflow: hidden;
+  transition: transform .1s;
+}
+
+/* Status strip */
+.bcStatus {
+  padding: 7px 16px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .5px;
+  text-transform: uppercase;
+}
+
+.bcStatus-confirmed { background: var(--mint);     color: var(--mint-text); }
+.bcStatus-pending   { background: var(--straw);    color: var(--straw-text); }
+.bcStatus-completed { background: var(--surface-2); color: var(--text-dim); }
+
+/* Body */
+.bcBody {
+  padding: 14px 16px;
+}
+
+/* Row 1 */
+.bcRow1 {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+/* Avatar */
+.av {
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.avMd { width: 48px; height: 48px; font-size: 16px; }
+.avSm { width: 36px; height: 36px; font-size: 13px; }
+
+.av-ice    { background: var(--accent-soft);       color: var(--accent); }
+.av-mint   { background: var(--mint);              color: var(--mint-text); }
+.av-straw  { background: var(--straw);             color: var(--straw-text); }
+.av-blue   { background: var(--accent);            color: var(--accent-text); }
+.av-purple { background: rgba(124,58,237,.15);     color: #A78BFA; }
+
+.bcInstrInfo { flex: 1; }
+
+.bcInstrName {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.bcInstrSpec {
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.bcRating {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.star { color: var(--gold); }
+
+/* Date block */
+.bcDate {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--surface-2);
+  border-radius: var(--r8);
+  margin-bottom: 10px;
+}
+
+.bcDay {
+  text-align: center;
+  min-width: 36px;
+}
+
+.bcDayNum {
+  font-family: var(--ff);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--accent);
+  line-height: 1;
+}
+
+.bcDayMon {
+  font-size: 10px;
+  color: var(--text-dim);
+  margin-top: 1px;
+  text-transform: uppercase;
+}
+
+.bcDaySep {
+  width: 1px;
+  height: 32px;
+  background: var(--border);
+}
+
+.bcDetail {
+  font-size: 12px;
+  color: var(--text);
+  line-height: 1.5;
+}
+
+.bcDetail strong { font-weight: 600; }
+
+/* Meta */
+.bcMeta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-bottom: 10px;
+}
+
+.bcPrice {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+/* Actions */
+.bcActions {
+  display: flex;
+  gap: 6px;
+}
+
+/* Buttons */
+.btn {
+  padding: 12px 20px;
+  border-radius: var(--r12);
+  font-size: 14px;
+  font-weight: 600;
+  transition: opacity .15s;
+  font-family: var(--ff);
+  cursor: pointer;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.btn:active { opacity: .8; }
+
+.btnPrimary  { background: var(--accent);    color: var(--accent-text); }
+.btnSecondary { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); }
+.btnDanger   { color: var(--red); }
+.btnSm       { padding: 8px 14px; font-size: 13px; }
+
+/* ── Pending section ── */
+.pendingSection {
+  background: var(--straw);
+  border-radius: var(--r16);
+  padding: 14px;
+  margin-bottom: 12px;
+}
+
+.pendingSectionTitle {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .7px;
+  color: var(--straw-text);
+  margin-bottom: 12px;
+}
+
+.pendingCard {
+  background: var(--surface-1);
+  border-radius: var(--r12);
+  padding: 12px;
+}
+
+.pendingRow1 {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin-bottom: 8px;
+}
+
+.pendingInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.pendingName {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+
+.pendingMeta {
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-bottom: 2px;
+}
+
+.pendingPrice {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.pendingHint {
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-bottom: 10px;
+  padding: 8px 10px;
+  background: var(--surface-2);
+  border-radius: var(--r8);
+}
+
+.pendingActions {
+  display: flex;
+  gap: 8px;
+}

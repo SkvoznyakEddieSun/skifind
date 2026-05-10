@@ -1,0 +1,285 @@
+/* MasterClassDetailScreen */
+
+.screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  overflow: hidden;
+  position: relative;
+}
+
+/* ── Header ── */
+.header {
+  background: var(--accent);
+  padding: calc(var(--safe-top) + 14px) 16px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.backBtn {
+  background: rgba(255,255,255,.15);
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 24px;
+  line-height: 1;
+  font-weight: 300;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.headerTitle {
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -0.3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Scroll ── */
+.scroll {
+  flex: 1;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.scroll::-webkit-scrollbar { display: none; }
+
+/* ── Instructor card ── */
+.instrCard {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+}
+
+.av {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.av-ice    { background: var(--accent-soft); color: var(--accent); }
+.av-mint   { background: var(--mint);        color: var(--mint-text); }
+.av-purple { background: #e8d5ff;            color: #6b21a8; }
+.av-straw  { background: var(--straw-soft, rgba(200,160,60,.15)); color: var(--straw, #c8a03c); }
+.av-blue   { background: var(--accent);      color: var(--accent-text); }
+
+.instrInfo { flex: 1; min-width: 0; }
+
+.instrName {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+
+.instrSub {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.levelBadge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 10px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.level-mint   { background: var(--mint);                             color: var(--mint-text); }
+.level-straw  { background: var(--straw-soft, rgba(200,160,60,.18)); color: var(--straw, #9a6f00); }
+.level-purple { background: #ede9fe;                                 color: #6b21a8; }
+
+/* ── Divider ── */
+.divider {
+  height: 1px;
+  background: var(--border);
+  margin: 4px 0;
+}
+
+/* ── Section label ── */
+.sectionLabel {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .7px;
+  color: var(--text-dim);
+  padding: 12px 16px 8px;
+}
+
+/* ── Info grid ── */
+.infoGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  padding: 4px 0;
+}
+
+.infoItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 16px;
+}
+
+.infoIcon {
+  font-size: 18px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.infoLabel {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-bottom: 2px;
+}
+
+.infoValue {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.3;
+}
+
+/* ── Description ── */
+.description {
+  font-size: 14px;
+  color: var(--text);
+  line-height: 1.6;
+  padding: 4px 16px 14px;
+}
+
+/* ── Participants ── */
+.partsBlock {
+  padding: 4px 16px 14px;
+}
+
+.partsBar {
+  height: 6px;
+  background: var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.partsFill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 3px;
+}
+
+.partsStats {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  margin-bottom: 10px;
+}
+
+.partsTaken { color: var(--text-dim); }
+.partsLeft  { color: var(--accent); font-weight: 600; }
+.partsLeftNone { color: var(--text-dim); }
+
+/* Participant dots */
+.dotRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--border);
+}
+
+.dotFilled {
+  background: var(--accent);
+}
+
+/* ── Book block ── */
+.bookBlock {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+}
+
+.bookPriceWrap { flex-shrink: 0; }
+
+.bookPrice {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.bookPriceSub {
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.bookBtn {
+  flex: 1;
+  padding: 14px;
+  border-radius: var(--r12);
+  background: var(--pine, #3d8b40);
+  color: #fff;
+  border: none;
+  font-size: 15px;
+  font-weight: 700;
+  font-family: var(--ff);
+  cursor: pointer;
+  text-align: center;
+  transition: opacity .15s;
+}
+
+.bookBtn:active  { opacity: .8; }
+.bookBtn:disabled { opacity: .5; cursor: not-allowed; }
+
+.bookBtnDone {
+  background: var(--success-on-dark, #2d7a30);
+}
+
+.bookBtnFull {
+  background: var(--surface-2);
+  color: var(--text-dim);
+}
+
+/* ── Toast ── */
+.toast {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  right: 16px;
+  background: var(--text);
+  color: var(--bg);
+  padding: 14px 16px;
+  border-radius: var(--r12);
+  font-size: 14px;
+  font-weight: 500;
+  text-align: center;
+  z-index: 100;
+  animation: toastIn .3s ease;
+}
+
+@keyframes toastIn {
+  from { transform: translateY(20px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}

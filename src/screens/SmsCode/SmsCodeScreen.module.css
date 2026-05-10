@@ -1,0 +1,99 @@
+/* SmsCodeScreen — authStep3 */
+
+.screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  color: var(--text);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: calc(var(--safe-top) + 28px) 22px calc(var(--safe-bot) + 22px);
+}
+
+.backBtn {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  color: var(--accent);
+  font-size: 18px;
+  align-self: flex-start;
+  margin-bottom: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.title {
+  font-family: var(--ff);
+  font-size: 1.8rem;
+  font-weight: 700;
+  letter-spacing: -1px;
+  line-height: 1;
+  margin-bottom: 10px;
+  color: var(--text);
+}
+
+.subtitle {
+  font-size: 14px;
+  color: var(--text-dim);
+  font-weight: 400;
+  line-height: 1.6;
+  margin-bottom: 32px;
+  max-width: 300px;
+}
+
+.phoneHighlight {
+  color: var(--text);
+  display: block;
+}
+
+.digits {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin: 8px 0 20px;
+}
+
+.digit {
+  width: 48px;
+  height: 56px;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--r12);
+  color: var(--text);
+  font-size: 22px;
+  font-weight: 600;
+  text-align: center;
+  font-family: var(--ff);
+  outline: none;
+  transition: border-color 0.2s, background 0.2s;
+  caret-color: var(--accent);
+}
+
+.digit:focus {
+  border-color: var(--accent);
+  background: var(--surface-2);
+}
+
+.timer {
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-faint);
+  font-weight: 300;
+}
+
+.resendBtn {
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-size: 13px;
+  font-family: var(--ff);
+  cursor: pointer;
+  font-weight: 500;
+  padding: 0;
+}

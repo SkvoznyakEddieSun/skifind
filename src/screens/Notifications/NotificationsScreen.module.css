@@ -1,0 +1,147 @@
+/* NotificationsScreen */
+
+.screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  overflow: hidden;
+}
+
+/* ── Topbar ── */
+.topbar {
+  background: var(--bg);
+  padding: calc(var(--safe-top) + 14px) 22px 14px;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.tbRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.tbBack {
+  color: var(--accent);
+  font-size: 24px;
+  line-height: 1;
+  padding: 0 4px 0 0;
+  background: none;
+  border: none;
+  font-weight: 300;
+  cursor: pointer;
+}
+
+.tbTitle {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.3px;
+}
+
+.tbSub {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+
+.markAllBtn {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 11px;
+  padding: 7px 12px;
+  border-radius: 20px;
+  font-weight: 500;
+  font-family: var(--ff);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity .15s;
+}
+.markAllBtn:active { opacity: .7; }
+
+/* ── Scroll ── */
+.scroll {
+  flex: 1;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.scroll::-webkit-scrollbar { display: none; }
+
+/* ── Section divider ── */
+.sectionDivider {
+  padding: 16px 22px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: .7px;
+  background: var(--bg);
+}
+
+/* ── Notif item ── */
+.notifItem {
+  display: flex;
+  gap: 12px;
+  padding: 14px 22px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  background: var(--bg);
+  transition: opacity .15s;
+}
+
+.notifItem:active { opacity: .7; }
+
+.notifItemUnread { background: var(--accent-soft); }
+
+/* ── Notif icon ── */
+.notifIcon {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.niMsg     { background: var(--accent-soft); color: var(--accent); }
+.niBooking { background: var(--mint);        color: var(--mint-text); }
+.niMoney   { background: var(--straw);       color: var(--straw-text); }
+.niWarn    { background: var(--red-soft);    color: var(--red); }
+.niReview  { background: var(--straw);       color: var(--straw-text); }
+.niSystem  { background: var(--surface-2);   color: var(--text-dim); }
+
+/* ── Notif body ── */
+.notifBody { flex: 1; min-width: 0; }
+
+.notifText {
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1.4;
+}
+
+.notifTime {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-top: 3px;
+}
+
+/* ── Empty ── */
+.empty {
+  padding: 40px 22px;
+  text-align: center;
+}
+
+.emptyIcon {
+  font-size: 42px;
+  opacity: .25;
+  margin-bottom: 8px;
+}
+
+.emptyText {
+  font-size: 13px;
+  color: var(--text-dim);
+}

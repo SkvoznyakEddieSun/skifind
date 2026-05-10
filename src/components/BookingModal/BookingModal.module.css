@@ -1,0 +1,224 @@
+/* BookingModal — #bookingModal bottom sheet */
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, .7);
+  z-index: 200;
+  display: flex;
+  align-items: flex-end;
+  backdrop-filter: blur(2px);
+}
+
+.sheet {
+  background: var(--bg);
+  width: 100%;
+  max-height: 90%;
+  border-radius: 24px 24px 0 0;
+  padding: 22px 22px calc(var(--safe-bot) + 22px);
+  overflow-y: auto;
+  animation: slideUp .25s ease-out;
+  border-top: 1px solid var(--border);
+}
+
+.handle {
+  width: 40px;
+  height: 4px;
+  background: var(--border-strong);
+  border-radius: 2px;
+  margin: -10px auto 14px;
+}
+
+/* Header */
+.header {
+  text-align: center;
+  margin-bottom: 14px;
+}
+
+.av {
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  flex-shrink: 0;
+  margin: 0 auto 10px;
+}
+
+.avMd {
+  width: 48px;
+  height: 48px;
+  font-size: 16px;
+}
+
+.av-blue   { background: var(--accent);       color: var(--accent-text); }
+.av-ice    { background: var(--accent-soft);   color: var(--accent); }
+.av-mint   { background: var(--mint);          color: var(--mint-text); }
+.av-straw  { background: var(--straw);         color: var(--straw-text); }
+.av-purple { background: rgba(124,58,237,.15); color: #A78BFA; }
+
+.instrName {
+  font-family: var(--ff);
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  color: var(--text);
+}
+
+.instrSub {
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+
+/* Section label */
+.sectionLabel {
+  font-size: 11px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: .7px;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+/* Formats */
+.formats {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.formatBtn {
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--r12);
+  background: var(--surface-1);
+  text-align: left;
+  cursor: pointer;
+  transition: all .15s;
+  font-family: var(--ff);
+  color: var(--text);
+  width: 100%;
+}
+
+.formatBtn:active { transform: scale(.99); }
+
+.formatBtnSelected {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.formatRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.formatLabel {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.formatSub {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+
+.formatPrice {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+/* Inputs */
+.input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--r12);
+  font-size: 16px;
+  font-family: var(--ff);
+  background: var(--surface-1);
+  color: var(--text);
+  margin-bottom: 10px;
+  appearance: none;
+  -webkit-appearance: none;
+  outline: none;
+}
+
+.input:focus {
+  border-color: var(--accent);
+}
+
+.textarea {
+  width: 100%;
+  min-height: 100px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--r12);
+  font-size: 16px;
+  font-family: var(--ff);
+  line-height: 1.55;
+  resize: vertical;
+  background: var(--surface-1);
+  color: var(--text);
+  margin-bottom: 14px;
+  outline: none;
+}
+
+.textarea:focus {
+  border-color: var(--accent);
+}
+
+.textarea::placeholder {
+  color: var(--text-faint);
+}
+
+/* Payment info */
+.paymentInfo {
+  background: var(--ice);
+  padding: 11px 13px;
+  border-radius: var(--r8);
+  font-size: 12px;
+  color: var(--accent);
+  line-height: 1.5;
+  margin-bottom: 14px;
+}
+
+/* Buttons */
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn {
+  padding: 12px 20px;
+  border-radius: var(--r12);
+  font-size: 14px;
+  font-weight: 600;
+  transition: opacity .15s;
+  font-family: var(--ff);
+  cursor: pointer;
+  border: none;
+}
+
+.btn:active { opacity: .8; }
+
+.btnPrimary {
+  background: var(--accent);
+  color: var(--accent-text);
+}
+
+.btnSecondary {
+  background: var(--surface-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+}

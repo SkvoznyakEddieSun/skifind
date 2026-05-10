@@ -1,0 +1,327 @@
+/* MasterClassCreateScreen */
+
+.screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  overflow: hidden;
+  position: relative;
+}
+
+/* ── Header ── */
+.header {
+  background: var(--accent);
+  padding: calc(var(--safe-top) + 14px) 16px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.backBtn {
+  background: rgba(255,255,255,.15);
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 24px;
+  line-height: 1;
+  font-weight: 300;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.headerTitle {
+  font-size: 20px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -0.3px;
+}
+
+/* ── Scroll ── */
+.scroll {
+  flex: 1;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.scroll::-webkit-scrollbar { display: none; }
+
+/* ── Section label ── */
+.sectionLabel {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .7px;
+  color: var(--text-dim);
+  padding: 14px 16px 6px;
+}
+
+/* ── Text input / textarea ── */
+.textInput {
+  display: block;
+  width: calc(100% - 32px);
+  margin: 0 16px;
+  padding: 12px 14px;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--r12);
+  font-size: 16px; /* iOS no-zoom */
+  font-family: var(--ff);
+  color: var(--text);
+  box-sizing: border-box;
+}
+
+.textInput:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+
+.textInput::placeholder { color: var(--text-faint); }
+
+.textArea {
+  resize: none;
+  line-height: 1.5;
+}
+
+/* ── Select ── */
+.selectInput {
+  display: block;
+  width: 100%;
+  padding: 12px 14px;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--r12);
+  font-size: 16px; /* iOS no-zoom */
+  font-family: var(--ff);
+  color: var(--text);
+  box-sizing: border-box;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 32px;
+  cursor: pointer;
+}
+
+.selectInput:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+
+/* ── Chips ── */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0 16px 4px;
+}
+
+.chip {
+  padding: 9px 16px;
+  border-radius: 20px;
+  border: 1px solid var(--border-strong);
+  background: none;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  font-family: var(--ff);
+  cursor: pointer;
+  transition: all .15s;
+}
+
+.chipActive {
+  background: var(--accent);
+  color: var(--accent-text);
+  border-color: var(--accent);
+  font-weight: 700;
+}
+
+/* ── Day strip ── */
+.dayStrip {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: 0 16px 4px;
+}
+
+.dayStrip::-webkit-scrollbar { display: none; }
+
+.dayChip {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 9px 14px;
+  border-radius: var(--r12, 12px);
+  border: 1px solid var(--border);
+  background: var(--surface-1);
+  cursor: pointer;
+  font-family: var(--ff);
+  transition: all .15s;
+  min-width: 72px;
+}
+
+.dayChipActive {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.dayChipActive .dayChipTop,
+.dayChipActive .dayChipSub {
+  color: #fff;
+}
+
+.dayChipTop {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.dayChipSub {
+  font-size: 11px;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+/* ── Time strip ── */
+.timeStrip {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: 0 16px 4px;
+  flex-wrap: wrap;
+}
+
+.timeStrip::-webkit-scrollbar { display: none; }
+
+.timeChip {
+  flex-shrink: 0;
+  padding: 9px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--surface-1);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  font-family: var(--ff);
+  cursor: pointer;
+  transition: all .15s;
+}
+
+.timeChipActive {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-text);
+}
+
+/* ── Row of 2 inputs ── */
+.row2 {
+  display: flex;
+  gap: 8px;
+  padding: 0 16px;
+}
+
+.row2 > div { flex: 1; }
+
+.row2 .sectionLabel {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.row2 .textInput {
+  width: 100%;
+  margin: 0;
+}
+
+/* ── Stepper ── */
+.stepper {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0 16px 4px;
+}
+
+.stepperBtn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border-strong);
+  background: var(--surface-1);
+  font-size: 22px;
+  font-weight: 300;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all .15s;
+  font-family: var(--ff);
+}
+
+.stepperBtn:active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+.stepperVal {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text);
+  min-width: 32px;
+  text-align: center;
+}
+
+.stepperHint {
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+/* ── Publish button ── */
+.publishBtn {
+  display: block;
+  width: calc(100% - 32px);
+  margin: 20px 16px 0;
+  padding: 15px;
+  border-radius: var(--r12);
+  background: var(--pine, #3d8b40);
+  color: #fff;
+  border: none;
+  font-size: 16px;
+  font-weight: 700;
+  font-family: var(--ff);
+  cursor: pointer;
+  transition: opacity .15s;
+  letter-spacing: .2px;
+}
+
+.publishBtn:active  { opacity: .8; }
+.publishBtn:disabled { opacity: .45; cursor: not-allowed; }
+
+/* ── Toast ── */
+.toast {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  right: 16px;
+  background: var(--text);
+  color: var(--bg);
+  padding: 14px 16px;
+  border-radius: var(--r12);
+  font-size: 14px;
+  font-weight: 500;
+  text-align: center;
+  z-index: 100;
+  animation: toastIn .3s ease;
+}
+
+@keyframes toastIn {
+  from { transform: translateY(20px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}

@@ -1,0 +1,238 @@
+/* LessonDetailScreen */
+
+.screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  overflow: hidden;
+}
+
+/* ── Header ── */
+.header {
+  background: var(--accent);
+  padding: calc(var(--safe-top) + 14px) 16px 20px;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.backBtn {
+  position: absolute;
+  left: 14px;
+  top: calc(var(--safe-top) + 14px);
+  background: rgba(255,255,255,.15);
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 24px;
+  line-height: 1;
+  font-weight: 300;
+  cursor: pointer;
+}
+
+.headerStatus {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255,255,255,.7);
+  text-transform: uppercase;
+  letter-spacing: .7px;
+  margin-bottom: 6px;
+}
+
+.headerDate {
+  text-align: center;
+  font-size: 28px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -0.5px;
+  margin-bottom: 2px;
+}
+
+.headerTime {
+  text-align: center;
+  font-size: 15px;
+  color: rgba(255,255,255,.8);
+}
+
+/* ── Scroll ── */
+.scroll {
+  flex: 1;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.scroll::-webkit-scrollbar { display: none; }
+
+.content { padding: 16px; }
+
+/* ── Section label ── */
+.secLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: .7px;
+  margin-bottom: 10px;
+  margin-top: 18px;
+}
+.secLabel:first-child { margin-top: 0; }
+
+/* ── Student card ── */
+.studentCard {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--r12);
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  margin-bottom: 4px;
+  transition: opacity .15s;
+}
+.studentCard:active { opacity: .8; }
+
+.av {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.studentInfo { flex: 1; }
+
+.studentName {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+
+.studentMeta {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.studentChevron {
+  color: var(--text-dim);
+  font-size: 20px;
+}
+
+/* ── Info rows ── */
+.infoCard {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--r12);
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+
+.infoRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 13px 14px;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+}
+.infoRow:last-child { border-bottom: none; }
+
+.infoLabel { color: var(--text-dim); }
+.infoValue { font-weight: 500; color: var(--text); text-align: right; }
+.infoValueAccent { color: var(--accent); font-size: 16px; font-weight: 700; }
+.infoValueGreen { color: var(--pine); }
+
+/* ── Map stub ── */
+.mapStub {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--r12);
+  height: 100px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: var(--text-dim);
+  font-size: 13px;
+  margin-bottom: 4px;
+  cursor: pointer;
+}
+
+.mapIcon { font-size: 28px; opacity: .5; }
+
+/* ── Status badge ── */
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.statusConfirmed { background: var(--mint); color: var(--mint-text); }
+.statusPending   { background: var(--straw); color: var(--straw-text); }
+
+/* ── Action buttons ── */
+.actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 20px;
+  padding-bottom: calc(var(--safe-bot) + 8px);
+}
+
+.btnPrimary {
+  flex: 2;
+  padding: 14px;
+  background: var(--accent);
+  color: var(--accent-text);
+  border: none;
+  border-radius: var(--r12);
+  font-size: 15px;
+  font-weight: 600;
+  font-family: var(--ff);
+  cursor: pointer;
+  transition: opacity .15s;
+}
+.btnPrimary:active { opacity: .8; }
+
+.btnSecondary {
+  flex: 1;
+  padding: 14px;
+  background: var(--surface-1);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--r12);
+  font-size: 15px;
+  font-weight: 600;
+  font-family: var(--ff);
+  cursor: pointer;
+  transition: opacity .15s;
+}
+.btnSecondary:active { opacity: .8; }
+
+.btnDanger {
+  flex: 1;
+  padding: 14px;
+  background: var(--red-soft);
+  color: var(--red);
+  border: 1px solid var(--red);
+  border-radius: var(--r12);
+  font-size: 15px;
+  font-weight: 600;
+  font-family: var(--ff);
+  cursor: pointer;
+}

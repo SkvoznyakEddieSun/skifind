@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node generate-icons.js)",
+      "Bash(npm install *)",
+      "Bash(npm run *)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:5173)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(npx tsc *)",
+      "Bash(python3 -c ' *)",
+      "Bash(npx netlify-cli *)"
+    ]
+  }
+}

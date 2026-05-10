@@ -1,0 +1,801 @@
+/* ScheduleScreen */
+
+.screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  overflow: hidden;
+  position: relative;
+}
+
+/* ── Header ── */
+.header {
+  background: var(--accent);
+  padding: calc(var(--safe-top) + 14px) 0 0;
+  flex-shrink: 0;
+}
+
+.headerTitle {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  color: #fff;
+  padding: 0 16px 12px;
+}
+
+/* ── Tabs ── */
+.tabs {
+  display: flex;
+  padding: 0 16px;
+  gap: 2px;
+}
+
+.tab {
+  flex: 1;
+  padding: 10px 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255,255,255,.6);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  font-family: var(--ff);
+  cursor: pointer;
+  transition: all .2s;
+  white-space: nowrap;
+}
+
+.tabActive {
+  color: #fff;
+  border-bottom-color: #fff;
+  font-weight: 700;
+}
+
+/* ── Scroll ── */
+.scroll {
+  flex: 1;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.scroll::-webkit-scrollbar { display: none; }
+
+.tabContent {
+  padding: 16px;
+}
+
+/* ── Group labels ── */
+.groupLabel {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .7px;
+  padding: 8px 0 6px;
+  color: var(--text-dim);
+}
+
+.group-today    { color: var(--accent); }
+.group-tomorrow { color: var(--mint-text); }
+.group-week     { color: var(--text-dim); }
+.group-later    { color: var(--text-faint); }
+
+/* ── Booking card ── */
+.bookingCard {
+  display: flex;
+  gap: 12px;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--text-dim);
+  border-radius: var(--r12);
+  padding: 12px;
+  margin-bottom: 10px;
+  align-items: center;
+}
+
+.bookingCard-today    { border-left-color: var(--accent); }
+.bookingCard-tomorrow { border-left-color: var(--mint-text); }
+.bookingCard-week     { border-left-color: var(--text-dim); }
+.bookingCard-later    { border-left-color: var(--text-faint); }
+
+.bookingLeft {
+  text-align: center;
+  min-width: 36px;
+  flex-shrink: 0;
+}
+
+.bookingDay {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1;
+}
+
+.bookingMonth {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-dim);
+  letter-spacing: .5px;
+  margin-top: 1px;
+}
+
+.bookingMain {
+  flex: 1;
+  min-width: 0;
+}
+
+.bookingTime {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+
+.bookingClient {
+  font-size: 13px;
+  color: var(--text);
+  margin-bottom: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bookingMeta {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.bookingActions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.bookingActBtn {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--r8);
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bookingActBtnPrimary {
+  background: var(--accent);
+  color: var(--accent-text);
+  border-color: var(--accent);
+  font-size: 18px;
+  font-weight: 700;
+}
+
+/* ── Empty state ── */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 48px 16px 32px;
+  text-align: center;
+}
+
+.emptyIcon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.emptyTitle {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.emptySub {
+  font-size: 13px;
+  color: var(--text-dim);
+  line-height: 1.6;
+  max-width: 280px;
+  margin-bottom: 20px;
+}
+
+.emptyBtn {
+  padding: 12px 24px;
+  border-radius: var(--r12);
+  background: var(--accent);
+  color: var(--accent-text);
+  border: none;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: var(--ff);
+  cursor: pointer;
+}
+
+/* ── Available tab ── */
+.availHeader {
+  margin-bottom: 12px;
+}
+
+.availHeaderTitle {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+
+.availHeaderRange {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+/* Day strip */
+.dayStrip {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 12px;
+  margin: 0 -16px;
+  padding-left: 16px;
+  padding-right: 16px;
+}
+.dayStrip::-webkit-scrollbar { display: none; }
+
+.dayChip {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 8px 12px;
+  border-radius: var(--r12);
+  border: 1px solid var(--border);
+  background: var(--surface-1);
+  cursor: pointer;
+  transition: all .15s;
+  font-family: var(--ff);
+  min-width: 64px;
+}
+
+.dayChipActive {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.dayChipLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.dayChipActive .dayChipLabel {
+  color: var(--accent-text);
+}
+
+.dayChipCount {
+  font-size: 11px;
+  color: var(--text-dim);
+  font-weight: 500;
+}
+
+.dayChipActive .dayChipCount {
+  color: rgba(255,255,255,.75);
+}
+
+.dayChipOff {
+  opacity: .4;
+}
+
+.dayChipOff .dayChipLabel {
+  text-decoration: line-through;
+}
+
+/* Slot list */
+.slotList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.slotCard {
+  display: flex;
+  gap: 12px;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--r12);
+  padding: 12px;
+  align-items: flex-start;
+}
+
+.slotCardBlocked {
+  background: var(--surface-2);
+  opacity: .7;
+}
+
+.slotIcon {
+  font-size: 18px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.slotInfo {
+  flex: 1;
+}
+
+.slotTime {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+
+.slotLabel {
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-bottom: 8px;
+}
+
+.slotActions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.slotBtn {
+  padding: 6px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--border-strong);
+  background: none;
+  font-size: 12px;
+  color: var(--text);
+  font-family: var(--ff);
+  cursor: pointer;
+  transition: opacity .15s;
+}
+
+.slotBtn:active { opacity: .7; }
+
+.slotBtnAccent {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.emptyStateSm {
+  padding: 32px 0;
+  text-align: center;
+}
+
+.emptyStatSmText {
+  font-size: 14px;
+  color: var(--text-dim);
+}
+
+/* ── Template tab ── */
+.sectionTitle {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 10px;
+  margin-top: 16px;
+}
+
+.sectionTitle:first-child {
+  margin-top: 0;
+}
+
+/* Day block */
+.dayBlock {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--r12);
+  padding: 14px;
+  margin-bottom: 12px;
+}
+
+.dayBlockTitle {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 10px;
+}
+
+/* Time row */
+.timeRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.timeSelect {
+  flex: 1;
+  padding: 10px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--r8);
+  font-size: 16px; /* iOS no-zoom */
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--ff);
+  text-align: center;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+}
+
+.timeSelect:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+
+.timeSep {
+  font-size: 16px;
+  color: var(--text-dim);
+  flex-shrink: 0;
+}
+
+/* Checkbox row */
+.checkRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+  margin-top: 4px;
+}
+
+.checkbox {
+  width: 20px;
+  height: 20px;
+  border: 1.5px solid var(--border-strong);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  flex-shrink: 0;
+  transition: all .15s;
+}
+
+.checkboxOn {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-text);
+}
+
+.checkLabel {
+  font-size: 13px;
+  color: var(--text);
+}
+
+/* Chips */
+.chipRow {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 4px;
+  flex-wrap: wrap;
+}
+
+.durationChip {
+  padding: 8px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--border-strong);
+  background: none;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+  font-family: var(--ff);
+  cursor: pointer;
+  transition: all .15s;
+  min-width: 44px;
+  text-align: center;
+}
+
+.durationChipActive {
+  background: var(--accent);
+  color: var(--accent-text);
+  border-color: var(--accent);
+}
+
+.offDayChipActive {
+  background: var(--surface-2);
+  color: var(--text-dim);
+  border-color: var(--border-strong);
+  text-decoration: line-through;
+  opacity: .6;
+}
+
+.chipUnit {
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-bottom: 16px;
+}
+
+/* Custom duration */
+.customDurRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0;
+}
+
+.customDurInput {
+  width: 80px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--r8);
+  font-size: 16px;
+  background: var(--surface-1);
+  color: var(--text);
+  font-family: var(--ff);
+  text-align: center;
+}
+
+.customDurLabel {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+/* Preview */
+.previewBlock {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--r12);
+  padding: 14px;
+  margin: 16px 0;
+}
+
+.previewTitle {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 10px;
+}
+
+.previewSlot {
+  font-size: 13px;
+  color: var(--text);
+  padding: 3px 0;
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.previewSlotShort {
+  color: var(--text-dim);
+}
+
+.previewSlotLabel {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.previewSlotShort .previewSlotLabel {
+  color: var(--red);
+}
+
+.previewSummary {
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+.previewOff {
+  font-size: 13px;
+  color: var(--text-dim);
+  font-style: italic;
+}
+
+/* Template actions */
+.templateActions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  margin-bottom: 32px;
+}
+
+.btnApply {
+  flex: 2;
+  padding: 14px;
+  border-radius: var(--r12);
+  background: var(--accent);
+  color: var(--accent-text);
+  border: none;
+  font-size: 15px;
+  font-weight: 700;
+  font-family: var(--ff);
+  cursor: pointer;
+  transition: opacity .15s;
+}
+.btnApply:active { opacity: .8; }
+
+.btnAdvanced {
+  flex: 1;
+  padding: 14px;
+  border-radius: var(--r12);
+  background: var(--surface-1);
+  color: var(--text);
+  border: 1px solid var(--border);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--ff);
+  cursor: pointer;
+  transition: opacity .15s;
+  white-space: nowrap;
+}
+.btnAdvanced:active { opacity: .8; }
+
+/* ── Advanced mode ── */
+.advDayNav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--r12);
+  padding: 12px 16px;
+  margin-bottom: 12px;
+}
+
+.advDayNavBtn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.advDayNavBtn:disabled {
+  opacity: .3;
+  cursor: not-allowed;
+}
+
+.advDayName {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.advEmptyDay {
+  padding: 20px;
+  text-align: center;
+  background: var(--surface-1);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--r12);
+  margin-bottom: 10px;
+}
+
+.advEmptyDayText {
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+.advBlock {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--r12);
+  padding: 12px;
+  margin-bottom: 10px;
+}
+
+.advBlockTitle {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 8px;
+}
+
+.advBlockMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.advBlockMetaLabel {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  color: var(--text-dim);
+  font-weight: 600;
+}
+
+.advChipRow {
+  display: flex;
+  gap: 6px;
+}
+
+.advChip {
+  padding: 5px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--border-strong);
+  background: none;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  font-family: var(--ff);
+  cursor: pointer;
+}
+
+.advChipActive {
+  background: var(--accent);
+  color: var(--accent-text);
+  border-color: var(--accent);
+}
+
+.advBlockRemove {
+  margin-top: 10px;
+  padding: 7px 14px;
+  border-radius: var(--r8);
+  border: 1px solid var(--red);
+  background: var(--red-soft);
+  color: var(--red);
+  font-size: 12px;
+  font-family: var(--ff);
+  cursor: pointer;
+}
+
+.addBlockBtn {
+  width: 100%;
+  padding: 12px;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--r12);
+  background: none;
+  color: var(--accent);
+  font-size: 14px;
+  font-weight: 600;
+  font-family: var(--ff);
+  cursor: pointer;
+  margin-bottom: 16px;
+}
+
+.advDivider {
+  height: 1px;
+  background: var(--border);
+  margin: 12px 0;
+}
+
+.copyDayBtn {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--r12);
+  background: var(--surface-1);
+  color: var(--text);
+  font-size: 14px;
+  font-family: var(--ff);
+  cursor: pointer;
+  margin-bottom: 16px;
+}
+
+/* ── Toast ── */
+.toast {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  right: 16px;
+  background: var(--text);
+  color: var(--bg);
+  padding: 14px 16px;
+  border-radius: var(--r12);
+  font-size: 14px;
+  font-weight: 500;
+  text-align: center;
+  z-index: 100;
+  animation: toastIn .3s ease;
+}
+
+@keyframes toastIn {
+  from { transform: translateY(20px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}

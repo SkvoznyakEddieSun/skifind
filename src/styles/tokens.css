@@ -1,0 +1,144 @@
+/* ════════════════════════════════════════════════════════════
+   SkiFind — Design System Tokens
+   ────────────────────────────────────────────────────────────
+   Извлечено из прототипа index.html. НЕ МЕНЯТЬ ЗНАЧЕНИЯ.
+   Только эти токены можно использовать в компонентах.
+   Никаких хардкод-цветов в JSX/CSS-modules.
+   ════════════════════════════════════════════════════════════ */
+
+:root {
+  /* Geometry */
+  --ff: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --r8: 10px;
+  --r12: 16px;
+  --r16: 20px;
+  --r24: 24px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bot: env(safe-area-inset-bottom, 0px);
+
+  /* Brand accent (одинаковый ice-blue family в обеих темах) */
+  --accent-on-dark: #7DD3FC;       /* light ice-blue для тёмной темы */
+  --accent-on-light: #0284C7;      /* deep sky-600 для светлой темы */
+
+  /* Semantic colors */
+  --success-on-dark: #86EFAC;
+  --success-on-light: #16A34A;
+  --warn-on-dark: #FCD34D;
+  --warn-on-light: #D97706;
+  --danger-on-dark: #FCA5A5;
+  --danger-on-light: #DC2626;
+  --gold-on-dark: #FCD34D;
+  --gold-on-light: #EAB308;
+}
+
+/* ─────────────────────────────────────────────
+   DARK THEME (DEFAULT — ставится при загрузке)
+   ───────────────────────────────────────────── */
+:root,
+:root[data-theme="dark"] {
+  --bg: #0E0E10;
+  --surface-1: #1A1A1D;
+  --surface-2: #232327;
+  --surface-3: #2C2C30;
+  --hover: rgba(255, 255, 255, .04);
+  --border: rgba(255, 255, 255, .08);
+  --border-strong: rgba(255, 255, 255, .16);
+  --text: #FFFFFF;
+  --text-dim: rgba(255, 255, 255, .55);
+  --text-faint: rgba(255, 255, 255, .35);
+
+  --accent: var(--accent-on-dark);
+  --accent-text: #0E0E10;            /* чёрный текст на акценте */
+  --accent-soft: rgba(125, 211, 252, .15);
+
+  --mint: rgba(134, 239, 172, .15);
+  --mint-text: var(--success-on-dark);
+  --gold: var(--gold-on-dark);
+  --amber: var(--warn-on-dark);
+  --straw: rgba(252, 211, 77, .15);
+  --straw-text: var(--warn-on-dark);
+  --red: var(--danger-on-dark);
+  --red-soft: rgba(252, 165, 165, .15);
+
+  --shadow: 0 10px 30px rgba(0, 0, 0, .4);
+  --bar-bg: #0E0E10;
+
+  /* Legacy aliases (из прототипа) */
+  --steel: var(--accent-on-dark);
+  --sky:   var(--accent-on-dark);
+  --pine:  var(--success-on-dark);
+  --leaf:  var(--success-on-dark);
+  --ash:   #1A1A1D;
+  --ice:   rgba(125, 211, 252, .15);
+}
+
+/* ─────────────────────────────────────────────
+   LIGHT THEME (включается через toggle в Профиле)
+   ───────────────────────────────────────────── */
+:root[data-theme="light"] {
+  --bg: #F7F8FA;
+  --surface-1: #FFFFFF;
+  --surface-2: #F1F4F8;
+  --surface-3: #E8ECF1;
+  --hover: rgba(0, 0, 0, .03);
+  --border: rgba(0, 0, 0, .08);          /* ← было самоссылкой, ИСПРАВЛЕНО */
+  --border-strong: rgba(0, 0, 0, .15);   /* ← было самоссылкой, ИСПРАВЛЕНО */
+  --text: #0E0E10;
+  --text-dim: rgba(14, 14, 16, .6);
+  --text-faint: rgba(14, 14, 16, .4);
+
+  --accent: var(--accent-on-light);
+  --accent-text: #FFFFFF;
+  --accent-soft: rgba(2, 132, 199, .1);
+
+  --mint: #DCFCE7;
+  --mint-text: #15803D;
+  --gold: var(--gold-on-light);
+  --amber: var(--warn-on-light);
+  --straw: #FEF3C7;
+  --straw-text: #92400E;
+  --red: var(--danger-on-light);
+  --red-soft: #FEE2E2;
+
+  --shadow: 0 8px 24px rgba(0, 0, 0, .08);
+  --bar-bg: #0E0E10;
+
+  /* Legacy aliases (из прототипа) */
+  --steel: var(--accent-on-light);
+  --sky:   var(--accent-on-light);
+  --pine:  var(--success-on-light);
+  --leaf:  var(--success-on-light);
+  --ash:   #F1F4F8;
+  --ice:   #E0F2FE;
+}
+
+/* Базовый сброс */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  height: 100%;
+  background: var(--bg);
+  font-family: var(--ff);
+  color: var(--text);
+  overscroll-behavior: none;
+  font-feature-settings: "cv11", "ss01";
+  transition: background-color .25s ease, color .25s ease;
+}
+
+#root {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ВАЖНО: все инпуты должны иметь font-size 16px чтобы iOS не зумил при фокусе */
+input, textarea, select {
+  font-size: 16px;
+  font-family: var(--ff);
+}

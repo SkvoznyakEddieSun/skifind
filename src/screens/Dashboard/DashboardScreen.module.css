@@ -1,0 +1,543 @@
+/* DashboardScreen — scr-dashboard */
+
+.screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  overflow: hidden;
+}
+
+/* ── Hero ── */
+.dashNew {
+  padding: calc(var(--safe-top) + 14px) 22px 0;
+  flex-shrink: 0;
+}
+
+.dashRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+/* Avatar */
+.av {
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  flex-shrink: 0;
+  background: var(--accent);
+  color: var(--accent-text);
+}
+
+.avMd { width: 44px; height: 44px; font-size: 14px; }
+
+.dashGreeting { flex: 1; min-width: 0; }
+
+.dashHello {
+  font-size: 12px;
+  color: var(--text-dim);
+  font-weight: 400;
+  margin-bottom: 1px;
+}
+
+.dashName {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.2px;
+}
+
+.dashStatusPill {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 5px 10px;
+  background: var(--mint);
+  color: var(--mint-text);
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.dashStatusPill::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  background: var(--success-on-dark);
+  border-radius: 50%;
+}
+
+.dashBell {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.dashBell svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  stroke-width: 2;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.notifDot {
+  position: absolute;
+  top: 10px;
+  right: 11px;
+  width: 8px;
+  height: 8px;
+  background: var(--red);
+  border-radius: 50%;
+  border: 2px solid var(--surface-1);
+}
+
+.dashTitle {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -1px;
+  line-height: 1.05;
+  margin-bottom: 18px;
+}
+
+.dashTitle em {
+  font-style: normal;
+  color: var(--accent);
+}
+
+/* ── Content ── */
+.dashContent {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 22px 110px;
+  scrollbar-width: none;
+}
+
+.dashContent::-webkit-scrollbar { display: none; }
+
+/* ── Mountain toggle ── */
+.mountainNew {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--r16);
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+  transition: background .25s, border-color .25s;
+}
+
+.mountainActive {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+
+.mnIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--surface-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+  transition: background .25s;
+}
+
+.mountainActive .mnIcon {
+  background: var(--accent);
+}
+
+.mnText { flex: 1; min-width: 0; }
+
+.mnTitle {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.mnSub {
+  font-size: 11px;
+  color: var(--text-dim);
+  line-height: 1.4;
+  margin-top: 2px;
+}
+
+.mnSubTimer {
+  font-size: 11px;
+  color: var(--text-dim);
+  line-height: 1.4;
+}
+
+.mnSwitch {
+  width: 46px;
+  height: 26px;
+  background: var(--surface-3);
+  border-radius: 13px;
+  position: relative;
+  flex-shrink: 0;
+  cursor: pointer;
+  border: none;
+  transition: background .25s;
+  padding: 0;
+}
+
+.mnSwitch::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 22px;
+  height: 22px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform .25s;
+  box-shadow: 0 1px 4px rgba(0,0,0,.2);
+}
+
+.mnSwitchOn { background: var(--accent); }
+.mnSwitchOn::after { transform: translateX(20px); }
+
+/* ── Verify banner ── */
+.verifyNew {
+  background: var(--straw);
+  border: 1px solid rgba(252, 211, 77, .25);
+  color: var(--straw-text);
+  border-radius: var(--r12);
+  padding: 11px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+  font-size: 12px;
+}
+
+.verifyIcon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(252, 211, 77, .15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.verifyTitle {
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+
+.verifySub {
+  font-size: 11px;
+  opacity: .85;
+  line-height: 1.4;
+}
+
+/* ── Metric grid ── */
+.mgridNew {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.mcard {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--r16);
+  padding: 18px;
+  position: relative;
+  cursor: pointer;
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform .1s;
+}
+
+.mcard:active { transform: scale(.98); }
+
+.mcardAccent {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.mcardAccent .mcLabel,
+.mcardAccent .mcSub { color: rgba(0,0,0,.55); }
+
+.mcardAccent .mcValue { color: var(--accent-text); }
+
+.mcardAccent .mcArrow {
+  background: rgba(0,0,0,.15);
+  color: var(--accent-text);
+}
+
+.mcardAccent .mcIcon {
+  background: rgba(0,0,0,.15);
+  color: var(--accent-text);
+}
+
+.mcArrow {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--surface-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  color: var(--text-dim);
+}
+
+.mcTop {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mcIcon {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  background: var(--surface-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+}
+
+.mcLabel {
+  font-size: 12px;
+  color: var(--text-dim);
+  font-weight: 500;
+}
+
+.mcValue {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -1px;
+  line-height: 1;
+  color: var(--text);
+}
+
+.mcValueSm { font-size: 22px; }
+.mcValueGold { color: var(--gold); }
+
+.mcSub {
+  font-size: 11px;
+  color: var(--text-dim);
+  font-weight: 400;
+  margin-top: 4px;
+}
+
+.mcDelta {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 600;
+  margin-top: 6px;
+  align-self: flex-start;
+}
+
+.mcardAccent .mcDelta {
+  background: rgba(0,0,0,.15);
+  color: var(--accent-text);
+}
+
+/* ── Upcoming section ── */
+.secRowNew {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 0 12px;
+}
+
+.secTitleNew {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.3px;
+}
+
+.secLinkNew {
+  font-size: 12px;
+  color: var(--accent);
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  font-family: var(--ff);
+}
+
+.lcard {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--r16);
+  padding: 16px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  cursor: pointer;
+  transition: transform .1s;
+}
+
+.lcard:active { transform: scale(.99); }
+
+.lcardDate {
+  width: 52px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.lcardDay {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.5px;
+  line-height: 1;
+}
+
+.lcardMon {
+  font-size: 10px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 3px;
+}
+
+.lcardInfo { flex: 1; min-width: 0; }
+
+.lcardName {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+
+.lcardMeta { font-size: 11px; color: var(--text-dim); }
+
+.lcardPrice {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+/* ── Activity block ── */
+.actNew {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--r16);
+  padding: 16px;
+  margin-top: 18px;
+}
+
+.actTitle {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: .7px;
+  margin-bottom: 12px;
+}
+
+.actRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+
+.actBar {
+  height: 6px;
+  background: var(--surface-2);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 14px;
+}
+
+.actFill {
+  height: 100%;
+  border-radius: 3px;
+}
+
+/* ── Master class CTA ── */
+.mcCta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--accent-soft);
+  border: 1.5px solid var(--accent);
+  border-radius: var(--r12);
+  padding: 14px;
+  margin-bottom: 14px;
+  cursor: pointer;
+  transition: opacity .15s;
+}
+
+.mcCta:active { opacity: .8; }
+
+.mcCtaLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.mcCtaIcon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.mcCtaTitle {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 2px;
+}
+
+.mcCtaSub {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.mcCtaArrow {
+  font-size: 18px;
+  color: var(--accent);
+  font-weight: 700;
+  flex-shrink: 0;
+}

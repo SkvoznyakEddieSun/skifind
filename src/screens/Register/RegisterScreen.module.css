@@ -1,0 +1,541 @@
+/* RegisterScreen */
+
+.screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  overflow: hidden;
+}
+
+/* ── Hero header ── */
+.regHero {
+  background: var(--accent);
+  padding: calc(var(--safe-top) + 14px) 16px 16px;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.backBtn {
+  position: absolute;
+  left: 14px;
+  top: calc(var(--safe-top) + 14px);
+  background: rgba(255,255,255,.15);
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 24px;
+  line-height: 1;
+  font-weight: 300;
+  cursor: pointer;
+}
+
+.regTitle {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  color: #fff;
+  margin-bottom: 2px;
+  padding-left: 44px;
+}
+
+.regSub {
+  font-size: 12px;
+  color: rgba(0,0,0,.55);
+  margin-bottom: 10px;
+  font-weight: 300;
+  padding-left: 44px;
+}
+
+/* Progress pills */
+.progPills {
+  display: flex;
+  gap: 5px;
+}
+
+.pp {
+  height: 4px;
+  flex: 1;
+  border-radius: 2px;
+  background: rgba(255,255,255,.15);
+  transition: background .3s;
+}
+
+.ppDone   { background: var(--leaf); }
+.ppActive { background: var(--surface-1); }
+
+/* ── Scroll ── */
+.scroll {
+  flex: 1;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.scroll::-webkit-scrollbar { display: none; }
+
+/* ── Step body ── */
+.stepBody { padding: 16px; }
+
+.stepTitle {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  color: var(--text);
+  margin-bottom: 14px;
+}
+
+/* ── Fields ── */
+.field { margin-bottom: 14px; }
+
+.field label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: .7px;
+  margin-bottom: 6px;
+}
+
+.field input,
+.field textarea,
+.field select {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--r12);
+  font-size: 14px;
+  background: var(--surface-1);
+  color: var(--text);
+  font-family: var(--ff);
+  box-sizing: border-box;
+}
+
+.field select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 36px;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path d='M1 1l5 5 5-5' stroke='%23999' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  cursor: pointer;
+}
+
+.field input:focus,
+.field textarea:focus,
+.field select:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+
+.field textarea {
+  resize: vertical;
+  min-height: 80px;
+  line-height: 1.6;
+}
+
+.fieldRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+/* ── Avatar upload ── */
+.avUpload {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.avCircle {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  border: 2px solid var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  color: var(--accent);
+  flex-shrink: 0;
+  font-weight: 700;
+}
+
+.uploadBtn {
+  padding: 9px 14px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r8);
+  font-size: 13px;
+  color: var(--text);
+  font-family: var(--ff);
+  cursor: pointer;
+}
+
+.uploadHint {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-top: 3px;
+}
+
+/* ── Check grid ── */
+.checkGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.checkItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border: .5px solid var(--border-strong);
+  border-radius: 20px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all .15s;
+  background: none;
+  color: var(--text);
+  font-family: var(--ff);
+}
+
+.checkItemOn {
+  background: var(--accent);
+  color: var(--accent-text);
+  border-color: var(--accent);
+}
+
+/* ── Resort tags ── */
+.resortTagsWrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--r8);
+  min-height: 42px;
+  background: var(--surface-1);
+  margin-bottom: 8px;
+}
+
+.resortTag {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  background: var(--ice);
+  border-radius: 20px;
+  font-size: 12px;
+  color: var(--accent);
+}
+
+.resortTagBtn {
+  background: none;
+  border: none;
+  color: var(--steel);
+  font-size: 14px;
+  line-height: 1;
+  padding: 0;
+  cursor: pointer;
+}
+
+.resortAddRow {
+  display: flex;
+  gap: 8px;
+}
+
+.resortAddRow input { flex: 1; }
+
+.addBtn {
+  padding: 8px 14px;
+  background: var(--steel);
+  color: #fff;
+  border: none;
+  border-radius: var(--r8);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: var(--ff);
+  white-space: nowrap;
+}
+
+/* ── Locked resort block ── */
+.resortLocked {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--accent-soft);
+  border: 1px solid var(--accent);
+  border-radius: var(--r12);
+}
+
+.resortLockedIcon { font-size: 24px; flex-shrink: 0; }
+
+.resortLockedInfo { flex: 1; }
+
+.resortLockedName {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+
+.resortLockedSub {
+  font-size: 12px;
+  color: var(--text-dim);
+  line-height: 1.4;
+}
+
+/* ── Price table ── */
+.priceTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.priceTable th {
+  font-size: 10px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  padding: 0 6px 6px 0;
+  text-align: left;
+}
+
+.priceTable td {
+  padding: 4px 6px 4px 0;
+}
+
+.priceTable td input {
+  width: 100%;
+  padding: 7px 9px;
+  border: .5px solid var(--border-strong);
+  border-radius: var(--r8);
+  font-size: 13px;
+  background: var(--surface-1);
+  color: var(--text);
+  font-family: var(--ff);
+  box-sizing: border-box;
+}
+
+.priceTable td input:focus { border-color: var(--accent); outline: none; }
+
+.ptLabel { font-size: 12px; color: var(--text); }
+
+.priceRowRemove {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: none;
+  background: var(--red-soft);
+  color: var(--red);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  font-family: var(--ff);
+}
+
+.addPriceRowBtn {
+  width: 100%;
+  margin-top: 8px;
+  padding: 9px;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--r8);
+  background: none;
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 500;
+  font-family: var(--ff);
+  cursor: pointer;
+  transition: background .15s;
+}
+.addPriceRowBtn:active { background: var(--surface-1); }
+
+/* ── Review box (step 4) ── */
+.reviewBox {
+  background: var(--ash);
+  border-radius: var(--r12);
+  padding: 14px;
+  margin-bottom: 16px;
+}
+
+.reviewBoxHead {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.previewAv {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.previewName {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.previewSub {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.reviewBoxRow {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: .5px solid var(--border);
+  font-size: 13px;
+}
+
+.reviewBoxRow:last-child { border: none; }
+.reviewBoxRow span:first-child { color: var(--text-dim); }
+.reviewBoxRow span:last-child  { font-weight: 500; text-align: right; max-width: 55%; }
+
+/* ── Agree items ── */
+.agreeItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--r8);
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1.5;
+  background: var(--surface-1);
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.agreeBox {
+  width: 18px;
+  height: 18px;
+  border: 1.5px solid var(--border-strong);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+  transition: all .15s;
+}
+
+.agreeBoxOn {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-text);
+  font-size: 11px;
+}
+
+.agreeLink { color: var(--steel); }
+
+/* ── Step nav ── */
+.stepNav {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.btnPrimary {
+  flex: 2;
+  padding: 14px 20px;
+  border-radius: var(--r12);
+  font-size: 15px;
+  font-weight: 600;
+  background: var(--accent);
+  color: var(--accent-text);
+  border: none;
+  font-family: var(--ff);
+  cursor: pointer;
+  transition: opacity .15s;
+}
+.btnPrimary:active { opacity: .8; }
+
+.btnPrimaryGreen { background: var(--pine); }
+
+.btnSecondary {
+  flex: 1;
+  padding: 14px 20px;
+  border-radius: var(--r12);
+  font-size: 15px;
+  font-weight: 600;
+  background: var(--surface-1);
+  color: var(--text);
+  border: 1px solid var(--border);
+  font-family: var(--ff);
+  cursor: pointer;
+  transition: opacity .15s;
+}
+.btnSecondary:active { opacity: .8; }
+
+/* ── Success screen ── */
+.successScreen {
+  padding: 32px 16px;
+  text-align: center;
+}
+
+.successIcon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--mint);
+  margin: 0 auto 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  color: var(--mint-text);
+}
+
+.successTitle {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.successSub {
+  font-size: 14px;
+  color: var(--text-dim);
+  line-height: 1.6;
+  max-width: 300px;
+  margin: 0 auto 20px;
+}
+
+.btnPrimaryBlock {
+  display: block;
+  width: 100%;
+  padding: 14px 20px;
+  border-radius: var(--r12);
+  font-size: 15px;
+  font-weight: 600;
+  background: var(--accent);
+  color: var(--accent-text);
+  border: none;
+  font-family: var(--ff);
+  cursor: pointer;
+}

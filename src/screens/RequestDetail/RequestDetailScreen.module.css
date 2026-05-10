@@ -1,0 +1,240 @@
+/* RequestDetailScreen */
+
+.screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  overflow: hidden;
+}
+
+/* ── Header ── */
+.header {
+  background: var(--bg);
+  padding: calc(var(--safe-top) + 14px) 16px 14px;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.backBtn {
+  color: var(--accent);
+  font-size: 24px;
+  line-height: 1;
+  padding: 0 4px 0 0;
+  background: none;
+  border: none;
+  font-weight: 300;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.headerInfo { flex: 1; }
+
+.headerTitle {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.3px;
+}
+
+.headerSub {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-top: 1px;
+}
+
+.newBadge {
+  background: var(--accent);
+  color: var(--accent-text);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 10px;
+}
+
+/* ── Scroll ── */
+.scroll {
+  flex: 1;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.scroll::-webkit-scrollbar { display: none; }
+
+.content { padding: 16px; }
+
+/* ── Student card ── */
+.studentCard {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--r12);
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.av {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.studentName {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+
+.studentMeta {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+/* ── Message bubble ── */
+.msgBubble {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--r12);
+  padding: 14px;
+  margin-bottom: 12px;
+  font-size: 14px;
+  color: var(--text);
+  line-height: 1.6;
+  position: relative;
+}
+
+.msgBubble::before {
+  content: '"';
+  font-size: 36px;
+  color: var(--accent);
+  opacity: .3;
+  position: absolute;
+  top: 4px;
+  left: 10px;
+  line-height: 1;
+}
+
+.msgText { padding-left: 18px; }
+
+/* ── Section label ── */
+.secLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: .7px;
+  margin-bottom: 8px;
+  margin-top: 16px;
+}
+.secLabel:first-child { margin-top: 0; }
+
+/* ── Info card ── */
+.infoCard {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--r12);
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.infoRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+}
+.infoRow:last-child { border-bottom: none; }
+.infoLabel { color: var(--text-dim); }
+.infoValue { font-weight: 500; color: var(--text); }
+.infoValueAccent { color: var(--accent); font-size: 16px; font-weight: 700; }
+
+/* Commission note */
+.commNote {
+  background: var(--straw);
+  border-radius: var(--r8);
+  padding: 10px 14px;
+  font-size: 12px;
+  color: var(--straw-text);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ── Actions ── */
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-bottom: calc(var(--safe-bot) + 8px);
+}
+
+.actRow { display: flex; gap: 8px; }
+
+.btnAccept {
+  flex: 2;
+  padding: 14px;
+  background: var(--accent);
+  color: var(--accent-text);
+  border: none;
+  border-radius: var(--r12);
+  font-size: 15px;
+  font-weight: 600;
+  font-family: var(--ff);
+  cursor: pointer;
+  transition: opacity .15s;
+}
+.btnAccept:active { opacity: .8; }
+
+.btnChat {
+  flex: 1;
+  padding: 14px;
+  background: var(--surface-1);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--r12);
+  font-size: 15px;
+  font-weight: 600;
+  font-family: var(--ff);
+  cursor: pointer;
+}
+
+.btnDecline {
+  width: 100%;
+  padding: 13px;
+  background: none;
+  color: var(--red);
+  border: 1px solid var(--red);
+  border-radius: var(--r12);
+  font-size: 14px;
+  font-weight: 600;
+  font-family: var(--ff);
+  cursor: pointer;
+}
+
+/* Accepted state */
+.acceptedBanner {
+  background: var(--mint);
+  color: var(--mint-text);
+  border-radius: var(--r12);
+  padding: 16px;
+  text-align: center;
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}

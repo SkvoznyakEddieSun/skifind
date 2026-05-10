@@ -1,0 +1,63 @@
+{
+  "auth": {
+    "greeting": "Здравствуйте",
+    "intro": "Агрегатор инструкторов по сноуборду и горным лыжам. Войдите как гость или инструктор.",
+    "iAmStudent": "Я ученик",
+    "studentDescription": "Найти инструктора и записаться на занятие",
+    "iAmInstructor": "Я инструктор",
+    "instructorDescription": "Получать заявки и вести расписание",
+    "or": "или",
+    "haveAccount": "Уже есть аккаунт?",
+    "loginByPhone": "Войти по номеру",
+    "legal": "Нажимая на любую из кнопок, вы соглашаетесь с правилами платформы и политикой конфиденциальности",
+    "step2Title": "Введите ваши данные",
+    "firstName": "Имя",
+    "lastName": "Фамилия",
+    "phone": "Телефон",
+    "next": "Далее",
+    "back": "Назад",
+    "step3Title": "Подтверждение",
+    "step3Sub": "Мы отправили смс-код на",
+    "smsCodeLabel": "Код из смс",
+    "didntReceive": "Не получили код?",
+    "resendCode": "Отправить ещё раз",
+    "verify": "Подтвердить"
+  },
+  "catalog": {
+    "title": "Найди инструктора",
+    "stats": "{count} инструкторов · {resorts} курорта",
+    "rating": "{rating} ★ средний рейтинг",
+    "searchPlaceholder": "Курорт, имя, специализация...",
+    "filterAll": "Все",
+    "filterSnowboard": "Сноуборд",
+    "filterAlpine": "Горные лыжи",
+    "showAll": "Все инструкторы",
+    "showOnMountain": "{count} на горе",
+    "sortLabel": "Сортировка",
+    "sortByRating": "По рейтингу",
+    "sortByPrice": "По цене",
+    "levelAll": "Все уровни",
+    "levelBeginner": "Новички",
+    "levelIntermediate": "Продвинутые",
+    "levelKids": "Дети",
+    "becomeInstructor": "Стать инстр.",
+    "perHour": "за 1 час",
+    "available": "Свободна",
+    "busyUntil": "До {time}",
+    "onMountain": "На горе"
+  },
+  "common": {
+    "loading": "Загрузка...",
+    "error": "Что-то пошло не так",
+    "retry": "Повторить",
+    "cancel": "Отмена",
+    "save": "Сохранить",
+    "delete": "Удалить",
+    "confirm": "Подтвердить",
+    "close": "Закрыть"
+  },
+  "toast": {
+    "saved": "Сохранено",
+    "error": "Ошибка"
+  }
+}
