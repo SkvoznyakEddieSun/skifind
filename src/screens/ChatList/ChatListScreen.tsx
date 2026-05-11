@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import styles from './ChatListScreen.module.css';
+import type { BookingStatus } from '../Chat/ChatScreen';
 
 interface ChatItem {
   id: string;
@@ -13,29 +14,109 @@ interface ChatItem {
   msg: string;
   myMsg?: boolean;
   unread?: number;
+  bookingStatus: BookingStatus;
+  instructorPhone?: string;
 }
 
 const RECENT: ChatItem[] = [
-  { id: 'roman',     initials: 'РЕ', avClass: 'avCoral',  name: 'Роман Ефимов',     role: 'ученик',  online: true,  time: '14:35', msg: 'Подтверждаете завтра в 10:00?',                     unread: 2 },
-  { id: 'dmitry',   initials: 'ДЗ', avClass: 'avPurple', name: 'Дмитрий Захаров',  role: 'коллега', online: true,  time: '13:20', msg: 'Кинул методичку по работе с СДВГ, посмотри',        unread: 1 },
-  { id: 'anna',     initials: 'АБ', avClass: 'avPurple', name: 'Анна Белова',       role: 'ученица',               time: '12:08', msg: 'Спасибо, всё отлично! Жду четверга 🏂',             unread: 1 },
-  { id: 'mikhail',  initials: 'МО', avClass: 'avStraw',  name: 'Михаил Орлов',     role: 'ученик',  online: true,  time: 'вчера', msg: 'Конечно, работаю с детьми. До встречи!',           myMsg: true },
-  { id: 'marina',   initials: 'МВ', avClass: 'avStraw',  name: 'Марина Волкова',   role: 'коллега',               time: 'вчера', msg: 'Спасибо большое за совет, Марина!',                myMsg: true },
-  { id: 'kirill',   initials: 'КВ', avClass: 'avIce',    name: 'Кирилл Волков',    role: 'ученик',                time: 'вчера', msg: 'Тогда увидимся в понедельник 🏂',                  myMsg: true, muted: true },
+  {
+    id: 'roman',
+    initials: 'РЕ', avClass: 'avCoral', name: 'Роман Ефимов', role: 'ученик',
+    online: true, time: '14:35', unread: 2,
+    msg: 'Подтверждаете завтра в 10:00?',
+    bookingStatus: 'PENDING',
+  },
+  {
+    id: 'dmitry',
+    initials: 'ДЗ', avClass: 'avPurple', name: 'Дмитрий Захаров', role: 'коллега',
+    online: true, time: '13:20', unread: 1,
+    msg: 'Кинул методичку по работе с СДВГ, посмотри',
+    bookingStatus: 'NONE',
+  },
+  {
+    id: 'anna',
+    initials: 'АБ', avClass: 'avPurple', name: 'Анна Белова', role: 'ученица',
+    time: '12:08', unread: 1,
+    msg: 'Спасибо, всё отлично! Жду четверга 🏂',
+    bookingStatus: 'ACCEPTED',
+    instructorPhone: '+7 905 123 45 67',
+  },
+  {
+    id: 'mikhail',
+    initials: 'МО', avClass: 'avStraw', name: 'Михаил Орлов', role: 'ученик',
+    online: true, time: 'вчера',
+    msg: 'Конечно, работаю с детьми. До встречи!',
+    myMsg: true,
+    bookingStatus: 'DECLINED',
+  },
+  {
+    id: 'marina',
+    initials: 'МВ', avClass: 'avStraw', name: 'Марина Волкова', role: 'коллега',
+    time: 'вчера',
+    msg: 'Спасибо большое за совет, Марина!',
+    myMsg: true,
+    bookingStatus: 'NONE',
+  },
+  {
+    id: 'kirill',
+    initials: 'КВ', avClass: 'avIce', name: 'Кирилл Волков', role: 'ученик',
+    time: 'вчера', muted: true,
+    msg: 'Тогда увидимся в понедельник 🏂',
+    myMsg: true,
+    bookingStatus: 'ACCEPTED',
+    instructorPhone: '+7 916 234 56 78',
+  },
 ];
 
 const OLDER: ChatItem[] = [
-  { id: 'tatyana',  initials: 'ТН', avClass: 'avMint',   name: 'Татьяна Новикова', role: 'ученица',               time: '22 апр', msg: 'Дочка в восторге, спасибо большое!' },
-  { id: 'igor',     initials: 'ИС', avClass: 'avCoral',  name: 'Игорь Соколов',    role: 'коллега',               time: '21 апр', msg: 'Привет! Можешь поделиться шаблоном программы для новичков?' },
-  { id: 'elena',    initials: 'ЕС', avClass: 'avIce',    name: 'Елена Соболева',   role: 'ученица',               time: '19 апр', msg: 'Очень понравилось занятие, запишусь ещё!' },
-  { id: 'andrey',   initials: 'АП', avClass: 'avPurple', name: 'Андрей Павлов',    role: 'ученик',                time: '15 апр', msg: 'Хорошо, тогда жду в субботу',                     myMsg: true },
-  { id: 'olga',     initials: 'ОК', avClass: 'avMint',   name: 'Ольга Кузнецова',  role: 'коллега',               time: '12 апр', msg: 'Можешь подменить меня в субботу? У меня клиент сорвался' },
-  { id: 'viktor',   initials: 'ВС', avClass: 'avStraw',  name: 'Виктор Соколов',   role: 'ученик',                time: '10 апр', msg: 'Отличное занятие, спасибо!' },
+  {
+    id: 'tatyana',
+    initials: 'ТН', avClass: 'avMint', name: 'Татьяна Новикова', role: 'ученица',
+    time: '22 апр',
+    msg: 'Дочка в восторге, спасибо большое!',
+    bookingStatus: 'ACCEPTED',
+  },
+  {
+    id: 'igor',
+    initials: 'ИС', avClass: 'avCoral', name: 'Игорь Соколов', role: 'коллега',
+    time: '21 апр',
+    msg: 'Привет! Можешь поделиться шаблоном программы для новичков?',
+    bookingStatus: 'NONE',
+  },
+  {
+    id: 'elena',
+    initials: 'ЕС', avClass: 'avIce', name: 'Елена Соболева', role: 'ученица',
+    time: '19 апр',
+    msg: 'Очень понравилось занятие, запишусь ещё!',
+    bookingStatus: 'ACCEPTED',
+  },
+  {
+    id: 'andrey',
+    initials: 'АП', avClass: 'avPurple', name: 'Андрей Павлов', role: 'ученик',
+    time: '15 апр',
+    msg: 'Хорошо, тогда жду в субботу',
+    myMsg: true,
+    bookingStatus: 'ACCEPTED',
+  },
+  {
+    id: 'olga',
+    initials: 'ОК', avClass: 'avMint', name: 'Ольга Кузнецова', role: 'коллега',
+    time: '12 апр',
+    msg: 'Можешь подменить меня в субботу? У меня клиент сорвался',
+    bookingStatus: 'NONE',
+  },
+  {
+    id: 'viktor',
+    initials: 'ВС', avClass: 'avStraw', name: 'Виктор Соколов', role: 'ученик',
+    time: '10 апр',
+    msg: 'Отличное занятие, спасибо!',
+    bookingStatus: 'ACCEPTED',
+  },
 ];
 
 interface ChatListScreenProps {
   onBack?: () => void;
-  onChat?: (id: string) => void;
+  onChat?: (id: string, status: BookingStatus, phone?: string) => void;
   onCommunity?: () => void;
 }
 
@@ -121,13 +202,25 @@ export function ChatListScreen({ onBack: _onBack, onChat, onCommunity }: ChatLis
             {filteredRecent.length > 0 && (
               <>
                 <div className={styles.sectionDivider}>Недавние</div>
-                {filteredRecent.map(item => <ChatRow key={item.id} item={item} onClick={() => onChat?.(item.id)} />)}
+                {filteredRecent.map(item => (
+                  <ChatRow
+                    key={item.id}
+                    item={item}
+                    onClick={() => onChat?.(item.id, item.bookingStatus, item.instructorPhone)}
+                  />
+                ))}
               </>
             )}
             {filteredOlder.length > 0 && (
               <>
                 <div className={styles.sectionDivider}>Раньше</div>
-                {filteredOlder.map(item => <ChatRow key={item.id} item={item} onClick={() => onChat?.(item.id)} />)}
+                {filteredOlder.map(item => (
+                  <ChatRow
+                    key={item.id}
+                    item={item}
+                    onClick={() => onChat?.(item.id, item.bookingStatus, item.instructorPhone)}
+                  />
+                ))}
               </>
             )}
           </>

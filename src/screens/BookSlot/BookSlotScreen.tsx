@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import styles from './BookSlotScreen.module.css';
+import type { Instructor } from '../Catalog/CatalogScreen';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -21,29 +22,71 @@ const DAY_SHORT = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
 const today = new Date();
 today.setHours(0, 0, 0, 0);
 
-// Generate 7 days
-const DAYS14 = Array.from({ length: 7 }, (_, i) => {
+const HORIZON_DAYS = 7;
+const DAYS = Array.from({ length: HORIZON_DAYS }, (_, i) => {
   const d = new Date(today);
   d.setDate(today.getDate() + i);
   return d;
 });
 
-// Mock slots per day — realistic ski school schedule
-function mockSlotsForDate(date: Date): TimeSlot[] {
+// Avatar color map for instructor mini-card
+const AV_STYLE: Record<string, React.CSSProperties> = {
+  ice:    { background: 'var(--ice, #E0F2FE)',          color: 'var(--accent)' },
+  mint:   { background: 'var(--mint)',                  color: 'var(--mint-text)' },
+  straw:  { background: 'var(--straw)',                 color: 'var(--straw-text)' },
+  purple: { background: 'rgba(124,58,237,.15)',         color: '#A78BFA' },
+  blue:   { background: 'var(--accent)',                color: 'var(--accent-text)' },
+};
+
+/**
+ * Mock slots per day — realistic ski school schedule.
+ * Duration depends on the selected format:
+ *   individual → 90 min (4 weekday / 2 Saturday slots)
+ *   miniGroup  → 120 min (3 weekday / 2 Saturday slots)
+ *   kids       → 45 min with breaks (4 weekday / 2 Saturday slots)
+ * Sunday is always closed.
+ */
+function mockSlotsForDate(date: Date, format: Format): TimeSlot[] {
   const dow = date.getDay();
-  // Вс — выходной
-  if (dow === 0) return [];
-  // Сб — половина дня
+  const ds  = date.toISOString().slice(0, 10);
+
+  if (dow === 0) return []; // Sunday — closed
+
+  if (format === 'kids') {
+    if (dow === 6) return [
+      { id: `${ds}-0`, start: '10:00', end: '10:45', duration: 45 },
+      { id: `${ds}-1`, start: '11:00', end: '11:45', duration: 45 },
+    ];
+    return [
+      { id: `${ds}-0`, start: '09:30', end: '10:15', duration: 45 },
+      { id: `${ds}-1`, start: '10:30', end: '11:15', duration: 45 },
+      { id: `${ds}-2`, start: '11:30', end: '12:15', duration: 45 },
+      { id: `${ds}-3`, start: '14:00', end: '14:45', duration: 45 },
+    ];
+  }
+
+  if (format === 'miniGroup') {
+    if (dow === 6) return [
+      { id: `${ds}-0`, start: '10:00', end: '12:00', duration: 120 },
+      { id: `${ds}-1`, start: '12:30', end: '14:30', duration: 120 },
+    ];
+    return [
+      { id: `${ds}-0`, start: '09:30', end: '11:30', duration: 120 },
+      { id: `${ds}-1`, start: '12:00', end: '14:00', duration: 120 },
+      { id: `${ds}-2`, start: '14:30', end: '16:30', duration: 120 },
+    ];
+  }
+
+  // individual — 90-min slots
   if (dow === 6) return [
-    { id: `${date.toISOString().slice(0,10)}-0`, start: '10:00', end: '11:30', duration: 90 },
-    { id: `${date.toISOString().slice(0,10)}-1`, start: '12:00', end: '13:30', duration: 90 },
+    { id: `${ds}-0`, start: '10:00', end: '11:30', duration: 90 },
+    { id: `${ds}-1`, start: '12:00', end: '13:30', duration: 90 },
   ];
-  // Будни — полный день
   return [
-    { id: `${date.toISOString().slice(0,10)}-0`, start: '09:30', end: '11:00', duration: 90 },
-    { id: `${date.toISOString().slice(0,10)}-1`, start: '11:15', end: '12:45', duration: 90 },
-    { id: `${date.toISOString().slice(0,10)}-2`, start: '14:00', end: '15:30', duration: 90 },
-    { id: `${date.toISOString().slice(0,10)}-3`, start: '15:45', end: '17:15', duration: 90 },
+    { id: `${ds}-0`, start: '09:30', end: '11:00', duration: 90 },
+    { id: `${ds}-1`, start: '11:15', end: '12:45', duration: 90 },
+    { id: `${ds}-2`, start: '14:00', end: '15:30', duration: 90 },
+    { id: `${ds}-3`, start: '15:45', end: '17:15', duration: 90 },
   ];
 }
 
@@ -52,26 +95,6 @@ const FORMAT_LABELS: Record<Format, string> = {
   miniGroup:  'Мини-группа',
   kids:       'Дети 45 мин',
 };
-
-const FORMAT_PRICES: Record<Format, number> = {
-  individual: 3500,
-  miniGroup:  5000,
-  kids:       2800,
-};
-
-// Formats filter slots by duration
-function filterSlotsByFormat(slots: TimeSlot[], format: Format): TimeSlot[] {
-  if (format === 'kids') {
-    // Kids: shorter sessions — show all (they'll be booked as 45-min blocks)
-    return slots;
-  }
-  if (format === 'miniGroup') {
-    // Mini-group: 90+ min slots
-    return slots.filter(s => s.duration >= 90);
-  }
-  // Individual: all slots
-  return slots;
-}
 
 function formatDate(date: Date): string {
   return `${DAY_SHORT[date.getDay()]} ${date.getDate()} ${MONTH_RU[date.getMonth()]}`;
@@ -82,11 +105,12 @@ function formatDate(date: Date): string {
 interface BookSlotScreenProps {
   onBack: () => void;
   onBooked: () => void;
+  instructor: Instructor;
 }
 
 // ── Component ──────────────────────────────────────────────────────────────
 
-export function BookSlotScreen({ onBack, onBooked }: BookSlotScreenProps) {
+export function BookSlotScreen({ onBack, onBooked, instructor }: BookSlotScreenProps) {
   const [format, setFormat] = useState<Format>('individual');
   const [selectedDayIdx, setSelectedDayIdx] = useState(0);
   const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
@@ -94,29 +118,31 @@ export function BookSlotScreen({ onBack, onBooked }: BookSlotScreenProps) {
   const [showToast, setShowToast] = useState(false);
   const [booked, setBooked] = useState(false);
 
-  const selectedDate = DAYS14[selectedDayIdx];
+  // Prices derived from instructor's base price
+  const FORMAT_PRICES: Record<Format, number> = {
+    individual: instructor.price,
+    miniGroup:  Math.round(instructor.price * 1.4 / 100) * 100,
+    kids:       Math.round(instructor.price * 0.8 / 100) * 100,
+  };
 
-  // All slots for each day (filtered by format)
+  const selectedDate = DAYS[selectedDayIdx];
+
+  // Slots for each day depend on the selected format
   const slotsByDay = useMemo(() =>
-    DAYS14.map(d => filterSlotsByFormat(mockSlotsForDate(d), format)),
+    DAYS.map(d => mockSlotsForDate(d, format)),
     [format]
   );
 
-  // Slots for selected day
   const slotsForDay = slotsByDay[selectedDayIdx];
+  const totalSlots  = slotsByDay.reduce((acc, s) => acc + s.length, 0);
 
-  // Total slots available across 7 days
-  const totalSlots = slotsByDay.reduce((acc, s) => acc + s.length, 0);
-
-  // When format changes, clear selected slot if no longer valid
   const handleFormatChange = (f: Format) => {
     setFormat(f);
     setSelectedSlot(null);
   };
 
-  // When day changes, clear slot selection
   const handleDayChange = (idx: number) => {
-    if (slotsByDay[idx].length === 0) return; // can't select empty days
+    if (slotsByDay[idx].length === 0) return;
     setSelectedDayIdx(idx);
     setSelectedSlot(null);
   };
@@ -131,6 +157,8 @@ export function BookSlotScreen({ onBack, onBooked }: BookSlotScreenProps) {
     }, 2000);
   }
 
+  const avStyle = AV_STYLE[instructor.avatarColor] ?? AV_STYLE.mint;
+
   return (
     <div className={styles.screen}>
       {/* Header */}
@@ -142,12 +170,14 @@ export function BookSlotScreen({ onBack, onBooked }: BookSlotScreenProps) {
       <div className={styles.scroll}>
         {/* Instructor mini-card */}
         <div className={styles.instrCard}>
-          <div className={styles.instrAv}>НП</div>
+          <div className={styles.instrAv} style={avStyle}>{instructor.initials}</div>
           <div className={styles.instrInfo}>
-            <div className={styles.instrName}>Наталья Петрова</div>
-            <div className={styles.instrSub}>Горные лыжи · от 2 800 ₽</div>
+            <div className={styles.instrName}>{instructor.name}</div>
+            <div className={styles.instrSub}>
+              {instructor.type.includes('ski') ? 'Горные лыжи' : 'Сноуборд'} · от {instructor.price.toLocaleString('ru')} ₽
+            </div>
           </div>
-          <div className={styles.instrRating}>★ 5.0</div>
+          <div className={styles.instrRating}>★ {instructor.rating.toFixed(1)}</div>
         </div>
 
         <div className={styles.divider} />
@@ -184,12 +214,12 @@ export function BookSlotScreen({ onBack, onBooked }: BookSlotScreenProps) {
 
             {/* Date range label */}
             <div className={styles.sectionLabel}>
-              Свободные дни — {DAYS14[0].getDate()} {MONTH_RU[DAYS14[0].getMonth()]} — {DAYS14[6].getDate()} {MONTH_RU[DAYS14[6].getMonth()]}
+              Свободные дни — {DAYS[0].getDate()} {MONTH_RU[DAYS[0].getMonth()]} — {DAYS[DAYS.length - 1].getDate()} {MONTH_RU[DAYS[DAYS.length - 1].getMonth()]}
             </div>
 
             {/* Day strip */}
             <div className={styles.dayStrip}>
-              {DAYS14.map((d, i) => {
+              {DAYS.map((d, i) => {
                 const cnt = slotsByDay[i].length;
                 const isEmpty = cnt === 0;
                 const isSelected = i === selectedDayIdx;

@@ -45,7 +45,6 @@ const PREVIEW_LIMIT = 3;
  *      — 11 цифр, начинается с 7 или 8
  */
 function hasPhone(text: string): boolean {
-  // Кандидаты: последовательности цифр, разделённых пробелом/дефисом/скобками/+
   const chunks = text.match(/[\+\d][\d\s\-\(\)\.]{6,18}\d/g) ?? [];
   return chunks.some(chunk => {
     const d = chunk.replace(/\D/g, '');
@@ -79,39 +78,66 @@ const QUICK_REPLIES = [
 
 // ── Props ──────────────────────────────────────────────────────────────────
 
+export type BookingStatus = 'NONE' | 'PENDING' | 'ACCEPTED' | 'DECLINED';
+
 interface ChatScreenProps {
   onBack: () => void;
   onProfile: () => void;
   onBook?: () => void;
+  bookingStatus?: BookingStatus;   // default: 'PENDING'
+  instructorPhone?: string;
 }
 
 // ── Component ──────────────────────────────────────────────────────────────
 
 /**
  * Экран приватного чата.
- * Preview-режим: максимум 3 новых сообщения от пользователя,
+ * Preview-режим: максимум 3 исходящих сообщения суммарно (включая INITIAL),
  * затем — стена с кнопкой «Записаться».
  * Фильтр: телефонные номера блокируются до записи.
+ * DECLINED: чат закрыт, показывается баннер «Заявка отклонена».
+ * ACCEPTED: полный чат, кнопка «Позвонить» активна.
  */
-export function ChatScreen({ onBack, onProfile, onBook }: ChatScreenProps) {
+export function ChatScreen({
+  onBack,
+  onProfile,
+  onBook,
+  bookingStatus = 'PENDING',
+  instructorPhone,
+}: ChatScreenProps) {
   const { t } = useTranslation();
   const [items, setItems] = useState<ChatItem[]>(INITIAL);
   const [inputVal, setInputVal] = useState('');
   const [bookingVisible, setBookingVisible] = useState(true);
-  const [typing, setTyping] = useState(true);
+  const [typing, setTyping] = useState(false);
   const [cardAccepted, setCardAccepted] = useState(false);
-  const [newMsgCount, setNewMsgCount] = useState(0);
   const [phoneBlocked, setPhoneBlocked] = useState(false);
   const [showToast, setShowToast] = useState<string | null>(null);
   const messagesRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const previewExhausted = newMsgCount >= PREVIEW_LIMIT;
-  const remaining = PREVIEW_LIMIT - newMsgCount;
+  // Count ALL outgoing messages (including those in INITIAL history)
+  const outMsgCount = items.filter(
+    i => !('kind' in i) && (i as Message).from === 'out'
+  ).length;
+
+  const isAccepted = bookingStatus === 'ACCEPTED';
+  const isDeclined = bookingStatus === 'DECLINED';
+  const previewExhausted = !isAccepted && outMsgCount >= PREVIEW_LIMIT;
+  const remaining = Math.max(0, PREVIEW_LIMIT - outMsgCount);
 
   function fireToast(msg: string) {
     setShowToast(msg);
     setTimeout(() => setShowToast(null), 2500);
+  }
+
+  function handleCall() {
+    if (!isAccepted) {
+      fireToast('📞 Звонок откроется после подтверждения заявки');
+      return;
+    }
+    const phone = instructorPhone ?? '+79000000000';
+    window.location.href = phone.startsWith('tel:') ? phone : `tel:${phone}`;
   }
 
   // Scroll to bottom
@@ -121,7 +147,7 @@ export function ChatScreen({ onBack, onProfile, onBook }: ChatScreenProps) {
   }, [items, typing, previewExhausted]);
 
   function sendMsg(text?: string) {
-    if (previewExhausted) return;
+    if (previewExhausted || isDeclined) return;
     const msg = (text ?? inputVal).trim();
     if (!msg) return;
 
@@ -141,11 +167,14 @@ export function ChatScreen({ onBack, onProfile, onBook }: ChatScreenProps) {
       ticks: '✓',
     };
     setItems(prev => [...prev, newMsg]);
-    setNewMsgCount(prev => prev + 1);
     setInputVal('');
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
     }
+
+    // Typing indicator: show for 2-3 seconds after user sends a message
+    setTyping(true);
+    setTimeout(() => setTyping(false), 2500);
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
@@ -177,14 +206,19 @@ export function ChatScreen({ onBack, onProfile, onBook }: ChatScreenProps) {
           <button className={styles.ctBtn} onClick={onProfile} aria-label="Профиль">
             <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2M12 11a4 4 0 100-8 4 4 0 000 8z"/></svg>
           </button>
-          <button className={styles.ctBtn} aria-label="Позвонить" onClick={() => window.location.href = 'tel:+79000000000'}>
+          <button
+            className={styles.ctBtn}
+            aria-label="Позвонить"
+            onClick={handleCall}
+            style={!isAccepted ? { opacity: 0.3 } : undefined}
+          >
             <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 10.8 19.79 19.79 0 01.22 2.18 2 2 0 012.18 0h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L6.91 7.09a16 16 0 006 6l.46-.46a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 14.92z"/></svg>
           </button>
         </div>
       </div>
 
       {/* ── Booking strip ── */}
-      {bookingVisible && (
+      {bookingVisible && !isDeclined && (
         <div className={styles.bookingStrip}>
           <div className={styles.bsLeft}>
             <div className={styles.bsIcon}>📅</div>
@@ -197,8 +231,8 @@ export function ChatScreen({ onBack, onProfile, onBook }: ChatScreenProps) {
         </div>
       )}
 
-      {/* ── Preview banner (while not exhausted) ── */}
-      {!previewExhausted && newMsgCount > 0 && (
+      {/* ── Preview banner (while not exhausted and not accepted) ── */}
+      {!isAccepted && !isDeclined && !previewExhausted && outMsgCount > 0 && (
         <div className={styles.previewBanner}>
           <span className={styles.previewBannerText}>
             Предпросмотр: осталось {remaining} {remaining === 1 ? 'сообщение' : 'сообщения'}
@@ -206,151 +240,183 @@ export function ChatScreen({ onBack, onProfile, onBook }: ChatScreenProps) {
         </div>
       )}
 
-      {/* ── Messages ── */}
-      <div className={styles.messages} ref={messagesRef}>
-        {items.map(item => {
-          if ('kind' in item) {
-            return (
-              <div key={item.id} className={styles.daySep}>{item.label}</div>
-            );
-          }
-
-          const msg = item as Message;
-
-          if (msg.type === 'card' && msg.card) {
-            return (
-              <div key={msg.id} className={styles.mrow}>
-                <div className={`${styles.av} ${styles.avSm} ${styles['av-ice']}`}>АМ</div>
-                <div>
-                  <div className={styles.cardBubble}>
-                    <div className={styles.cbHead}>
-                      <div className={styles.cbHeadT}>📋 {t('chat.lessonProposal')}</div>
-                    </div>
-                    <div className={styles.cbBody}>
-                      <div className={styles.cbRow}><span>{t('chat.date')}</span><span>{msg.card.date}</span></div>
-                      <div className={styles.cbRow}><span>{t('chat.format')}</span><span>{msg.card.format}</span></div>
-                      <div className={styles.cbRow}><span>{t('chat.place')}</span><span>{msg.card.place}</span></div>
-                      <div className={`${styles.cbRow} ${styles.cbRowPrice}`}>
-                        <span>{t('chat.cost')}</span>
-                        <span className={styles.cbPrice}>{msg.card.price}</span>
-                      </div>
-                    </div>
-                    {!cardAccepted && (
-                      <div className={styles.cbActions}>
-                        <button className={`${styles.cbBtn} ${styles.cbAccept}`} onClick={() => setCardAccepted(true)}>
-                          ✓ {t('chat.accept')}
-                        </button>
-                        <button className={`${styles.cbBtn} ${styles.cbDecline}`} onClick={() => fireToast('✓ Запрос на другое время отправлен')}>
-                          {t('chat.propose')}
-                        </button>
-                      </div>
-                    )}
-                    {cardAccepted && (
-                      <div className={`${styles.cbActions} ${styles.cbAcceptedLabel}`}>
-                        ✓ {t('chat.accepted')}
-                      </div>
-                    )}
-                  </div>
-                  <span className={styles.mt}>{msg.time}</span>
-                </div>
-              </div>
-            );
-          }
-
-          return (
-            <div key={msg.id} className={`${styles.mrow} ${msg.from === 'out' ? styles.mrowOut : ''}`}>
-              {msg.from === 'in' && (
-                <div className={`${styles.av} ${styles.avSm} ${styles['av-ice']}`}>АМ</div>
-              )}
-              <div>
-                <div className={`${styles.bubble} ${msg.from === 'in' ? styles.bubbleIn : styles.bubbleOut}`}>
-                  {msg.text}
-                </div>
-                <span className={styles.mt}>{msg.time}{msg.ticks ? ` ${msg.ticks}` : ''}</span>
-              </div>
-            </div>
-          );
-        })}
-
-        {/* Typing indicator */}
-        {typing && !previewExhausted && (
-          <div className={styles.mrow}>
-            <div className={`${styles.av} ${styles.avSm} ${styles['av-ice']}`}>АМ</div>
-            <div className={styles.typingBubble}>
-              <div className={styles.td} /><div className={styles.td} /><div className={styles.td} />
-            </div>
+      {/* ── DECLINED banner ── */}
+      {isDeclined ? (
+        <div className={styles.declinedBanner}>
+          <div className={styles.declinedIcon}>✕</div>
+          <div className={styles.declinedTitle}>Заявка отклонена</div>
+          <div className={styles.declinedSub}>
+            Инструктор не смог принять запрос. Попробуйте найти другого специалиста в каталоге.
           </div>
-        )}
-
-        {/* Preview wall */}
-        {previewExhausted && (
-          <div className={styles.previewWall}>
-            <div className={styles.previewWallIcon}>🔒</div>
-            <div className={styles.previewWallTitle}>Предпросмотр завершён</div>
-            <div className={styles.previewWallSub}>
-              Запишитесь на занятие, чтобы продолжить общение с инструктором
-            </div>
-            {onBook && (
-              <button className={styles.previewWallBtn} onClick={onBook}>
-                Записаться →
-              </button>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* ── Quick replies ── */}
-      {!previewExhausted && (
-        <div className={styles.quickReplies}>
-          {QUICK_REPLIES.map(qr => (
-            <button key={qr} className={styles.qr} onClick={() => { sendMsg(qr); setTyping(false); }}>
-              {qr}
-            </button>
-          ))}
-        </div>
-      )}
-
-      {/* ── Phone warning ── */}
-      {phoneBlocked && (
-        <div className={styles.phoneWarning}>
-          📵 Обмен контактами недоступен до записи на занятие
-          <button className={styles.phoneWarningClose} onClick={() => setPhoneBlocked(false)}>✕</button>
-        </div>
-      )}
-
-      {/* ── Input ── */}
-      {previewExhausted ? (
-        <div className={styles.lockedBar}>
-          <div className={styles.lockedBarText}>🔒 Запишитесь, чтобы продолжить переписку</div>
-          {onBook && (
-            <button className={styles.lockedBarBtn} onClick={onBook}>Записаться</button>
-          )}
+          <button className={styles.declinedBtn} onClick={onBack}>
+            Найти другого →
+          </button>
         </div>
       ) : (
-        <div className={styles.inputWrap}>
-          <>
-          <input type="file" accept="image/*,video/*" style={{ display: 'none' }} id="chat-attach" onChange={e => { if(e.target.files?.[0]) { const name = e.target.files[0].name; alert('Прикреплён файл: ' + name); e.target.value = ''; } }} />
-          <button className={styles.attachBtn} aria-label="Прикрепить" onClick={() => document.getElementById('chat-attach')?.click()}>
-            <svg viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
-          </button>
-          </>
-          <textarea
-            ref={textareaRef}
-            className={styles.chatInput}
-            placeholder={t('chat.placeholder')}
-            rows={1}
-            value={inputVal}
-            onChange={e => {
-              setInputVal(e.target.value);
-              autoResize(e.target);
-              if (phoneBlocked) setPhoneBlocked(false);
-            }}
-            onKeyDown={handleKeyDown}
-          />
-          <button className={styles.sendBtn} onClick={() => sendMsg()} aria-label="Отправить">
-            <svg viewBox="0 0 24 24"><path d="M22 2L11 13M22 2L15 22l-4-9-9-4 20-7z"/></svg>
-          </button>
-        </div>
+        <>
+          {/* ── Messages ── */}
+          <div className={styles.messages} ref={messagesRef}>
+            {items.map(item => {
+              if ('kind' in item) {
+                return (
+                  <div key={item.id} className={styles.daySep}>{item.label}</div>
+                );
+              }
+
+              const msg = item as Message;
+
+              if (msg.type === 'card' && msg.card) {
+                return (
+                  <div key={msg.id} className={styles.mrow}>
+                    <div className={`${styles.av} ${styles.avSm} ${styles['av-ice']}`}>АМ</div>
+                    <div>
+                      <div className={styles.cardBubble}>
+                        <div className={styles.cbHead}>
+                          <div className={styles.cbHeadT}>📋 {t('chat.lessonProposal')}</div>
+                        </div>
+                        <div className={styles.cbBody}>
+                          <div className={styles.cbRow}><span>{t('chat.date')}</span><span>{msg.card.date}</span></div>
+                          <div className={styles.cbRow}><span>{t('chat.format')}</span><span>{msg.card.format}</span></div>
+                          <div className={styles.cbRow}><span>{t('chat.place')}</span><span>{msg.card.place}</span></div>
+                          <div className={`${styles.cbRow} ${styles.cbRowPrice}`}>
+                            <span>{t('chat.cost')}</span>
+                            <span className={styles.cbPrice}>{msg.card.price}</span>
+                          </div>
+                        </div>
+                        {!cardAccepted && (
+                          <div className={styles.cbActions}>
+                            <button className={`${styles.cbBtn} ${styles.cbAccept}`} onClick={() => setCardAccepted(true)}>
+                              ✓ {t('chat.accept')}
+                            </button>
+                            <button className={`${styles.cbBtn} ${styles.cbDecline}`} onClick={() => fireToast('✓ Запрос на другое время отправлен')}>
+                              {t('chat.propose')}
+                            </button>
+                          </div>
+                        )}
+                        {cardAccepted && (
+                          <div className={`${styles.cbActions} ${styles.cbAcceptedLabel}`}>
+                            ✓ {t('chat.accepted')}
+                          </div>
+                        )}
+                      </div>
+                      <span className={styles.mt}>{msg.time}</span>
+                    </div>
+                  </div>
+                );
+              }
+
+              return (
+                <div key={msg.id} className={`${styles.mrow} ${msg.from === 'out' ? styles.mrowOut : ''}`}>
+                  {msg.from === 'in' && (
+                    <div className={`${styles.av} ${styles.avSm} ${styles['av-ice']}`}>АМ</div>
+                  )}
+                  <div>
+                    <div className={`${styles.bubble} ${msg.from === 'in' ? styles.bubbleIn : styles.bubbleOut}`}>
+                      {msg.text}
+                    </div>
+                    <span className={styles.mt}>{msg.time}{msg.ticks ? ` ${msg.ticks}` : ''}</span>
+                  </div>
+                </div>
+              );
+            })}
+
+            {/* Typing indicator */}
+            {typing && !previewExhausted && (
+              <div className={styles.mrow}>
+                <div className={`${styles.av} ${styles.avSm} ${styles['av-ice']}`}>АМ</div>
+                <div className={styles.typingBubble}>
+                  <div className={styles.td} /><div className={styles.td} /><div className={styles.td} />
+                </div>
+              </div>
+            )}
+
+            {/* Preview wall */}
+            {previewExhausted && (
+              <div className={styles.previewWall}>
+                <div className={styles.previewWallIcon}>🔒</div>
+                <div className={styles.previewWallTitle}>Предпросмотр завершён</div>
+                <div className={styles.previewWallSub}>
+                  Запишитесь на занятие, чтобы продолжить общение с инструктором
+                </div>
+                {onBook && (
+                  <button className={styles.previewWallBtn} onClick={onBook}>
+                    Записаться →
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* ── Quick replies ── */}
+          {!previewExhausted && (
+            <div className={styles.quickReplies}>
+              {QUICK_REPLIES.map(qr => (
+                <button key={qr} className={styles.qr} onClick={() => sendMsg(qr)}>
+                  {qr}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* ── Phone warning ── */}
+          {phoneBlocked && (
+            <div className={styles.phoneWarning}>
+              📵 Обмен контактами недоступен до записи на занятие
+              <button className={styles.phoneWarningClose} onClick={() => setPhoneBlocked(false)}>✕</button>
+            </div>
+          )}
+
+          {/* ── Input ── */}
+          {previewExhausted ? (
+            <div className={styles.lockedBar}>
+              <div className={styles.lockedBarText}>🔒 Запишитесь, чтобы продолжить переписку</div>
+              {onBook && (
+                <button className={styles.lockedBarBtn} onClick={onBook}>Записаться</button>
+              )}
+            </div>
+          ) : (
+            <div className={styles.inputWrap}>
+              <>
+              <input
+                type="file"
+                accept="image/*,video/*"
+                style={{ display: 'none' }}
+                id="chat-attach"
+                onChange={e => {
+                  if (e.target.files?.[0]) {
+                    const name = e.target.files[0].name;
+                    fireToast('📎 Прикреплён: ' + name);
+                    e.target.value = '';
+                  }
+                }}
+              />
+              <button
+                className={styles.attachBtn}
+                aria-label="Прикрепить"
+                onClick={() => document.getElementById('chat-attach')?.click()}
+              >
+                <svg viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
+              </button>
+              </>
+              <textarea
+                ref={textareaRef}
+                className={styles.chatInput}
+                placeholder={t('chat.placeholder')}
+                rows={1}
+                value={inputVal}
+                onChange={e => {
+                  setInputVal(e.target.value);
+                  autoResize(e.target);
+                  if (phoneBlocked) setPhoneBlocked(false);
+                }}
+                onKeyDown={handleKeyDown}
+              />
+              <button className={styles.sendBtn} onClick={() => sendMsg()} aria-label="Отправить">
+                <svg viewBox="0 0 24 24"><path d="M22 2L11 13M22 2L15 22l-4-9-9-4 20-7z"/></svg>
+              </button>
+            </div>
+          )}
+        </>
       )}
 
       {showToast && (

@@ -15,7 +15,8 @@ import { ChatListScreen }     from './screens/ChatList/ChatListScreen';
 import { InstrProfileScreen } from './screens/InstrProfile/InstrProfileScreen';
 
 // Guest tabs
-import { CatalogScreen }      from './screens/Catalog/CatalogScreen';
+import { CatalogScreen, INSTRUCTORS } from './screens/Catalog/CatalogScreen';
+import type { Instructor }           from './screens/Catalog/CatalogScreen';
 import { BookingsScreen }     from './screens/Bookings/BookingsScreen';
 import { GuestProfileScreen } from './screens/GuestProfile/GuestProfileScreen';
 
@@ -23,6 +24,7 @@ import { GuestProfileScreen } from './screens/GuestProfile/GuestProfileScreen';
 import { BalanceScreen }         from './screens/Balance/BalanceScreen';
 import { ReviewsScreen }         from './screens/Reviews/ReviewsScreen';
 import { ChatScreen }            from './screens/Chat/ChatScreen';
+import type { BookingStatus }   from './screens/Chat/ChatScreen';
 import { CommunityScreen }       from './screens/Community/CommunityScreen';
 import { NotificationsScreen }   from './screens/Notifications/NotificationsScreen';
 import { RegisterScreen }        from './screens/Register/RegisterScreen';
@@ -79,6 +81,9 @@ export function App() {
   const [guestTab, setGuestTab] = useState<GuestTab>('catalog');
   const [phone, setPhone]           = useState('');
   const [activeMcId, setActiveMcId] = useState('mc1');
+  const [chatBookingStatus, setChatBookingStatus] = useState<BookingStatus>('PENDING');
+  const [chatInstructorPhone, setChatInstructorPhone] = useState<string | undefined>(undefined);
+  const [activeInstructor, setActiveInstructor] = useState<Instructor>(INSTRUCTORS[0]);
 
   const screen = stack[stack.length - 1];
 
@@ -111,7 +116,15 @@ export function App() {
     return <ReviewsScreen onBack={pop} />;
   }
   if (screen === 'chat') {
-    return <ChatScreen onBack={pop} onProfile={() => push('instr-profile')} onBook={() => push('book-slot')} />;
+    return (
+      <ChatScreen
+        onBack={pop}
+        onProfile={() => push('instr-profile')}
+        onBook={() => push('book-slot')}
+        bookingStatus={chatBookingStatus}
+        instructorPhone={chatInstructorPhone}
+      />
+    );
   }
   if (screen === 'community') {
     return <CommunityScreen onBack={pop} />;
@@ -156,6 +169,7 @@ export function App() {
       <BookSlotScreen
         onBack={pop}
         onBooked={() => { switchGuestTab('bookings'); }}
+        instructor={activeInstructor}
       />
     );
   }
@@ -217,7 +231,7 @@ export function App() {
     } else if (instrTab === 'chat') {
       tabContent = (
         <ChatListScreen
-          onChat={() => push('chat')}
+          onChat={(_id, status, phone) => { setChatBookingStatus(status); setChatInstructorPhone(phone); push('chat'); }}
           onCommunity={() => push('community')}
         />
       );
@@ -249,7 +263,11 @@ export function App() {
       tabContent = (
         <CatalogScreen
           onProfile={() => push('instr-profile')}
-          onBook={() => push('book-slot')}
+          onBook={id => {
+            const instr = INSTRUCTORS.find(i => i.id === id) ?? INSTRUCTORS[0];
+            setActiveInstructor(instr);
+            push('book-slot');
+          }}
           onNotifications={() => push('notifications')}
           onBecomeInstructor={() => push('register')}
           onMasterClasses={() => push('mc-catalog')}
@@ -267,7 +285,7 @@ export function App() {
     } else if (guestTab === 'chat') {
       tabContent = (
         <ChatListScreen
-          onChat={() => push('chat')}
+          onChat={(_id, status, phone) => { setChatBookingStatus(status); setChatInstructorPhone(phone); push('chat'); }}
           onCommunity={() => push('community')}
         />
       );

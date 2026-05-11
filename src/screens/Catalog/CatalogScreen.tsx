@@ -6,7 +6,7 @@ type SportType = 'all' | 'ski' | 'board';
 type Level = 'all' | 'beginner' | 'advanced' | 'kids' | 'freeride';
 type SortKey = 'rating' | 'price-asc' | 'price-desc' | 'experience';
 
-interface Instructor {
+export interface Instructor {
   id: string;
   name: string;
   initials: string;
@@ -18,6 +18,7 @@ interface Instructor {
   price: number;
   exp: number;
   onMountain: boolean;
+  hasFreeSlotsToday: boolean;
   gender: 'male' | 'female';
   busyUntil?: string;
   nextSlot?: string;
@@ -28,39 +29,40 @@ interface Instructor {
 // уберём константу и заменим на запрос /resorts — фильтр появится автоматически.
 export const ACTIVE_RESORTS = ['Шерегеш'] as const;
 
-const INSTRUCTORS: Instructor[] = [
+export const INSTRUCTORS: Instructor[] = [
   {
     id: 'aleksey', name: 'Алексей Морозов', initials: 'АМ', avatarColor: 'ice',
     resort: 'Шерегеш', type: ['board'], level: ['beginner', 'advanced'],
-    rating: 4.9, price: 3500, exp: 8, onMountain: true, gender: 'male',
-    nextSlot: 'сегодня 14:00',
+    rating: 4.9, price: 3500, exp: 8, onMountain: true, hasFreeSlotsToday: true,
+    gender: 'male', nextSlot: 'сегодня 14:00',
     tags: [{ label: 'Сноуборд', color: 'blue' }, { label: 'Новички', color: 'mint' }],
   },
   {
     id: 'natalya', name: 'Наталья Петрова', initials: 'НП', avatarColor: 'mint',
     resort: 'Шерегеш', type: ['ski'], level: ['kids'],
-    rating: 5.0, price: 2800, exp: 6, onMountain: false, gender: 'female',
-    nextSlot: 'завтра 10:00',
+    rating: 5.0, price: 2800, exp: 6, onMountain: false, hasFreeSlotsToday: false,
+    gender: 'female', nextSlot: 'завтра 10:00',
     tags: [{ label: 'Горные лыжи', color: 'blue' }, { label: 'Дети', color: 'purple' }],
   },
   {
     id: 'dmitry', name: 'Дмитрий Захаров', initials: 'ДЗ', avatarColor: 'purple',
     resort: 'Шерегеш', type: ['ski', 'board'], level: ['advanced', 'freeride'],
-    rating: 4.7, price: 4200, exp: 10, onMountain: true, gender: 'male', busyUntil: '15:00',
+    rating: 4.7, price: 4200, exp: 10, onMountain: true, hasFreeSlotsToday: true,
+    gender: 'male', busyUntil: '15:00',
     tags: [{ label: 'Сноуборд', color: 'blue' }, { label: 'Фрирайд', color: 'straw' }],
   },
   {
     id: 'marina', name: 'Марина Волкова', initials: 'МВ', avatarColor: 'straw',
     resort: 'Шерегеш', type: ['ski'], level: ['beginner', 'kids'],
-    rating: 4.8, price: 2500, exp: 5, onMountain: false, gender: 'female',
-    nextSlot: 'вс 11:30',
+    rating: 4.8, price: 2500, exp: 5, onMountain: false, hasFreeSlotsToday: true,
+    gender: 'female', nextSlot: 'сегодня 16:00',
     tags: [{ label: 'Горные лыжи', color: 'blue' }, { label: 'Новички', color: 'mint' }, { label: 'Дети', color: 'purple' }],
   },
   {
     id: 'sergey', name: 'Сергей Лебедев', initials: 'СЛ', avatarColor: 'blue',
     resort: 'Шерегеш', type: ['ski'], level: ['advanced', 'freeride'],
-    rating: 5.0, price: 5000, exp: 12, onMountain: true, gender: 'male',
-    nextSlot: 'завтра 09:00',
+    rating: 5.0, price: 5000, exp: 12, onMountain: true, hasFreeSlotsToday: true,
+    gender: 'male', nextSlot: 'сегодня 15:30',
     tags: [{ label: 'Горные лыжи', color: 'blue' }, { label: 'Фрирайд', color: 'straw' }],
   },
 ];
@@ -84,10 +86,11 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onBecomeInst
   const [type, setType] = useState<SportType>('all');
   const [level, setLevel] = useState<Level>('all');
   const [sort, setSort] = useState<SortKey>('rating');
-  const [onlyOnMountain, setOnlyOnMountain] = useState(false);
+  const [onlyFreeToday, setOnlyFreeToday] = useState(false);
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
 
-  const onMountainCount = INSTRUCTORS.filter(i => i.onMountain).length;
+  const freeTodayCount = INSTRUCTORS.filter(i => i.hasFreeSlotsToday).length;
+  const avgRating = (INSTRUCTORS.reduce((sum, i) => sum + i.rating, 0) / INSTRUCTORS.length).toFixed(1);
 
   function toggleFav(id: string) {
     setFavorites(prev => {
@@ -99,7 +102,7 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onBecomeInst
 
   const filtered = INSTRUCTORS
     .filter(i => {
-      if (onlyOnMountain && !i.onMountain) return false;
+      if (onlyFreeToday && !i.hasFreeSlotsToday) return false;
       if (type !== 'all' && !i.type.includes(type)) return false;
       if (level !== 'all' && !i.level.includes(level)) return false;
       if (search) {
@@ -133,9 +136,13 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onBecomeInst
               {t('catalog.titleLine')} <span>{t('catalog.titleAccent')}</span>
             </h1>
             <div className={styles.heroStats}>
-              <span className={styles.heroStat}><strong>248</strong> {t('catalog.statInstructors').replace('{count}', '')}</span>
+              <span className={styles.heroStat}>
+                {t('catalog.statInstructors', { count: INSTRUCTORS.length })}
+              </span>
               <span className={styles.heroStatSep}>·</span>
-              <span className={styles.heroStat}><strong>4.9</strong> ★ средний рейтинг</span>
+              <span className={styles.heroStat}>
+                {t('catalog.statRating', { rating: avgRating })}
+              </span>
             </div>
           </div>
           <div className={styles.topActions}>
@@ -176,15 +183,17 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onBecomeInst
 
       {/* ── Avail toggle ── */}
       <button
-        className={`${styles.availBtn} ${onlyOnMountain ? styles.availBtnActive : ''}`}
-        onClick={() => setOnlyOnMountain(v => !v)}
+        className={`${styles.availBtn} ${onlyFreeToday ? styles.availBtnActive : ''}`}
+        onClick={() => setOnlyFreeToday(v => !v)}
       >
         <span className={styles.availPulse} />
         <span className={styles.availLabel}>
-          {onlyOnMountain ? `${onMountainCount} на горе` : t('catalog.showAll')}
+          {onlyFreeToday
+            ? t('catalog.showFreeToday', { count: freeTodayCount })
+            : t('catalog.showAll')}
         </span>
         <span className={styles.availCount}>
-          {t('catalog.showOnMountain').replace('{count}', String(onMountainCount))}
+          {t('catalog.showFreeToday', { count: freeTodayCount })}
         </span>
       </button>
 
