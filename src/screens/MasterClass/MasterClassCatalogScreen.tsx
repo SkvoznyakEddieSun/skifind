@@ -19,21 +19,33 @@ function fillPct(mc: { maxParticipants: number; currentParticipants: number }) {
   return Math.round((mc.currentParticipants / mc.maxParticipants) * 100);
 }
 
+function pluralRu(n: number, forms: [string, string, string]): string {
+  const n10 = n % 10, n100 = n % 100;
+  if (n10 === 1 && n100 !== 11) return forms[0];
+  if (n10 >= 2 && n10 <= 4 && (n100 < 10 || n100 >= 20)) return forms[1];
+  return forms[2];
+}
+
 // ── Props ──────────────────────────────────────────────────────────────────
 
 interface MasterClassCatalogScreenProps {
-  onBack:   () => void;
-  onDetail: (id: string) => void;
+  onBack:      () => void;
+  onDetail:    (id: string) => void;
+  joinedMcIds: Set<string>;
 }
 
 // ── Component ──────────────────────────────────────────────────────────────
 
-export function MasterClassCatalogScreen({ onBack, onDetail }: MasterClassCatalogScreenProps) {
+export function MasterClassCatalogScreen({
+  onBack,
+  onDetail,
+  joinedMcIds,
+}: MasterClassCatalogScreenProps) {
   const [sport, setSport] = useState<McSport | 'all'>('all');
 
-  const filtered = MASTER_CLASSES.filter(
-    mc => sport === 'all' || mc.sport === sport,
-  );
+  const filtered = MASTER_CLASSES
+    .filter(mc => sport === 'all' || mc.sport === sport)
+    .sort((a, b) => new Date(a.eventDateISO).getTime() - new Date(b.eventDateISO).getTime());
 
   return (
     <div className={styles.screen}>
@@ -58,63 +70,88 @@ export function MasterClassCatalogScreen({ onBack, onDetail }: MasterClassCatalo
 
       {/* List */}
       <div className={styles.scroll}>
-        <div className={styles.sectionLabel}>
-          БЛИЖАЙШИЕ · {filtered.length} МЕРОПРИЯТИЯ
-        </div>
 
-        {filtered.map(mc => (
-          <div key={mc.id} className={styles.card} onClick={() => onDetail(mc.id)}>
-
-            {/* Top row */}
-            <div className={styles.cardTop}>
-              <div className={`${styles.av} ${styles[`av-${mc.instructorAvatarColor}`]}`}>
-                {mc.instructorInitials}
-              </div>
-              <div className={styles.cardInfo}>
-                <div className={styles.cardTitle}>{mc.title}</div>
-                <div className={styles.cardInstr}>
-                  {mc.instructorName} · ★{mc.instructorRating}
-                </div>
-              </div>
-              <span className={`${styles.levelBadge} ${styles[`level-${mc.levelColor}`]}`}>
-                {mc.levelLabel}
-              </span>
+        {/* ── Empty state ── */}
+        {filtered.length === 0 ? (
+          <div className={styles.emptyState}>
+            <div className={styles.emptyIcon}>
+              {sport === 'ski' ? '🎿' : '🏂'}
             </div>
-
-            {/* Meta row */}
-            <div className={styles.cardMeta}>
-              <span>📅 {mc.weekday} {mc.date}</span>
-              <span>🕐 {mc.time}</span>
-              <span>📍 {mc.location.split(',')[0]}</span>
+            <div className={styles.emptyTitle}>
+              В этой категории пока нет мастер-классов
             </div>
-
-            {/* Participants bar */}
-            <div className={styles.partsRow}>
-              <div className={styles.partsBar}>
-                <div className={styles.partsFill} style={{ width: `${fillPct(mc)}%` }} />
-              </div>
-              <span className={styles.partsTxt}>
-                {mc.currentParticipants}/{mc.maxParticipants}
-              </span>
-            </div>
-
-            {/* Bottom */}
-            <div className={styles.cardBottom}>
-              <div>
-                <div className={styles.cardPrice}>{mc.price.toLocaleString('ru')} ₽</div>
-                <div className={`${styles.spotsLeft} ${spotsLeft(mc) === 0 ? styles.spotsNone : ''}`}>
-                  {spotsLabel(spotsLeft(mc))}
-                </div>
-              </div>
-              <button
-                className={styles.detailBtn}
-                onClick={e => { e.stopPropagation(); onDetail(mc.id); }}
-              >
-                Подробнее →
-              </button>
-            </div>
+            <button className={styles.emptyBtn} onClick={() => setSport('all')}>
+              Показать все
+            </button>
           </div>
-        ))}
+        ) : (
+          <>
+            <div className={styles.sectionLabel}>
+              БЛИЖАЙШИЕ · {filtered.length}{' '}
+              {pluralRu(filtered.length, ['мероприятие', 'мероприятия', 'мероприятий'])}
+            </div>
+
+            {filtered.map(mc => (
+              <div key={mc.id} className={styles.card} onClick={() => onDetail(mc.id)}>
+
+                {/* Top row */}
+                <div className={styles.cardTop}>
+                  <div className={`${styles.av} ${styles[`av-${mc.instructorAvatarColor}`]}`}>
+                    {mc.instructorInitials}
+                  </div>
+                  <div className={styles.cardInfo}>
+                    <div className={styles.cardTitle}>{mc.title}</div>
+                    <div className={styles.cardInstr}>
+                      {mc.instructorName} · ★{mc.instructorRating}
+                    </div>
+                  </div>
+                  {/* Бейджи: уровень + "Вы записаны" */}
+                  <div className={styles.cardBadges}>
+                    <span className={`${styles.levelBadge} ${styles[`level-${mc.levelColor}`]}`}>
+                      {mc.levelLabel}
+                    </span>
+                    {joinedMcIds.has(mc.id) && (
+                      <span className={styles.joinedBadge}>✓ Вы записаны</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Meta row */}
+                <div className={styles.cardMeta}>
+                  <span>📅 {mc.weekday} {mc.date}</span>
+                  <span>🕐 {mc.time}</span>
+                  <span>📍 {mc.location.split(',')[0]}</span>
+                </div>
+
+                {/* Participants bar */}
+                <div className={styles.partsRow}>
+                  <div className={styles.partsBar}>
+                    <div className={styles.partsFill} style={{ width: `${fillPct(mc)}%` }} />
+                  </div>
+                  <span className={styles.partsTxt}>
+                    {mc.currentParticipants}/{mc.maxParticipants}
+                  </span>
+                </div>
+
+                {/* Bottom */}
+                <div className={styles.cardBottom}>
+                  <div>
+                    <div className={styles.cardPrice}>{mc.price.toLocaleString('ru')} ₽</div>
+                    <div className={`${styles.spotsLeft} ${spotsLeft(mc) === 0 ? styles.spotsNone : ''}`}>
+                      {spotsLabel(spotsLeft(mc))}
+                    </div>
+                  </div>
+                  <button
+                    className={styles.detailBtn}
+                    onClick={e => { e.stopPropagation(); onDetail(mc.id); }}
+                  >
+                    Подробнее →
+                  </button>
+                </div>
+              </div>
+            ))}
+          </>
+        )}
 
         <div style={{ height: 32 }} />
       </div>

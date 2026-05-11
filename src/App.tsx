@@ -179,6 +179,7 @@ export function App() {
       <MasterClassCatalogScreen
         onBack={pop}
         onDetail={id => { setActiveMcId(id); push('mc-detail'); }}
+        joinedMcIds={joinedMcIds}
       />
     );
   }

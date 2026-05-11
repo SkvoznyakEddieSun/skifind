@@ -325,3 +325,51 @@
   from { transform: translateY(20px); opacity: 0; }
   to   { transform: translateY(0);    opacity: 1; }
 }
+
+/* ── Stepper hint (длинный — для minParts) ── */
+.stepperHintLong {
+  font-size: 12px;
+  color: var(--text-dim);
+  line-height: 1.4;
+  flex: 1;
+}
+
+/* ── Price input error ── */
+.textInputError {
+  border-color: #dc2626 !important;
+}
+
+.fieldError {
+  font-size: 12px;
+  color: #dc2626;
+  font-weight: 500;
+  padding: 4px 16px 0;
+}
+
+/* ── Price preview (полная группа) ── */
+.pricePreview {
+  font-size: 12px;
+  color: var(--text-dim);
+  padding: 4px 16px 0;
+}
+
+/* ── Deadline hint ── */
+.deadlineHint {
+  font-size: 12px;
+  color: var(--text-dim);
+  line-height: 1.5;
+  padding: 6px 16px 4px;
+}
+
+/* ── Description counter ── */
+.descCount {
+  font-size: 11px;
+  color: var(--text-dim);
+  text-align: right;
+  padding: 4px 16px 0;
+}
+
+.descCountWarn {
+  color: #d97706;
+  font-weight: 600;
+}

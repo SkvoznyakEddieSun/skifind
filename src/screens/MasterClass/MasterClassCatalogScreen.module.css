@@ -245,3 +245,60 @@
 }
 
 .detailBtn:active { opacity: .8; }
+
+/* ── Card badges column (level + joined) ── */
+.cardBadges {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+/* ── "Вы записаны" badge ── */
+.joinedBadge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 7px;
+  border-radius: 10px;
+  background: var(--mint);
+  color: var(--mint-text);
+  white-space: nowrap;
+}
+
+/* ── Empty state (фильтр пуст) ── */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 24px 40px;
+  gap: 10px;
+  text-align: center;
+}
+
+.emptyIcon  { font-size: 48px; margin-bottom: 4px; }
+
+.emptyTitle {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-dim);
+  max-width: 220px;
+  line-height: 1.4;
+}
+
+.emptyBtn {
+  margin-top: 8px;
+  padding: 10px 24px;
+  border-radius: 20px;
+  background: var(--accent);
+  color: var(--accent-text);
+  border: none;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: var(--ff);
+  cursor: pointer;
+  transition: opacity .15s;
+}
+
+.emptyBtn:active { opacity: .8; }
