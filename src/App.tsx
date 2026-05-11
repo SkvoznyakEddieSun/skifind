@@ -185,6 +185,7 @@ export function App() {
   if (screen === 'mc-detail') {
     return (
       <MasterClassDetailScreen
+        key={activeMcId}
         id={activeMcId}
         onBack={pop}
         onJoined={() => {

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import styles from './MasterClassDetailScreen.module.css';
 import { MASTER_CLASSES } from './masterClassData';
 
@@ -35,6 +35,10 @@ export function MasterClassDetailScreen({
   // КРИТИЧНО 2: joined инициализируется из isAlreadyJoined
   const [joined,    setJoined]    = useState(isAlreadyJoined);
   const [showToast, setShowToast] = useState(false);
+
+  // БАГ-ФИX: чистим таймер тоста при размонтировании (swipe-back во время тоста)
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => { if (toastTimer.current) clearTimeout(toastTimer.current); }, []);
 
   // ── Empty state (КРИТИЧНО 1) ──────────────────────────────────────────────
   if (!mc) {
@@ -78,7 +82,7 @@ export function MasterClassDetailScreen({
     // Backend must check participants atomically (race condition).
     setJoined(true);
     setShowToast(true);
-    setTimeout(() => {
+    toastTimer.current = setTimeout(() => {
       setShowToast(false);
       onJoined();
     }, 1800);
