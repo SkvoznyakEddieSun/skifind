@@ -84,6 +84,7 @@ export function App() {
   const [chatBookingStatus, setChatBookingStatus] = useState<BookingStatus>('PENDING');
   const [chatInstructorPhone, setChatInstructorPhone] = useState<string | undefined>(undefined);
   const [activeInstructor, setActiveInstructor] = useState<Instructor>(INSTRUCTORS[0]);
+  const [joinedMcIds, setJoinedMcIds] = useState<Set<string>>(new Set());
 
   const screen = stack[stack.length - 1];
 
@@ -186,7 +187,16 @@ export function App() {
       <MasterClassDetailScreen
         id={activeMcId}
         onBack={pop}
-        onJoined={() => { push('mc-group-chat'); }}
+        onJoined={() => {
+          setJoinedMcIds(prev => new Set([...prev, activeMcId]));
+          push('mc-group-chat');
+        }}
+        isAlreadyJoined={joinedMcIds.has(activeMcId)}
+        onLeave={() => setJoinedMcIds(prev => {
+          const next = new Set(prev);
+          next.delete(activeMcId);
+          return next;
+        })}
       />
     );
   }

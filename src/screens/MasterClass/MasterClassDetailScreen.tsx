@@ -2,26 +2,80 @@ import { useState } from 'react';
 import styles from './MasterClassDetailScreen.module.css';
 import { MASTER_CLASSES } from './masterClassData';
 
+// ── Helpers ────────────────────────────────────────────────────────────────
+
+function minPartsLabel(n: number): string {
+  if (n === 1) return '1 участник';
+  if (n < 5)   return `${n} участника`;
+  return `${n} участников`;
+}
+
 // ── Props ──────────────────────────────────────────────────────────────────
 
 interface MasterClassDetailScreenProps {
   id: string;
-  onBack:   () => void;
-  onJoined: () => void; // → открывает групповой чат
+  onBack:           () => void;
+  onJoined:         () => void; // → открывает групповой чат
+  isAlreadyJoined?: boolean;   // гость уже записан на этот МК
+  onLeave?:         () => void; // вызывается при отмене записи
 }
 
 // ── Component ──────────────────────────────────────────────────────────────
 
-export function MasterClassDetailScreen({ id, onBack, onJoined }: MasterClassDetailScreenProps) {
-  const mc = MASTER_CLASSES.find(m => m.id === id) ?? MASTER_CLASSES[0];
-  const [joined, setJoined] = useState(false);
+export function MasterClassDetailScreen({
+  id,
+  onBack,
+  onJoined,
+  isAlreadyJoined = false,
+  onLeave,
+}: MasterClassDetailScreenProps) {
+  // КРИТИЧНО 1: убран fallback на MASTER_CLASSES[0]
+  const mc = MASTER_CLASSES.find(m => m.id === id);
+
+  // КРИТИЧНО 2: joined инициализируется из isAlreadyJoined
+  const [joined,    setJoined]    = useState(isAlreadyJoined);
   const [showToast, setShowToast] = useState(false);
 
+  // ── Empty state (КРИТИЧНО 1) ──────────────────────────────────────────────
+  if (!mc) {
+    return (
+      <div className={styles.screen}>
+        <div className={styles.header}>
+          <button className={styles.backBtn} onClick={onBack}>‹</button>
+          <div className={styles.headerTitle}>Мастер-класс</div>
+        </div>
+        <div className={styles.emptyState}>
+          <div className={styles.emptyIcon}>🔍</div>
+          <div className={styles.emptyTitle}>Мастер-класс не найден</div>
+          <div className={styles.emptySub}>
+            Возможно, он был удалён или ссылка устарела.
+          </div>
+          <button className={styles.emptyBtn} onClick={onBack}>
+            ← Назад к списку
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Derived values ─────────────────────────────────────────────────────────
   const left = mc.maxParticipants - mc.currentParticipants;
   const pct  = Math.round((mc.currentParticipants / mc.maxParticipants) * 100);
 
+  // МЕЛКОЕ 2: deadline calculation
+  const now              = Date.now();
+  const eventMs          = new Date(mc.eventDateISO).getTime();
+  const deadlineMs       = eventMs - mc.bookingDeadlineHours * 3_600_000;
+  const hoursUntilDeadline = (deadlineMs - now) / 3_600_000;
+  const bookingClosed    = hoursUntilDeadline <= 0;
+  const showDeadlineWarn = !bookingClosed && hoursUntilDeadline < 24;
+
+  // ── Handlers ───────────────────────────────────────────────────────────────
+
   function handleJoin() {
-    if (joined || left === 0) return;
+    if (joined || left === 0 || bookingClosed) return;
+    // TODO(backend): replace setJoined with POST /api/masterclass/:id/join
+    // Backend must check participants atomically (race condition).
     setJoined(true);
     setShowToast(true);
     setTimeout(() => {
@@ -29,6 +83,13 @@ export function MasterClassDetailScreen({ id, onBack, onJoined }: MasterClassDet
       onJoined();
     }, 1800);
   }
+
+  function handleLeave() {
+    setJoined(false);
+    onLeave?.();
+  }
+
+  // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
     <div className={styles.screen}>
@@ -58,7 +119,7 @@ export function MasterClassDetailScreen({ id, onBack, onJoined }: MasterClassDet
 
         <div className={styles.divider} />
 
-        {/* Info grid */}
+        {/* Info grid 2×2 */}
         <div className={styles.infoGrid}>
           <div className={styles.infoItem}>
             <div className={styles.infoIcon}>📅</div>
@@ -88,6 +149,15 @@ export function MasterClassDetailScreen({ id, onBack, onJoined }: MasterClassDet
               <div className={styles.infoValue}>{mc.currentParticipants} из {mc.maxParticipants}</div>
             </div>
           </div>
+        </div>
+
+        {/* КРИТИЧНО 3: минимум участников */}
+        <div className={styles.minPartsWarning}>
+          <span className={styles.minPartsIcon}>⚠</span>
+          <span>
+            Минимум: {minPartsLabel(mc.minParticipants)}.{' '}
+            Если не наберётся — занятие будет отменено за {mc.bookingDeadlineHours} ч до начала, без штрафов.
+          </span>
         </div>
 
         <div className={styles.divider} />
@@ -129,18 +199,35 @@ export function MasterClassDetailScreen({ id, onBack, onJoined }: MasterClassDet
           <div className={styles.bookPriceWrap}>
             <div className={styles.bookPrice}>{mc.price.toLocaleString('ru')} ₽</div>
             <div className={styles.bookPriceSub}>за участие</div>
+            {/* МЕЛКОЕ 2: deadline warning */}
+            {showDeadlineWarn && !joined && (
+              <div className={styles.deadlineWarn}>
+                ⏰ Запись закроется через {Math.ceil(hoursUntilDeadline)} ч
+              </div>
+            )}
           </div>
-          <button
-            className={`${styles.bookBtn} ${joined ? styles.bookBtnDone : ''} ${left === 0 ? styles.bookBtnFull : ''}`}
-            onClick={handleJoin}
-            disabled={joined || left === 0}
-          >
-            {joined
-              ? '✓ Вы записаны'
-              : left === 0
-              ? 'Мест нет'
-              : 'Записаться на мастер-класс'}
-          </button>
+
+          {/* КРИТИЧНО 2: состояние "уже записан" */}
+          {joined ? (
+            <button
+              className={`${styles.bookBtn} ${styles.bookBtnLeave}`}
+              onClick={handleLeave}
+            >
+              ✕ Отменить запись
+            </button>
+          ) : bookingClosed ? (
+            <button className={`${styles.bookBtn} ${styles.bookBtnFull}`} disabled>
+              Запись закрыта
+            </button>
+          ) : left === 0 ? (
+            <button className={`${styles.bookBtn} ${styles.bookBtnFull}`} disabled>
+              Мест нет
+            </button>
+          ) : (
+            <button className={styles.bookBtn} onClick={handleJoin}>
+              Записаться на мастер-класс
+            </button>
+          )}
         </div>
 
         <div style={{ height: 32 }} />
