@@ -286,7 +286,7 @@ export function App() {
       tabContent = (
         <ChatListScreen
           onChat={(_id, status, phone) => { setChatBookingStatus(status); setChatInstructorPhone(phone); push('chat'); }}
-          onCommunity={() => push('community')}
+          // onCommunity не передаётся — гости не видят чат инструкторов
         />
       );
     } else {

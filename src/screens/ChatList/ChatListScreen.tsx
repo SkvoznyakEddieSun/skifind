@@ -184,16 +184,18 @@ export function ChatListScreen({ onBack: _onBack, onChat, onCommunity }: ChatLis
       </div>
 
       <div className={styles.scroll}>
-        {/* Community banner */}
-        <div className={styles.communityBanner} onClick={onCommunity} style={{ cursor: 'pointer' }}>
-          <div className={styles.cbIcon}>⛰</div>
-          <div className={styles.cbText}>
-            <div className={styles.cbTitle}>Сообщество инструкторов</div>
-            <div className={styles.cbSub}>Чат всех инструкторов SkiFind. Делитесь опытом, обсуждайте снег, помогайте друг другу</div>
-            <div className={styles.cbOnlinePill}>47 онлайн</div>
+        {/* Community banner — только для инструкторов */}
+        {onCommunity && (
+          <div className={styles.communityBanner} onClick={onCommunity} style={{ cursor: 'pointer' }}>
+            <div className={styles.cbIcon}>⛰</div>
+            <div className={styles.cbText}>
+              <div className={styles.cbTitle}>Сообщество инструкторов</div>
+              <div className={styles.cbSub}>Чат всех инструкторов SkiFind. Делитесь опытом, обсуждайте снег, помогайте друг другу</div>
+              <div className={styles.cbOnlinePill}>47 онлайн</div>
+            </div>
+            <div className={styles.cbArrow}>›</div>
           </div>
-          <div className={styles.cbArrow}>›</div>
-        </div>
+        )}
 
         {noResults ? (
           <div className={styles.empty}>Ничего не найдено</div>
