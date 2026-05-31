@@ -15,31 +15,19 @@
   flex-shrink: 0;
 }
 
-/* ── Collapsible title/actions block ── */
+/* ── Collapsible title/actions block ──
+   max-height и opacity обновляются напрямую из handleScroll (no transition).
+   Начальные значения здесь — для первого рендера до первого скролла.       */
 .heroTop {
   overflow: hidden;
-  max-height: 160px;
-  opacity: 1;
-  transition: max-height .22s ease, opacity .18s ease;
-}
-
-.heroTopCollapsed {
-  max-height: 0;
-  opacity: 0;
+  max-height: 180px; /* перекрывает реальную высоту с запасом */
 }
 
 /* ── Collapsible filters block (avail + sort + level) ── */
 .filtersSection {
   flex-shrink: 0;
   overflow: hidden;
-  max-height: 200px;
-  opacity: 1;
-  transition: max-height .22s ease, opacity .18s ease;
-}
-
-.filtersSectionCollapsed {
-  max-height: 0;
-  opacity: 0;
+  max-height: 220px;
 }
 
 .tbRow {
@@ -579,7 +567,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin: 4px 0 8px;
+  margin: 4px 22px 8px; /* горизонтальные отступы совпадают с .instrList */
   padding: 14px 16px;
   background: var(--accent-soft);
   border: 1.5px solid var(--accent);

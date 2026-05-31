@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import styles from './ProfileScreen.module.css';
 import { useTranslation } from '@/i18n/useTranslation';
+import type { Instructor } from '@/screens/Catalog/CatalogScreen';
 
 interface PriceRow {
   label: string;
@@ -86,22 +87,41 @@ const MOCK_PROFILE: ProfileData = {
 };
 
 interface ProfileScreenProps {
-  instructorId?: string;
+  instructor?: Instructor;  // если передан — используем реальные данные
   onBack: () => void;
   onBook: () => void;
   onAskQuestion: () => void;
-  onChat: (id: string) => void;
+  onChat?: (id: string) => void;
   onAllReviews: () => void;
 }
 
+// Строим sub-строку ("Горные лыжи · Сноуборд · 8 лет опыта") из Instructor
+function buildSub(instr: Instructor): string {
+  const sports = instr.type.map(t => t === 'ski' ? 'Горные лыжи' : 'Сноуборд').join(' · ');
+  return `${sports} · ${instr.exp} ${instr.exp === 1 ? 'год' : instr.exp < 5 ? 'года' : 'лет'} опыта`;
+}
+
 /**
- * Экран профиля инструктора.
- * 1-в-1 копия из прототипа PROTOTYPE.html, секция scr-profile.
- * НИКАКИХ изменений дизайна без согласования.
+ * Экран профиля инструктора (публичный — для гостей).
+ * Принимает реальный Instructor и подставляет его данные,
+ * для остальных полей (навыки, расписание, отзывы) использует моки.
  */
-export function ProfileScreen({ onBack, onBook, onAskQuestion, onAllReviews }: ProfileScreenProps) {
+export function ProfileScreen({ instructor, onBack, onBook, onAskQuestion, onAllReviews }: ProfileScreenProps) {
   const { t } = useTranslation();
-  const p = MOCK_PROFILE;
+
+  // Если передан реальный инструктор — подставляем его данные поверх мока
+  const p = instructor ? {
+    ...MOCK_PROFILE,
+    id:           instructor.id,
+    name:         instructor.name,
+    initials:     instructor.initials,
+    avatarColor:  instructor.avatarColor,
+    sub:          buildSub(instructor),
+    tags:         instructor.tags.map(tg => tg.label),
+    rating:       instructor.rating,
+    onMountain:   instructor.onMountain,
+    about:        instructor.bio ?? MOCK_PROFILE.about,
+  } : MOCK_PROFILE;
   const [expanded, setExpanded] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [blocked, setBlocked] = useState(false);

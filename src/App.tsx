@@ -140,6 +140,7 @@ export function App() {
   if (screen === 'instr-profile') {
     return (
       <ProfileScreen
+        instructor={activeInstructor}
         onBack={pop}
         onBook={() => push('book-slot')}
         onAskQuestion={() => push('chat')}
@@ -287,7 +288,11 @@ export function App() {
     if (guestTab === 'catalog') {
       tabContent = (
         <CatalogScreen
-          onProfile={() => push('instr-profile')}
+          onProfile={id => {
+            const instr = INSTRUCTORS.find(i => i.id === id) ?? INSTRUCTORS[0];
+            setActiveInstructor(instr);
+            push('instr-profile');
+          }}
           onBook={id => {
             const instr = INSTRUCTORS.find(i => i.id === id) ?? INSTRUCTORS[0];
             setActiveInstructor(instr);

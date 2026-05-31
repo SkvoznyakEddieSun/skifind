@@ -118,17 +118,18 @@ export function BookSlotScreen({ onBack, onBooked, instructor }: BookSlotScreenP
   const [message, setMessage] = useState('');
   const [showToast, setShowToast] = useState(false);
   const [booked, setBooked] = useState(false);
-  const [groupSize, setGroupSize] = useState(2); // мини-группа: 2–4 человека
+  const maxGroupSize = instructor.miniGroupMaxParticipants ?? 6;
+  const [groupSize, setGroupSize] = useState(2); // мини-группа: 2–maxGroupSize
 
   // Сбрасываем размер группы при смене формата
   useEffect(() => { if (format !== 'miniGroup') setGroupSize(2); }, [format]);
 
-  // Цена мини-группы: base + extra × (groupSize - 2)
-  const miniGroupPrice = (() => {
-    const base  = instructor.miniGroupBasePrice  ?? Math.round(instructor.price * 1.4 / 100) * 100;
-    const extra = instructor.miniGroupExtraPrice ?? 0;
-    return base + extra * (groupSize - 2);
-  })();
+  // Цена мини-группы:
+  //   Если заданы base/extra — base + extra × (groupSize - 2)
+  //   Иначе — базовая цена × количество участников
+  const miniGroupPrice = instructor.miniGroupBasePrice != null
+    ? instructor.miniGroupBasePrice + (instructor.miniGroupExtraPrice ?? 0) * (groupSize - 2)
+    : instructor.price * groupSize;
 
   // Prices derived from instructor's base price
   const FORMAT_PRICES: Record<Format, number> = {
@@ -136,6 +137,10 @@ export function BookSlotScreen({ onBack, onBooked, instructor }: BookSlotScreenP
     miniGroup:  miniGroupPrice,
     kids:       Math.round(instructor.price * 0.8 / 100) * 100,
   };
+
+  // Только форматы, доступные для этого инструктора
+  const availableFormats = (Object.keys(FORMAT_LABELS) as Format[])
+    .filter(f => f !== 'kids' || instructor.worksWithKids);
 
   const selectedDate = DAYS[selectedDayIdx];
 
@@ -211,7 +216,7 @@ export function BookSlotScreen({ onBack, onBooked, instructor }: BookSlotScreenP
             {/* Format selector */}
             <div className={styles.sectionLabel}>Формат занятия</div>
             <div className={styles.formatChips}>
-              {(Object.keys(FORMAT_LABELS) as Format[]).map(f => (
+              {availableFormats.map(f => (
                 <button
                   key={f}
                   className={`${styles.formatChip} ${format === f ? styles.formatChipActive : ''}`}
@@ -234,8 +239,8 @@ export function BookSlotScreen({ onBack, onBooked, instructor }: BookSlotScreenP
                 <span className={styles.stepperVal}>{groupSize}</span>
                 <button
                   className={styles.stepperBtn}
-                  onClick={() => setGroupSize(n => Math.min(4, n + 1))}
-                  disabled={groupSize >= 4}
+                  onClick={() => setGroupSize(n => Math.min(maxGroupSize, n + 1))}
+                  disabled={groupSize >= maxGroupSize}
                 >+</button>
               </div>
             )}
@@ -318,7 +323,7 @@ export function BookSlotScreen({ onBack, onBooked, instructor }: BookSlotScreenP
                       </span>
                       {format === 'miniGroup' && (
                         <div className={styles.miniGroupPriceSummary}>
-                          за {groupSize} человека · {Math.round(FORMAT_PRICES[format] / groupSize).toLocaleString('ru')} ₽ с человека
+                          {`за ${groupSize} ${groupSize === 1 ? 'человека' : groupSize < 5 ? 'человека' : 'человек'} · ${Math.round(FORMAT_PRICES['miniGroup'] / groupSize).toLocaleString('ru')} ₽ с человека`}
                         </div>
                       )}
                     </div>

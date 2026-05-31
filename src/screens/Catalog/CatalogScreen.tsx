@@ -13,12 +13,15 @@ export interface Instructor {
   initials: string;
   avatarColor: 'ice' | 'mint' | 'purple' | 'straw' | 'blue';
   resort: string;
-  type: SportType[];
+  type: ('ski' | 'board')[];  // только реальные дисциплины, без 'all'
   level: Level[];
   rating: number;
   price: number;
-  miniGroupBasePrice?: number;  // цена мини-группы за 2 человека
-  miniGroupExtraPrice?: number; // доплата за каждого следующего участника
+  miniGroupBasePrice?: number;    // цена мини-группы за 2 человека
+  miniGroupExtraPrice?: number;   // доплата за каждого следующего участника
+  miniGroupMaxParticipants?: number; // максимум участников (по умолч. 6)
+  worksWithKids: boolean;         // показывать ли вкладку «Дети» в BookSlot
+  bio?: string;                   // краткое описание для ProfileScreen
   exp: number;
   onMountain: boolean;
   hasFreeSlotsToday: boolean;
@@ -36,7 +39,10 @@ export const INSTRUCTORS: Instructor[] = [
   {
     id: 'aleksey', name: 'Алексей Морозов', initials: 'АМ', avatarColor: 'ice',
     resort: 'Шерегеш', type: ['board'], level: ['beginner', 'advanced'],
-    rating: 4.9, price: 3500, miniGroupBasePrice: 7000, miniGroupExtraPrice: 2300,
+    rating: 4.9, price: 3500,
+    miniGroupBasePrice: 7000, miniGroupExtraPrice: 2300, miniGroupMaxParticipants: 5,
+    worksWithKids: false,
+    bio: 'Катаюсь с 14 лет, преподаю с 2016 года. Специализируюсь на обучении взрослых с нуля и улучшении техники. Умею объяснить сложное просто — каждому подбираю свой темп.',
     exp: 8, onMountain: true, hasFreeSlotsToday: true,
     gender: 'male', nextSlot: 'сегодня 14:00',
     tags: [{ label: 'Сноуборд', color: 'blue' }, { label: 'Новички', color: 'mint' }],
@@ -44,7 +50,10 @@ export const INSTRUCTORS: Instructor[] = [
   {
     id: 'natalya', name: 'Наталья Петрова', initials: 'НП', avatarColor: 'mint',
     resort: 'Шерегеш', type: ['ski'], level: ['kids'],
-    rating: 5.0, price: 2800, miniGroupBasePrice: 5500, miniGroupExtraPrice: 1800,
+    rating: 5.0, price: 2800,
+    miniGroupBasePrice: 5500, miniGroupExtraPrice: 1800, miniGroupMaxParticipants: 6,
+    worksWithKids: true,
+    bio: '6 лет работаю с детьми от 3 до 12 лет. Нашла подход к самым непоседливым — занятия в игровой форме, без страха, с результатом.',
     exp: 6, onMountain: false, hasFreeSlotsToday: false,
     gender: 'female', nextSlot: 'завтра 10:00',
     tags: [{ label: 'Горные лыжи', color: 'blue' }, { label: 'Дети', color: 'purple' }],
@@ -52,7 +61,10 @@ export const INSTRUCTORS: Instructor[] = [
   {
     id: 'dmitry', name: 'Дмитрий Захаров', initials: 'ДЗ', avatarColor: 'purple',
     resort: 'Шерегеш', type: ['ski', 'board'], level: ['advanced', 'freeride'],
-    rating: 4.7, price: 4200, miniGroupBasePrice: 8000, miniGroupExtraPrice: 2800,
+    rating: 4.7, price: 4200,
+    miniGroupBasePrice: 8000, miniGroupExtraPrice: 2800, miniGroupMaxParticipants: 4,
+    worksWithKids: false,
+    bio: '10 лет на склонах Шерегеша. Мастер спорта по горным лыжам, опыт фрирайда в Альпах. Обучаю технике параллельного ведения и навыкам бэккантри.',
     exp: 10, onMountain: true, hasFreeSlotsToday: true,
     gender: 'male', busyUntil: '15:00',
     tags: [{ label: 'Сноуборд', color: 'blue' }, { label: 'Фрирайд', color: 'straw' }],
@@ -60,7 +72,10 @@ export const INSTRUCTORS: Instructor[] = [
   {
     id: 'marina', name: 'Марина Волкова', initials: 'МВ', avatarColor: 'straw',
     resort: 'Шерегеш', type: ['ski'], level: ['beginner', 'kids'],
-    rating: 4.8, price: 2500, miniGroupBasePrice: 5000, miniGroupExtraPrice: 1600,
+    rating: 4.8, price: 2500,
+    miniGroupBasePrice: 5000, miniGroupExtraPrice: 1600, miniGroupMaxParticipants: 6,
+    worksWithKids: true,
+    bio: 'Работаю с новичками и детьми 5 лет. Умею мотивировать и поддерживать уверенность — даже самые осторожные гости начинают кататься самостоятельно.',
     exp: 5, onMountain: false, hasFreeSlotsToday: true,
     gender: 'female', nextSlot: 'сегодня 16:00',
     tags: [{ label: 'Горные лыжи', color: 'blue' }, { label: 'Новички', color: 'mint' }, { label: 'Дети', color: 'purple' }],
@@ -68,7 +83,10 @@ export const INSTRUCTORS: Instructor[] = [
   {
     id: 'sergey', name: 'Сергей Лебедев', initials: 'СЛ', avatarColor: 'blue',
     resort: 'Шерегеш', type: ['ski'], level: ['advanced', 'freeride'],
-    rating: 5.0, price: 5000, miniGroupBasePrice: 9000, miniGroupExtraPrice: 3000,
+    rating: 5.0, price: 5000,
+    miniGroupBasePrice: 9000, miniGroupExtraPrice: 3000, miniGroupMaxParticipants: 4,
+    worksWithKids: false,
+    bio: '12 лет инструкторского опыта, международный сертификат ISIA. Специализируюсь на продвинутых райдерах и фрирайде — помогу выйти на новый уровень.',
     exp: 12, onMountain: true, hasFreeSlotsToday: true,
     gender: 'male', nextSlot: 'сегодня 15:30',
     tags: [{ label: 'Горные лыжи', color: 'blue' }, { label: 'Фрирайд', color: 'straw' }],
@@ -97,17 +115,32 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onBecomeInst
   const [onlyFreeToday, setOnlyFreeToday] = useState(false);
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
 
-  // ── Scroll tracking ────────────────────────────────────────────────────────
-  const scrollRef    = useRef<HTMLDivElement>(null);
-  const [collapsed, setCollapsed] = useState(false);
-  const [showTop,   setShowTop]   = useState(false);
+  // ── Scroll tracking — прямой DOM для плавного следования за скроллом ─────
+  const scrollRef       = useRef<HTMLDivElement>(null);
+  const heroTopRef      = useRef<HTMLDivElement>(null);
+  const filtersSectRef  = useRef<HTMLDivElement>(null);
+  const [showTop, setShowTop] = useState(false);
 
   const handleScroll = useCallback(() => {
     const el = scrollRef.current;
     if (!el) return;
     const top = el.scrollTop;
-    setCollapsed(top > 80);
-    setShowTop(top > 300);
+
+    // progress 0→1 в диапазоне 0–120px — пропорциональное следование
+    const prog = Math.min(1, Math.max(0, top / 120));
+
+    if (heroTopRef.current) {
+      heroTopRef.current.style.maxHeight     = `${Math.round((1 - prog) * 180)}px`;
+      heroTopRef.current.style.opacity       = String(+(1 - prog).toFixed(3));
+      heroTopRef.current.style.pointerEvents = prog > 0.9 ? 'none' : 'auto';
+    }
+    if (filtersSectRef.current) {
+      filtersSectRef.current.style.maxHeight = `${Math.round((1 - prog) * 220)}px`;
+      filtersSectRef.current.style.opacity   = String(+(1 - prog).toFixed(3));
+    }
+
+    // Кнопка «наверх» через state (достаточно редко меняется)
+    setShowTop(prev => (top > 300) !== prev ? (top > 300) : prev);
   }, []);
 
   function scrollToTop() {
@@ -128,7 +161,7 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onBecomeInst
   const filtered = INSTRUCTORS
     .filter(i => {
       if (onlyFreeToday && !i.hasFreeSlotsToday) return false;
-      if (type !== 'all' && !i.type.includes(type)) return false;
+      if (type !== 'all' && !i.type.some(t => t === type)) return false;
       if (level !== 'all' && !i.level.includes(level)) return false;
       if (search) {
         const q = search.toLowerCase();
@@ -155,8 +188,8 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onBecomeInst
     <div className={styles.screen}>
       {/* ── Hero ── */}
       <div className={styles.hero}>
-        {/* Collapsible: title + action buttons */}
-        <div className={`${styles.heroTop} ${collapsed ? styles.heroTopCollapsed : ''}`}>
+        {/* Collapsible: title + action buttons — высота управляется через ref.style в handleScroll */}
+        <div ref={heroTopRef} className={styles.heroTop}>
           <div className={styles.tbRow}>
             <div className={styles.titleBlock}>
               <h1 className={styles.heroTitle}>
@@ -209,7 +242,7 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onBecomeInst
       </div>
 
       {/* ── Collapsible filters: avail + sort + level chips ── */}
-      <div className={`${styles.filtersSection} ${collapsed ? styles.filtersSectionCollapsed : ''}`}>
+      <div ref={filtersSectRef} className={styles.filtersSection}>
         <button
           className={`${styles.availBtn} ${onlyFreeToday ? styles.availBtnActive : ''}`}
           onClick={() => setOnlyFreeToday(v => !v)}
