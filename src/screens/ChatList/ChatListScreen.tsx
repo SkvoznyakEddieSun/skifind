@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import styles from './ChatListScreen.module.css';
 import type { BookingStatus } from '../Chat/ChatScreen';
+import { MASTER_CLASSES } from '../MasterClass/masterClassData';
 
 interface ChatItem {
   id: string;
@@ -118,6 +119,8 @@ interface ChatListScreenProps {
   onBack?: () => void;
   onChat?: (id: string, status: BookingStatus, phone?: string) => void;
   onCommunity?: () => void;
+  joinedMcIds?: Set<string>;
+  onGroupChat?: (mcId: string) => void;
 }
 
 function ChatRow({ item, onClick }: { item: ChatItem; onClick?: () => void }) {
@@ -155,8 +158,11 @@ function ChatRow({ item, onClick }: { item: ChatItem; onClick?: () => void }) {
   );
 }
 
-export function ChatListScreen({ onBack: _onBack, onChat, onCommunity }: ChatListScreenProps) {
+export function ChatListScreen({ onBack: _onBack, onChat, onCommunity, joinedMcIds, onGroupChat }: ChatListScreenProps) {
   const [query, setQuery] = useState('');
+
+  // Групповые чаты МК — только если есть вступления
+  const joinedMcs = MASTER_CLASSES.filter(mc => joinedMcIds?.has(mc.id));
 
   function matches(item: ChatItem) {
     if (!query) return true;
@@ -195,6 +201,39 @@ export function ChatListScreen({ onBack: _onBack, onChat, onCommunity }: ChatLis
             </div>
             <div className={styles.cbArrow}>›</div>
           </div>
+        )}
+
+        {/* ── Групповые чаты МК ── */}
+        {joinedMcs.length > 0 && (
+          <>
+            <div className={styles.sectionDivider}>Групповые чаты</div>
+            {joinedMcs.map(mc => (
+              <div
+                key={mc.id}
+                className={`${styles.chatItem} ${styles.chatItemGroup}`}
+                onClick={() => onGroupChat?.(mc.id)}
+                style={{ cursor: 'pointer' }}
+              >
+                <div className={styles.ciAv}>
+                  <div className={`${styles.av} ${styles.avGroup}`}>🎿</div>
+                </div>
+                <div className={styles.ciInfo}>
+                  <div className={styles.ciTop}>
+                    <div className={styles.ciName}>
+                      {mc.title}
+                      <span className={styles.ciRoleGroup}>группа</span>
+                    </div>
+                    <div className={styles.ciTime}>{mc.date}</div>
+                  </div>
+                  <div className={styles.ciBot}>
+                    <div className={styles.ciMsg}>
+                      {mc.instructorName} · {mc.time} · {mc.location}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </>
         )}
 
         {noResults ? (

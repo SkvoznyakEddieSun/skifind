@@ -264,3 +264,27 @@
   font-size: 13px;
   color: var(--text-dim);
 }
+
+/* ── Group chat item ── */
+.chatItemGroup {
+  background: var(--accent-soft);
+  border-left: 3px solid var(--accent);
+}
+
+.avGroup {
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 20px;
+}
+
+.ciRoleGroup {
+  font-size: 10px;
+  font-weight: 600;
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-radius: 6px;
+  padding: 1px 6px;
+  margin-left: 6px;
+  text-transform: uppercase;
+  letter-spacing: .3px;
+}

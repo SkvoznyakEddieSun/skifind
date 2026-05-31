@@ -343,6 +343,8 @@ export function App() {
       tabContent = (
         <ChatListScreen
           onChat={(_id, status, phone) => { setChatBookingStatus(status); setChatInstructorPhone(phone); push('chat'); }}
+          joinedMcIds={joinedMcIds}
+          onGroupChat={mcId => { setActiveMcId(mcId); push('mc-group-chat'); }}
         />
       );
     } else {
