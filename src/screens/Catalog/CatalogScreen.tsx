@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import styles from './CatalogScreen.module.css';
 import { useTranslation } from '@/i18n/useTranslation';
 
@@ -116,6 +116,11 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onBecomeInst
   const [sort, setSort]               = useState<SortKey>('rating');
   const [onlyFreeToday, setOnlyFreeToday] = useState(false);
   const [favorites, setFavorites]     = useState<Set<string>>(new Set());
+  const contentRef                    = useRef<HTMLDivElement>(null);
+
+  const scrollToTop = useCallback(() => {
+    contentRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
 
   const freeTodayCount = INSTRUCTORS.filter(i => i.hasFreeSlotsToday).length;
   const avgRating = (INSTRUCTORS.reduce((sum, i) => sum + i.rating, 0) / INSTRUCTORS.length).toFixed(1);
@@ -191,7 +196,7 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onBecomeInst
               type="search"
               placeholder={t('catalog.searchPlaceholder')}
               value={search}
-              onChange={e => setSearch(e.target.value)}
+              onChange={e => { setSearch(e.target.value); scrollToTop(); }}
             />
           </div>
 
@@ -200,7 +205,7 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onBecomeInst
               <button
                 key={tab}
                 className={`${styles.typeTab} ${type === tab ? styles.typeTabActive : ''}`}
-                onClick={() => setType(tab)}
+                onClick={() => { setType(tab); scrollToTop(); }}
               >
                 {tab === 'all' ? t('catalog.filterAll') : tab === 'ski' ? t('catalog.filterAlpine') : t('catalog.filterSnowboard')}
               </button>
@@ -210,11 +215,11 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onBecomeInst
       </div>{/* /header */}
 
       {/* ── Скроллируемый контент ── */}
-      <div className={styles.content}>
+      <div className={styles.content} ref={contentRef}>
         <div className={styles.filtersSection}>
           <button
             className={`${styles.availBtn} ${onlyFreeToday ? styles.availBtnActive : ''}`}
-            onClick={() => setOnlyFreeToday(v => !v)}
+            onClick={() => { setOnlyFreeToday(v => !v); scrollToTop(); }}
           >
             <span className={styles.availPulse} />
             <span className={styles.availLabel}>
@@ -232,7 +237,7 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onBecomeInst
             <select
               className={styles.sortSelect}
               value={sort}
-              onChange={e => setSort(e.target.value as SortKey)}
+              onChange={e => { setSort(e.target.value as SortKey); scrollToTop(); }}
             >
               <option value="rating">{t('catalog.sortByRating')}</option>
               <option value="price-asc">{t('catalog.sortByPriceAsc')}</option>
@@ -246,7 +251,7 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onBecomeInst
               <button
                 key={key}
                 className={`${styles.chip} ${level === key ? styles.chipActive : ''}`}
-                onClick={() => setLevel(key)}
+                onClick={() => { setLevel(key); scrollToTop(); }}
               >
                 {label}
               </button>
