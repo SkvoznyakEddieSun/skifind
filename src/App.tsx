@@ -36,6 +36,7 @@ import { MasterClassCatalogScreen } from './screens/MasterClass/MasterClassCatal
 import { MasterClassDetailScreen }  from './screens/MasterClass/MasterClassDetailScreen';
 import { MasterClassCreateScreen }  from './screens/MasterClass/MasterClassCreateScreen';
 import { GroupChatScreen }          from './screens/GroupChat/GroupChatScreen';
+import { MASTER_CLASSES }           from './screens/MasterClass/masterClassData';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -211,8 +212,20 @@ export function App() {
     );
   }
   if (screen === 'mc-group-chat') {
+    const activeMc = MASTER_CLASSES.find(m => m.id === activeMcId);
     return (
-      <GroupChatScreen onBack={() => switchGuestTab('bookings')} />
+      <GroupChatScreen
+        mcTitle={activeMc?.title}
+        isConfirmed={false}
+        date={activeMc?.date}
+        location={activeMc?.location}
+        onBack={() => {
+          // Возвращаемся в каталог МК, пропуская экран деталей
+          const idx = stack.lastIndexOf('mc-catalog');
+          if (idx >= 0) setStack(stack.slice(0, idx + 1));
+          else setStack(['guest']);
+        }}
+      />
     );
   }
 

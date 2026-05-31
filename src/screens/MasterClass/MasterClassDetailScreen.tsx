@@ -240,7 +240,7 @@ export function MasterClassDetailScreen({
       {/* Toast */}
       {showToast && (
         <div className={styles.toast}>
-          ✓ Вы записаны! Открываем групповой чат…
+          ✓ Вы записаны! Открываем чат группы…
         </div>
       )}
     </div>

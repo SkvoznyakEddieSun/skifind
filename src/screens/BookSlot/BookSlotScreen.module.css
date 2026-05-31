@@ -404,3 +404,53 @@
   from { transform: translateY(20px); opacity: 0; }
   to   { transform: translateY(0);    opacity: 1; }
 }
+
+/* ── Group-size stepper (мини-группа) ── */
+.stepperWrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 16px 12px;
+}
+
+.stepperLabel {
+  font-size: 13px;
+  color: var(--text-dim);
+  flex: 1;
+}
+
+.stepperBtn {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border-strong);
+  background: var(--surface-1);
+  font-size: 20px;
+  font-weight: 300;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all .15s;
+  font-family: var(--ff);
+  line-height: 1;
+}
+
+.stepperBtn:active  { background: var(--accent); color: #fff; border-color: var(--accent); }
+.stepperBtn:disabled { opacity: .3; cursor: not-allowed; }
+
+.stepperVal {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+  min-width: 28px;
+  text-align: center;
+}
+
+/* ── Mini-group price summary line ── */
+.miniGroupPriceSummary {
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-top: 2px;
+}

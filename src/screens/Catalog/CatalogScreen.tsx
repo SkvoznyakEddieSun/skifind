@@ -16,6 +16,8 @@ export interface Instructor {
   level: Level[];
   rating: number;
   price: number;
+  miniGroupBasePrice?: number;  // цена мини-группы за 2 человека
+  miniGroupExtraPrice?: number; // доплата за каждого следующего участника
   exp: number;
   onMountain: boolean;
   hasFreeSlotsToday: boolean;
@@ -33,35 +35,40 @@ export const INSTRUCTORS: Instructor[] = [
   {
     id: 'aleksey', name: 'Алексей Морозов', initials: 'АМ', avatarColor: 'ice',
     resort: 'Шерегеш', type: ['board'], level: ['beginner', 'advanced'],
-    rating: 4.9, price: 3500, exp: 8, onMountain: true, hasFreeSlotsToday: true,
+    rating: 4.9, price: 3500, miniGroupBasePrice: 7000, miniGroupExtraPrice: 2300,
+    exp: 8, onMountain: true, hasFreeSlotsToday: true,
     gender: 'male', nextSlot: 'сегодня 14:00',
     tags: [{ label: 'Сноуборд', color: 'blue' }, { label: 'Новички', color: 'mint' }],
   },
   {
     id: 'natalya', name: 'Наталья Петрова', initials: 'НП', avatarColor: 'mint',
     resort: 'Шерегеш', type: ['ski'], level: ['kids'],
-    rating: 5.0, price: 2800, exp: 6, onMountain: false, hasFreeSlotsToday: false,
+    rating: 5.0, price: 2800, miniGroupBasePrice: 5500, miniGroupExtraPrice: 1800,
+    exp: 6, onMountain: false, hasFreeSlotsToday: false,
     gender: 'female', nextSlot: 'завтра 10:00',
     tags: [{ label: 'Горные лыжи', color: 'blue' }, { label: 'Дети', color: 'purple' }],
   },
   {
     id: 'dmitry', name: 'Дмитрий Захаров', initials: 'ДЗ', avatarColor: 'purple',
     resort: 'Шерегеш', type: ['ski', 'board'], level: ['advanced', 'freeride'],
-    rating: 4.7, price: 4200, exp: 10, onMountain: true, hasFreeSlotsToday: true,
+    rating: 4.7, price: 4200, miniGroupBasePrice: 8000, miniGroupExtraPrice: 2800,
+    exp: 10, onMountain: true, hasFreeSlotsToday: true,
     gender: 'male', busyUntil: '15:00',
     tags: [{ label: 'Сноуборд', color: 'blue' }, { label: 'Фрирайд', color: 'straw' }],
   },
   {
     id: 'marina', name: 'Марина Волкова', initials: 'МВ', avatarColor: 'straw',
     resort: 'Шерегеш', type: ['ski'], level: ['beginner', 'kids'],
-    rating: 4.8, price: 2500, exp: 5, onMountain: false, hasFreeSlotsToday: true,
+    rating: 4.8, price: 2500, miniGroupBasePrice: 5000, miniGroupExtraPrice: 1600,
+    exp: 5, onMountain: false, hasFreeSlotsToday: true,
     gender: 'female', nextSlot: 'сегодня 16:00',
     tags: [{ label: 'Горные лыжи', color: 'blue' }, { label: 'Новички', color: 'mint' }, { label: 'Дети', color: 'purple' }],
   },
   {
     id: 'sergey', name: 'Сергей Лебедев', initials: 'СЛ', avatarColor: 'blue',
     resort: 'Шерегеш', type: ['ski'], level: ['advanced', 'freeride'],
-    rating: 5.0, price: 5000, exp: 12, onMountain: true, hasFreeSlotsToday: true,
+    rating: 5.0, price: 5000, miniGroupBasePrice: 9000, miniGroupExtraPrice: 3000,
+    exp: 12, onMountain: true, hasFreeSlotsToday: true,
     gender: 'male', nextSlot: 'сегодня 15:30',
     tags: [{ label: 'Горные лыжи', color: 'blue' }, { label: 'Фрирайд', color: 'straw' }],
   },

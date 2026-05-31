@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import styles from './BookSlotScreen.module.css';
 import type { Instructor } from '../Catalog/CatalogScreen';
 
@@ -52,16 +52,17 @@ function mockSlotsForDate(date: Date, format: Format): TimeSlot[] {
 
   if (dow === 0) return []; // Sunday — closed
 
+  // kids — те же слоты 90 мин, что у individual
   if (format === 'kids') {
     if (dow === 6) return [
-      { id: `${ds}-0`, start: '10:00', end: '10:45', duration: 45 },
-      { id: `${ds}-1`, start: '11:00', end: '11:45', duration: 45 },
+      { id: `${ds}-0`, start: '10:00', end: '11:30', duration: 90 },
+      { id: `${ds}-1`, start: '12:00', end: '13:30', duration: 90 },
     ];
     return [
-      { id: `${ds}-0`, start: '09:30', end: '10:15', duration: 45 },
-      { id: `${ds}-1`, start: '10:30', end: '11:15', duration: 45 },
-      { id: `${ds}-2`, start: '11:30', end: '12:15', duration: 45 },
-      { id: `${ds}-3`, start: '14:00', end: '14:45', duration: 45 },
+      { id: `${ds}-0`, start: '09:30', end: '11:00', duration: 90 },
+      { id: `${ds}-1`, start: '11:15', end: '12:45', duration: 90 },
+      { id: `${ds}-2`, start: '14:00', end: '15:30', duration: 90 },
+      { id: `${ds}-3`, start: '15:45', end: '17:15', duration: 90 },
     ];
   }
 
@@ -93,7 +94,7 @@ function mockSlotsForDate(date: Date, format: Format): TimeSlot[] {
 const FORMAT_LABELS: Record<Format, string> = {
   individual: 'Индивидуальное',
   miniGroup:  'Мини-группа',
-  kids:       'Дети 45 мин',
+  kids:       'Дети',
 };
 
 function formatDate(date: Date): string {
@@ -117,11 +118,22 @@ export function BookSlotScreen({ onBack, onBooked, instructor }: BookSlotScreenP
   const [message, setMessage] = useState('');
   const [showToast, setShowToast] = useState(false);
   const [booked, setBooked] = useState(false);
+  const [groupSize, setGroupSize] = useState(2); // мини-группа: 2–4 человека
+
+  // Сбрасываем размер группы при смене формата
+  useEffect(() => { if (format !== 'miniGroup') setGroupSize(2); }, [format]);
+
+  // Цена мини-группы: base + extra × (groupSize - 2)
+  const miniGroupPrice = (() => {
+    const base  = instructor.miniGroupBasePrice  ?? Math.round(instructor.price * 1.4 / 100) * 100;
+    const extra = instructor.miniGroupExtraPrice ?? 0;
+    return base + extra * (groupSize - 2);
+  })();
 
   // Prices derived from instructor's base price
   const FORMAT_PRICES: Record<Format, number> = {
     individual: instructor.price,
-    miniGroup:  Math.round(instructor.price * 1.4 / 100) * 100,
+    miniGroup:  miniGroupPrice,
     kids:       Math.round(instructor.price * 0.8 / 100) * 100,
   };
 
@@ -210,6 +222,24 @@ export function BookSlotScreen({ onBack, onBooked, instructor }: BookSlotScreenP
               ))}
             </div>
 
+            {/* Group-size stepper — only for miniGroup */}
+            {format === 'miniGroup' && (
+              <div className={styles.stepperWrap}>
+                <span className={styles.stepperLabel}>Участников в группе</span>
+                <button
+                  className={styles.stepperBtn}
+                  onClick={() => setGroupSize(n => Math.max(2, n - 1))}
+                  disabled={groupSize <= 2}
+                >−</button>
+                <span className={styles.stepperVal}>{groupSize}</span>
+                <button
+                  className={styles.stepperBtn}
+                  onClick={() => setGroupSize(n => Math.min(4, n + 1))}
+                  disabled={groupSize >= 4}
+                >+</button>
+              </div>
+            )}
+
             <div className={styles.divider} />
 
             {/* Date range label */}
@@ -282,9 +312,16 @@ export function BookSlotScreen({ onBack, onBooked, instructor }: BookSlotScreenP
                   </div>
                   <div className={styles.summaryRow}>
                     <span className={styles.summaryLabel}>Стоимость</span>
-                    <span className={`${styles.summaryValue} ${styles.summaryPrice}`}>
-                      {FORMAT_PRICES[format].toLocaleString('ru')} ₽
-                    </span>
+                    <div>
+                      <span className={`${styles.summaryValue} ${styles.summaryPrice}`}>
+                        {FORMAT_PRICES[format].toLocaleString('ru')} ₽
+                      </span>
+                      {format === 'miniGroup' && (
+                        <div className={styles.miniGroupPriceSummary}>
+                          за {groupSize} человека · {Math.round(FORMAT_PRICES[format] / groupSize).toLocaleString('ru')} ₽ с человека
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
 
@@ -294,7 +331,11 @@ export function BookSlotScreen({ onBack, onBooked, instructor }: BookSlotScreenP
                 </div>
                 <textarea
                   className={styles.messageInput}
-                  placeholder="Например, «Хочу научиться кататься с нуля»"
+                  placeholder={
+                    format === 'kids'
+                      ? 'Укажите возраст ребёнка и опыт катания'
+                      : 'Например, «Хочу научиться кататься с нуля»'
+                  }
                   value={message}
                   onChange={e => setMessage(e.target.value)}
                   rows={3}

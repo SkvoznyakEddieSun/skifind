@@ -259,3 +259,46 @@
   stroke-linecap: round;
   stroke-linejoin: round;
 }
+
+/* ── Phone button in header ── */
+.phoneBtn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: var(--accent-soft);
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: opacity .15s;
+}
+
+.phoneBtn:active { opacity: .7; }
+
+.phoneBtnLocked {
+  opacity: 0.3;
+  cursor: default;
+  pointer-events: none;
+}
+
+/* ── System message ── */
+.sysMsgWrap {
+  display: flex;
+  justify-content: center;
+  padding: 2px 8px;
+}
+
+.sysMsgText {
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 7px 14px;
+  border-radius: 12px;
+  text-align: center;
+  line-height: 1.45;
+  max-width: 90%;
+}

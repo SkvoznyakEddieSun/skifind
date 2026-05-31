@@ -3,7 +3,7 @@ import styles from './GroupChatScreen.module.css';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
-type Sender = 'self' | 'instr' | 'other';
+type Sender = 'self' | 'instr' | 'other' | 'system';
 
 interface GMessage {
   id: string;
@@ -16,12 +16,19 @@ interface GMessage {
   ticks?: string;
 }
 
-// ── Mock data ──────────────────────────────────────────────────────────────
+// ── Phone filter (скрываем номера телефонов между участниками) ─────────────
 
-const INITIAL_MSGS: GMessage[] = [
+const PHONE_RE = /(\+7|8)[\s\-]?\(?\d{3}\)?[\s\-]?\d{3}[\s\-]?\d{2}[\s\-]?\d{2}/g;
+function filterPhone(text: string): string {
+  return text.replace(PHONE_RE, '•••');
+}
+
+// ── Mock chat messages ─────────────────────────────────────────────────────
+
+const CHAT_MSGS: GMessage[] = [
   {
     id: 'g1', from: 'instr', name: 'Алексей', initials: 'АМ', avatarColor: 'ice',
-    text: 'Всем привет! Это чат мастер-класса «Техника карвинга». Встречаемся 17 мая у кассы, вход А. Если есть вопросы — пишите 🏔️',
+    text: 'Всем привет! Это чат мастер-класса. Встречаемся у кассы, вход А. Если есть вопросы — пишите 🏔️',
     time: '09:00',
   },
   {
@@ -59,7 +66,8 @@ const INITIAL_MSGS: GMessage[] = [
 // ── Props ──────────────────────────────────────────────────────────────────
 
 interface GroupChatScreenProps {
-  title?: string;
+  mcTitle?: string;
+  isConfirmed?: boolean;
   date?: string;
   location?: string;
   participantCount?: number;
@@ -69,13 +77,22 @@ interface GroupChatScreenProps {
 // ── Component ──────────────────────────────────────────────────────────────
 
 export function GroupChatScreen({
-  title = 'Техника карвинга',
+  mcTitle = 'Техника карвинга',
+  isConfirmed = false,
   date = '17 мая',
   location = 'Касса Шерегеш, вход А',
-  participantCount = 9, // +1 after we just joined
+  participantCount = 9,
   onBack,
 }: GroupChatScreenProps) {
-  const [msgs, setMsgs]     = useState<GMessage[]>(INITIAL_MSGS);
+  // System message prepended — shown once, explains phone access policy
+  const sysMsg: GMessage = {
+    id: 'sys0',
+    from: 'system',
+    text: `Вы записаны на «${mcTitle}». Телефон инструктора откроется когда наберётся группа.`,
+    time: '',
+  };
+
+  const [msgs, setMsgs]         = useState<GMessage[]>([sysMsg, ...CHAT_MSGS]);
   const [inputVal, setInputVal] = useState('');
   const messagesRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -108,6 +125,12 @@ export function GroupChatScreen({
     el.style.height = Math.min(el.scrollHeight, 120) + 'px';
   }
 
+  function handlePhoneBtn() {
+    if (!isConfirmed) return;
+    // In production this would call the instructor's real phone
+    window.open('tel:+79991234567', '_self');
+  }
+
   return (
     <div className={styles.screen}>
       {/* Header */}
@@ -115,9 +138,18 @@ export function GroupChatScreen({
         <button className={styles.backBtn} onClick={onBack}>‹</button>
         <div className={styles.groupAv}>🏔️</div>
         <div className={styles.headerInfo}>
-          <div className={styles.headerTitle}>{title}</div>
+          <div className={styles.headerTitle}>{mcTitle}</div>
           <div className={styles.headerSub}>{participantCount} участников</div>
         </div>
+        {/* Instructor phone button — locked until group is confirmed */}
+        <button
+          className={`${styles.phoneBtn} ${!isConfirmed ? styles.phoneBtnLocked : ''}`}
+          onClick={handlePhoneBtn}
+          title={isConfirmed ? 'Позвонить инструктору' : 'Телефон откроется когда наберётся группа'}
+          aria-disabled={!isConfirmed}
+        >
+          📞
+        </button>
       </div>
 
       {/* Pinned bar */}
@@ -131,6 +163,15 @@ export function GroupChatScreen({
         <div className={styles.daySep}>Сегодня</div>
 
         {msgs.map(msg => {
+          // System message — centered notice
+          if (msg.from === 'system') {
+            return (
+              <div key={msg.id} className={styles.sysMsgWrap}>
+                <span className={styles.sysMsgText}>{msg.text}</span>
+              </div>
+            );
+          }
+
           if (msg.from === 'self') {
             return (
               <div key={msg.id} className={`${styles.mrow} ${styles.mrowOut}`}>
@@ -141,6 +182,10 @@ export function GroupChatScreen({
               </div>
             );
           }
+
+          // instr / other — filter phone numbers from their messages
+          const safeText = msg.from === 'other' ? filterPhone(msg.text) : msg.text;
+
           return (
             <div key={msg.id} className={styles.mrow}>
               <div className={`${styles.av} ${styles[`av-${msg.avatarColor}`]}`}>
@@ -150,7 +195,7 @@ export function GroupChatScreen({
                 <div className={`${styles.senderName} ${msg.from === 'instr' ? styles.senderInstr : ''}`}>
                   {msg.name}
                 </div>
-                <div className={`${styles.bubble} ${styles.bubbleIn}`}>{msg.text}</div>
+                <div className={`${styles.bubble} ${styles.bubbleIn}`}>{safeText}</div>
                 <span className={styles.mt}>{msg.time}</span>
               </div>
             </div>
