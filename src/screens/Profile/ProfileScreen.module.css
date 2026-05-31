@@ -514,3 +514,114 @@
   from { transform: translateY(12px); opacity: 0; }
   to   { transform: translateY(0);   opacity: 1; }
 }
+
+/* ── Report bottom sheet ── */
+.reportOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.55);
+  display: flex;
+  align-items: flex-end;
+  z-index: 200;
+}
+
+.reportBox {
+  background: var(--surface-1);
+  border-radius: var(--r16) var(--r16) 0 0;
+  padding: 24px 22px calc(var(--safe-bot) + 24px);
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-height: 88vh;
+  overflow-y: auto;
+}
+
+.reportTitle {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.3px;
+}
+
+.reportSectionLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  margin-bottom: -6px;
+}
+
+.reportOptional {
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--text-faint);
+}
+
+.reportReasons {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.reportReason {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: var(--r12);
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text-dim);
+  font-size: 14px;
+  font-family: var(--ff);
+  text-align: left;
+  cursor: pointer;
+  transition: all .15s;
+}
+
+.reportReasonActive {
+  border-color: var(--amber);
+  background: rgba(252,211,77,.08);
+  color: var(--text);
+  font-weight: 500;
+}
+
+.reportTextarea {
+  width: 100%;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r12);
+  padding: 12px;
+  font-size: 14px;
+  color: var(--text);
+  font-family: var(--ff);
+  resize: none;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.reportTextarea::placeholder { color: var(--text-faint); }
+
+.reportActions {
+  display: flex;
+  gap: 8px;
+}
+
+.btnWarn {
+  background: var(--amber);
+  color: #000;
+  border: none;
+  font-weight: 700;
+}
+
+.btnWarn:active { opacity: .8; }
+
+.btnDisabled {
+  background: var(--surface-2);
+  color: var(--text-faint);
+  border: 1px solid var(--border);
+  cursor: not-allowed;
+}

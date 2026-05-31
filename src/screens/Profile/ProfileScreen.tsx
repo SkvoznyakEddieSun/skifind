@@ -122,13 +122,32 @@ export function ProfileScreen({ instructor, onBack, onBook, onAskQuestion, onAll
     onMountain:   instructor.onMountain,
     about:        instructor.bio ?? MOCK_PROFILE.about,
   } : MOCK_PROFILE;
-  const [expanded, setExpanded] = useState(false);
-  const [toast, setToast] = useState<string | null>(null);
-  const [blocked, setBlocked] = useState(false);
+  const [expanded, setExpanded]       = useState(false);
+  const [toast, setToast]             = useState<string | null>(null);
+  const [blocked, setBlocked]         = useState(false);
+  const [reportOpen, setReportOpen]   = useState(false);
+  const [reportReason, setReportReason] = useState('');
+  const [reportText, setReportText]   = useState('');
+
+  const REPORT_REASONS = [
+    'Неверная информация',
+    'Мошенничество / обман',
+    'Оскорбительное поведение',
+    'Нарушение правил сервиса',
+    'Фейковый профиль',
+    'Другое',
+  ];
 
   function showToast(msg: string) {
     setToast(msg);
     setTimeout(() => setToast(null), 2500);
+  }
+
+  function handleSubmitReport() {
+    setReportOpen(false);
+    setReportReason('');
+    setReportText('');
+    showToast('⚠ Жалоба отправлена на проверку');
   }
 
   const ABOUT_LIMIT = 120;
@@ -308,7 +327,7 @@ export function ProfileScreen({ instructor, onBack, onBook, onAskQuestion, onAll
             <button
               className={`${styles.btn} ${styles.btnSecondary} ${styles.btnSm}`}
               style={{ flex: 1 }}
-              onClick={() => showToast('⚠ Жалоба отправлена на проверку')}
+              onClick={() => setReportOpen(true)}
             >
               ⚠ {t('profile.report')}
             </button>
@@ -323,6 +342,52 @@ export function ProfileScreen({ instructor, onBack, onBook, onAskQuestion, onAll
         </div>
 
       </div>
+
+      {/* ── Report bottom sheet ── */}
+      {reportOpen && (
+        <div className={styles.reportOverlay} onClick={() => setReportOpen(false)}>
+          <div className={styles.reportBox} onClick={e => e.stopPropagation()}>
+            <div className={styles.reportTitle}>Пожаловаться на инструктора</div>
+            <div className={styles.reportSectionLabel}>Причина</div>
+            <div className={styles.reportReasons}>
+              {REPORT_REASONS.map(reason => (
+                <button
+                  key={reason}
+                  className={`${styles.reportReason} ${reportReason === reason ? styles.reportReasonActive : ''}`}
+                  onClick={() => setReportReason(reason)}
+                >
+                  {reportReason === reason ? '● ' : '○ '}{reason}
+                </button>
+              ))}
+            </div>
+            <div className={styles.reportSectionLabel}>Комментарий <span className={styles.reportOptional}>(необязательно)</span></div>
+            <textarea
+              className={styles.reportTextarea}
+              placeholder="Опишите ситуацию подробнее..."
+              value={reportText}
+              onChange={e => setReportText(e.target.value)}
+              rows={3}
+            />
+            <div className={styles.reportActions}>
+              <button
+                className={`${styles.btn} ${styles.btnSecondary} ${styles.btnSm}`}
+                style={{ flex: 1 }}
+                onClick={() => setReportOpen(false)}
+              >
+                Отмена
+              </button>
+              <button
+                className={`${styles.btn} ${styles.btnSm} ${reportReason ? styles.btnWarn : styles.btnDisabled}`}
+                style={{ flex: 1 }}
+                onClick={handleSubmitReport}
+                disabled={!reportReason}
+              >
+                Отправить жалобу
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {toast && <div className={styles.toast}>{toast}</div>}
     </div>
