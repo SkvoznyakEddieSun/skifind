@@ -8,25 +8,23 @@
   overflow: hidden;
 }
 
-/* ── 1. Заголовок — скроллится и уходит ── */
-.heroHeader {
+/* ── Фиксированная шапка: не скроллится ── */
+.header {
+  flex-shrink: 0;
   background: var(--bg);
-  padding: calc(var(--safe-top) + 16px) 22px 8px;
+  padding: calc(var(--safe-top) + 16px) 22px 14px;
+  border-bottom: 1px solid var(--border);
 }
 
-/* ── 2. Sticky: поиск + чипы дисциплин ──
-   position:sticky внутри .scroll (scrollable parent).
-   box-shadow всегда — когда заголовок уехал, тень отделяет от контента.     */
-.stickySearch {
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  background: var(--bg);
-  padding: 10px 22px 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, .3);
+/* ── Скроллируемый список ── */
+.content {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: calc(var(--safe-bot) + 80px);
 }
 
-/* ── 3. Фильтры — скроллятся под sticky-блоком ── */
+/* ── Фильтры внутри .content ── */
 .filtersSection {
   padding: 0 22px;
 }
@@ -312,14 +310,6 @@
   background: var(--accent);
   color: var(--accent-text);
   border-color: var(--accent);
-}
-
-/* ── Scroll + Cards ── */
-.scroll {
-  flex: 1;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  padding-bottom: calc(var(--safe-bot) + 80px);
 }
 
 .instrList {

@@ -156,11 +156,10 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onBecomeInst
 
   return (
     <div className={styles.screen}>
-      <div className={styles.scroll}>
 
-        {/* ── 1. Заголовок — скроллится и уходит ── */}
-        <div className={styles.heroHeader}>
-          <div className={styles.tbRow}>
+      {/* ── Фиксированная шапка: title + поиск + дисциплины ── */}
+      <div className={styles.header}>
+        <div className={styles.tbRow}>
             <div className={styles.titleBlock}>
               <h1 className={styles.heroTitle}>
                 {t('catalog.titleLine')} <span>{t('catalog.titleAccent')}</span>
@@ -185,10 +184,7 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onBecomeInst
               </button>
             </div>
           </div>
-        </div>
 
-        {/* ── 2. Sticky: поиск + чипы дисциплин ── */}
-        <div className={styles.stickySearch}>
           <div className={styles.searchBox}>
             <span className={styles.searchIcon}>⌕</span>
             <input
@@ -210,9 +206,11 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onBecomeInst
               </button>
             ))}
           </div>
-        </div>
 
-        {/* ── 3. Фильтры — скроллятся под sticky-блоком ── */}
+      </div>{/* /header */}
+
+      {/* ── Скроллируемый контент ── */}
+      <div className={styles.content}>
         <div className={styles.filtersSection}>
           <button
             className={`${styles.availBtn} ${onlyFreeToday ? styles.availBtnActive : ''}`}
@@ -343,7 +341,7 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onBecomeInst
         </div>
 
         <div style={{ height: 32 }} />
-      </div>
+      </div>{/* /content */}
     </div>
   );
 }
