@@ -13,6 +13,7 @@ export interface MasterClass {
   level: McLevel;
   levelLabel: string;
   levelColor: McLevelColor;
+  instructorId: string;
   instructorName: string;
   instructorInitials: string;
   instructorAvatarColor: McAvatarColor;
@@ -43,6 +44,7 @@ export const MASTER_CLASSES: MasterClass[] = [
     level: 'advanced',
     levelLabel: 'Продвинутые',
     levelColor: 'straw',
+    instructorId: 'aleksey',
     instructorName: 'Алексей Морозов',
     instructorInitials: 'АМ',
     instructorAvatarColor: 'ice',
@@ -67,6 +69,7 @@ export const MASTER_CLASSES: MasterClass[] = [
     level: 'beginner',
     levelLabel: 'Начинающие',
     levelColor: 'mint',
+    instructorId: 'dmitry',
     instructorName: 'Дмитрий Захаров',
     instructorInitials: 'ДЗ',
     instructorAvatarColor: 'purple',
@@ -91,6 +94,7 @@ export const MASTER_CLASSES: MasterClass[] = [
     level: 'advanced',
     levelLabel: 'Продвинутые',
     levelColor: 'straw',
+    instructorId: 'sergey',
     instructorName: 'Сергей Лебедев',
     instructorInitials: 'СЛ',
     instructorAvatarColor: 'blue',

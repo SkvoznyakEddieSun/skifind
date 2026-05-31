@@ -62,6 +62,29 @@
   padding: 16px;
 }
 
+.instrCardClickable {
+  cursor: pointer;
+  transition: background .15s;
+}
+
+.instrCardClickable:active {
+  background: var(--hover);
+}
+
+.instrCardRight {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.instrArrow {
+  font-size: 20px;
+  color: var(--text-faint);
+  line-height: 1;
+}
+
 .av {
   width: 44px;
   height: 44px;

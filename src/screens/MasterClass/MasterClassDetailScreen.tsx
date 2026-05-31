@@ -14,10 +14,11 @@ function minPartsLabel(n: number): string {
 
 interface MasterClassDetailScreenProps {
   id: string;
-  onBack:           () => void;
-  onJoined:         () => void; // → открывает групповой чат
-  isAlreadyJoined?: boolean;   // гость уже записан на этот МК
-  onLeave?:         () => void; // вызывается при отмене записи
+  onBack:                () => void;
+  onJoined:              () => void; // → открывает групповой чат
+  isAlreadyJoined?:      boolean;   // гость уже записан на этот МК
+  onLeave?:              () => void; // вызывается при отмене записи
+  onInstructorProfile?:  (instructorId: string) => void;
 }
 
 // ── Component ──────────────────────────────────────────────────────────────
@@ -28,6 +29,7 @@ export function MasterClassDetailScreen({
   onJoined,
   isAlreadyJoined = false,
   onLeave,
+  onInstructorProfile,
 }: MasterClassDetailScreenProps) {
   // КРИТИЧНО 1: убран fallback на MASTER_CLASSES[0]
   const mc = MASTER_CLASSES.find(m => m.id === id);
@@ -106,7 +108,13 @@ export function MasterClassDetailScreen({
       <div className={styles.scroll}>
 
         {/* Instructor card */}
-        <div className={styles.instrCard}>
+        <div
+          className={`${styles.instrCard} ${onInstructorProfile ? styles.instrCardClickable : ''}`}
+          onClick={() => onInstructorProfile?.(mc.instructorId)}
+          role={onInstructorProfile ? 'button' : undefined}
+          tabIndex={onInstructorProfile ? 0 : undefined}
+          onKeyDown={e => e.key === 'Enter' && onInstructorProfile?.(mc.instructorId)}
+        >
           <div className={`${styles.av} ${styles[`av-${mc.instructorAvatarColor}`]}`}>
             {mc.instructorInitials}
           </div>
@@ -116,9 +124,14 @@ export function MasterClassDetailScreen({
               {mc.sport === 'ski' ? 'Горные лыжи' : 'Сноуборд'} · ★{mc.instructorRating}
             </div>
           </div>
-          <span className={`${styles.levelBadge} ${styles[`level-${mc.levelColor}`]}`}>
-            {mc.levelLabel}
-          </span>
+          <div className={styles.instrCardRight}>
+            <span className={`${styles.levelBadge} ${styles[`level-${mc.levelColor}`]}`}>
+              {mc.levelLabel}
+            </span>
+            {onInstructorProfile && (
+              <span className={styles.instrArrow}>›</span>
+            )}
+          </div>
         </div>
 
         <div className={styles.divider} />

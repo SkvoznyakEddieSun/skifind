@@ -220,6 +220,11 @@ export function App() {
           next.delete(activeMcId);
           return next;
         })}
+        onInstructorProfile={instructorId => {
+          const instr = INSTRUCTORS.find(i => i.id === instructorId) ?? INSTRUCTORS[0];
+          setActiveInstructor(instr);
+          push('instr-profile');
+        }}
       />
     );
   }
