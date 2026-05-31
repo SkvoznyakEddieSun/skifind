@@ -22,6 +22,7 @@
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   padding-bottom: calc(var(--safe-bot) + 80px);
+  scroll-snap-type: y proximity;
 }
 
 /* ── Фильтры внутри .content ── */
@@ -327,6 +328,8 @@
   transition: transform .1s;
   position: relative;
   cursor: pointer;
+  scroll-snap-align: start;
+  scroll-margin-top: 12px;
 }
 
 .instrCard:active {
