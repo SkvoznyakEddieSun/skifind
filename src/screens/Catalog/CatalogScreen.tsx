@@ -96,6 +96,7 @@ interface CatalogScreenProps {
   onNotifications: () => void;
   onBecomeInstructor: () => void;
   onMasterClasses: () => void;
+  blockedIds?: Set<string>;
 }
 
 /**
@@ -108,7 +109,7 @@ interface CatalogScreenProps {
  *
  * Никакого JS для анимации — только CSS sticky.
  */
-export function CatalogScreen({ onProfile, onBook, onNotifications, onBecomeInstructor, onMasterClasses }: CatalogScreenProps) {
+export function CatalogScreen({ onProfile, onBook, onNotifications, onBecomeInstructor, onMasterClasses, blockedIds }: CatalogScreenProps) {
   const { t } = useTranslation();
   const [search, setSearch]           = useState('');
   const [type, setType]               = useState<SportType>('all');
@@ -135,6 +136,7 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onBecomeInst
 
   const filtered = INSTRUCTORS
     .filter(i => {
+      if (blockedIds?.has(i.id)) return false;
       if (onlyFreeToday && !i.hasFreeSlotsToday) return false;
       if (type !== 'all' && !i.type.some(t => t === type)) return false;
       if (level !== 'all' && !i.level.includes(level)) return false;

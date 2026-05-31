@@ -93,6 +93,8 @@ interface ProfileScreenProps {
   onAskQuestion: () => void;
   onChat?: (id: string) => void;
   onAllReviews: () => void;
+  isBlocked?: boolean;
+  onToggleBlock?: (instructorId: string, blocked: boolean) => void;
 }
 
 // Строим sub-строку ("Горные лыжи · Сноуборд · 8 лет опыта") из Instructor
@@ -106,7 +108,7 @@ function buildSub(instr: Instructor): string {
  * Принимает реальный Instructor и подставляет его данные,
  * для остальных полей (навыки, расписание, отзывы) использует моки.
  */
-export function ProfileScreen({ instructor, onBack, onBook, onAskQuestion, onAllReviews }: ProfileScreenProps) {
+export function ProfileScreen({ instructor, onBack, onBook, onAskQuestion, onAllReviews, isBlocked: isBlockedProp, onToggleBlock }: ProfileScreenProps) {
   const { t } = useTranslation();
 
   // Если передан реальный инструктор — подставляем его данные поверх мока
@@ -124,7 +126,7 @@ export function ProfileScreen({ instructor, onBack, onBook, onAskQuestion, onAll
   } : MOCK_PROFILE;
   const [expanded, setExpanded]       = useState(false);
   const [toast, setToast]             = useState<string | null>(null);
-  const [blocked, setBlocked]         = useState(false);
+  const [blocked, setBlocked]         = useState(isBlockedProp ?? false);
   const [reportOpen, setReportOpen]   = useState(false);
   const [reportReason, setReportReason] = useState('');
   const [reportText, setReportText]   = useState('');
@@ -334,7 +336,12 @@ export function ProfileScreen({ instructor, onBack, onBook, onAskQuestion, onAll
             <button
               className={`${styles.btn} ${styles.btnSecondary} ${styles.btnSm} ${styles.btnDanger}`}
               style={{ flex: 1 }}
-              onClick={() => { setBlocked(b => !b); showToast(blocked ? 'Инструктор разблокирован' : '🚫 Инструктор заблокирован'); }}
+              onClick={() => {
+                const next = !blocked;
+                setBlocked(next);
+                onToggleBlock?.(p.id, next);
+                showToast(next ? '🚫 Инструктор скрыт из каталога' : '✓ Инструктор снова виден в каталоге');
+              }}
             >
               {blocked ? '✓ Заблокирован' : `🚫 ${t('profile.block')}`}
             </button>

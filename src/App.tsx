@@ -85,7 +85,16 @@ export function App() {
   const [chatBookingStatus, setChatBookingStatus] = useState<BookingStatus>('PENDING');
   const [chatInstructorPhone, setChatInstructorPhone] = useState<string | undefined>(undefined);
   const [activeInstructor, setActiveInstructor] = useState<Instructor>(INSTRUCTORS[0]);
-  const [joinedMcIds, setJoinedMcIds] = useState<Set<string>>(new Set());
+  const [joinedMcIds, setJoinedMcIds]   = useState<Set<string>>(new Set());
+  const [blockedIds, setBlockedIds]     = useState<Set<string>>(new Set());
+
+  function handleToggleBlock(instructorId: string, blocked: boolean) {
+    setBlockedIds(prev => {
+      const next = new Set(prev);
+      blocked ? next.add(instructorId) : next.delete(instructorId);
+      return next;
+    });
+  }
 
   // ── Анимация навигации ──────────────────────────────────────────────────
   const [animKey, setAnimKey] = useState(0);
@@ -165,6 +174,8 @@ export function App() {
         onAskQuestion={() => push('chat')}
         onAllReviews={() => push('reviews')}
         onChat={() => push('chat')}
+        isBlocked={blockedIds.has(activeInstructor.id)}
+        onToggleBlock={handleToggleBlock}
       />
     );
   }
@@ -326,6 +337,7 @@ export function App() {
           onNotifications={() => push('notifications')}
           onBecomeInstructor={() => push('register')}
           onMasterClasses={() => push('mc-catalog')}
+          blockedIds={blockedIds}
         />
       );
     } else if (guestTab === 'bookings') {
