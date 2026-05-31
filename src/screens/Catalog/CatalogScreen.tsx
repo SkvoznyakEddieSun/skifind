@@ -1,7 +1,6 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState } from 'react';
 import styles from './CatalogScreen.module.css';
 import { useTranslation } from '@/i18n/useTranslation';
-import { ScrollToTopBtn } from '@/components/ScrollToTopBtn';
 
 type SportType = 'all' | 'ski' | 'board';
 type Level = 'all' | 'beginner' | 'advanced' | 'kids' | 'freeride';
@@ -13,15 +12,15 @@ export interface Instructor {
   initials: string;
   avatarColor: 'ice' | 'mint' | 'purple' | 'straw' | 'blue';
   resort: string;
-  type: ('ski' | 'board')[];  // только реальные дисциплины, без 'all'
+  type: ('ski' | 'board')[];
   level: Level[];
   rating: number;
   price: number;
-  miniGroupBasePrice?: number;    // цена мини-группы за 2 человека
-  miniGroupExtraPrice?: number;   // доплата за каждого следующего участника
-  miniGroupMaxParticipants?: number; // максимум участников (по умолч. 6)
-  worksWithKids: boolean;         // показывать ли вкладку «Дети» в BookSlot
-  bio?: string;                   // краткое описание для ProfileScreen
+  miniGroupBasePrice?: number;
+  miniGroupExtraPrice?: number;
+  miniGroupMaxParticipants?: number;
+  worksWithKids: boolean;
+  bio?: string;
   exp: number;
   onMountain: boolean;
   hasFreeSlotsToday: boolean;
@@ -31,7 +30,6 @@ export interface Instructor {
   tags: { label: string; color: 'blue' | 'mint' | 'straw' | 'purple' | 'gray' }[];
 }
 
-// Активные курорты — сейчас только Шерегеш.
 export const ACTIVE_RESORTS = ['Шерегеш'] as const;
 
 export const INSTRUCTORS: Instructor[] = [
@@ -102,28 +100,22 @@ interface CatalogScreenProps {
 
 /**
  * Экран каталога инструкторов.
- * Sticky-шапка (title + поиск + вкладки дисциплин) — всегда видна.
- * Фильтры (доступность, сортировка, уровень) — скроллятся вместе с контентом.
+ *
+ * Структура (сверху вниз):
+ *  1. Заголовок + кнопки (скроллится и уходит)
+ *  2. Поиск + чипы дисциплин (position:sticky — всегда видны)
+ *  3. Фильтры + баннер МК + карточки (скроллятся под sticky-блоком)
+ *
+ * Никакого JS для анимации — только CSS sticky.
  */
 export function CatalogScreen({ onProfile, onBook, onNotifications, onBecomeInstructor, onMasterClasses }: CatalogScreenProps) {
   const { t } = useTranslation();
-  const [search, setSearch] = useState('');
-  const [type, setType] = useState<SportType>('all');
-  const [level, setLevel] = useState<Level>('all');
-  const [sort, setSort] = useState<SortKey>('rating');
+  const [search, setSearch]           = useState('');
+  const [type, setType]               = useState<SportType>('all');
+  const [level, setLevel]             = useState<Level>('all');
+  const [sort, setSort]               = useState<SortKey>('rating');
   const [onlyFreeToday, setOnlyFreeToday] = useState(false);
-  const [favorites, setFavorites] = useState<Set<string>>(new Set());
-
-  // Scroll tracking only for "↑" button — no animation logic
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const [showTop, setShowTop] = useState(false);
-
-  const handleScroll = useCallback(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    const shouldShow = el.scrollTop > 300;
-    setShowTop(prev => prev === shouldShow ? prev : shouldShow);
-  }, []);
+  const [favorites, setFavorites]     = useState<Set<string>>(new Set());
 
   const freeTodayCount = INSTRUCTORS.filter(i => i.hasFreeSlotsToday).length;
   const avgRating = (INSTRUCTORS.reduce((sum, i) => sum + i.rating, 0) / INSTRUCTORS.length).toFixed(1);
@@ -164,12 +156,10 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onBecomeInst
 
   return (
     <div className={styles.screen}>
-      <div ref={scrollRef} className={styles.scroll} onScroll={handleScroll}>
+      <div className={styles.scroll}>
 
-        {/* ── Sticky hero: title + search + type tabs ──
-            position:sticky внутри .scroll — фиксируется у верха при скролле.
-            Фильтры — снаружи hero, скроллятся вместе с карточками.           */}
-        <div className={styles.hero}>
+        {/* ── 1. Заголовок — скроллится и уходит ── */}
+        <div className={styles.heroHeader}>
           <div className={styles.tbRow}>
             <div className={styles.titleBlock}>
               <h1 className={styles.heroTitle}>
@@ -195,7 +185,10 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onBecomeInst
               </button>
             </div>
           </div>
+        </div>
 
+        {/* ── 2. Sticky: поиск + чипы дисциплин ── */}
+        <div className={styles.stickySearch}>
           <div className={styles.searchBox}>
             <span className={styles.searchIcon}>⌕</span>
             <input
@@ -219,7 +212,7 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onBecomeInst
           </div>
         </div>
 
-        {/* ── Filters — скроллятся под шапкой ── */}
+        {/* ── 3. Фильтры — скроллятся под sticky-блоком ── */}
         <div className={styles.filtersSection}>
           <button
             className={`${styles.availBtn} ${onlyFreeToday ? styles.availBtnActive : ''}`}
@@ -263,7 +256,7 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onBecomeInst
           </div>
         </div>
 
-        {/* ── Master classes banner ── */}
+        {/* ── Баннер мастер-классов ── */}
         <div className={styles.mcBanner} onClick={onMasterClasses}>
           <div className={styles.mcBannerLeft}>
             <div className={styles.mcBannerIcon}>🎿</div>
@@ -275,7 +268,7 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onBecomeInst
           <span className={styles.mcBannerArrow}>→</span>
         </div>
 
-        {/* ── Cards ── */}
+        {/* ── Карточки инструкторов ── */}
         <div className={styles.instrList}>
           {filtered.map(instr => (
             <div
@@ -286,7 +279,7 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onBecomeInst
               onClick={() => onProfile(instr.id)}
               onKeyDown={e => e.key === 'Enter' && onProfile(instr.id)}
             >
-              {/* Fav button */}
+              {/* Fav */}
               <button
                 className={`${styles.favBtn} ${favorites.has(instr.id) ? styles.favBtnOn : ''}`}
                 onClick={e => { e.stopPropagation(); toggleFav(instr.id); }}
@@ -351,8 +344,6 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onBecomeInst
 
         <div style={{ height: 32 }} />
       </div>
-
-      <ScrollToTopBtn show={showTop} onClick={() => scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })} />
     </div>
   );
 }
