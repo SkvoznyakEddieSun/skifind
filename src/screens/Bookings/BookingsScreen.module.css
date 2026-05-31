@@ -357,6 +357,131 @@
 
 .reviewTextarea::placeholder { color: var(--text-faint); }
 
+/* ── Review section label ── */
+.reviewSectionLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  margin-bottom: 8px;
+}
+
+.reviewMediaHint {
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--text-faint);
+}
+
+/* ── Tags ── */
+.reviewTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.reviewTag {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: all .15s;
+  font-family: var(--ff);
+}
+
+.reviewTagActive {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* ── Media attach ── */
+.reviewMediaRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.reviewMediaThumb {
+  position: relative;
+  width: 68px;
+  height: 68px;
+  border-radius: var(--r8);
+  overflow: hidden;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.reviewMediaImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.reviewMediaVideo {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+.reviewMediaRemove {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 18px;
+  height: 18px;
+  background: rgba(0,0,0,.6);
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  font-size: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+}
+
+.reviewMediaAdd {
+  width: 68px;
+  height: 68px;
+  border-radius: var(--r8);
+  border: 1.5px dashed var(--border-strong);
+  background: var(--surface-2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  gap: 2px;
+  flex-shrink: 0;
+  transition: border-color .15s;
+}
+
+.reviewMediaAdd:active { opacity: .7; }
+
+.reviewMediaAddIcon {
+  font-size: 20px;
+  color: var(--text-dim);
+  line-height: 1;
+}
+
+.reviewMediaAddLabel {
+  font-size: 10px;
+  color: var(--text-faint);
+  font-family: var(--ff);
+}
+
 .reviewActions {
   display: flex;
   gap: 8px;

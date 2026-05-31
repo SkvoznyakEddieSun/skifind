@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import styles from './BookingsScreen.module.css';
 import { useTranslation } from '@/i18n/useTranslation';
 
@@ -76,6 +76,19 @@ const STATUS_LABEL: Record<BookingStatus, string> = {
   cancelled: '✕ Отменено',
 };
 
+const REVIEW_TAGS = [
+  'Понятно объясняет',
+  'Терпение',
+  'Профессионализм',
+  'Подход к детям',
+  'Безопасность',
+  'Прогресс',
+  'Весело',
+  'Пунктуальность',
+  'Чувство юмора',
+  'Хорошая программа',
+];
+
 interface BookingsScreenProps {
   onChat: (instructorId: string) => void;
   onCancel?: (bookingId: string) => void;
@@ -83,18 +96,18 @@ interface BookingsScreenProps {
   onBookAgain: (instructorId: string) => void;
 }
 
-/**
- * Экран «Мои занятия» (гость).
- */
 export function BookingsScreen({ onChat, onCancel, onBookAgain }: BookingsScreenProps) {
   const { t } = useTranslation();
 
-  const [bookings, setBookings]           = useState<Booking[]>(INITIAL_BOOKINGS);
+  const [bookings, setBookings]               = useState<Booking[]>(INITIAL_BOOKINGS);
   const [reviewBookingId, setReviewBookingId] = useState<string | null>(null);
-  const [reviewStars, setReviewStars]     = useState(5);
-  const [reviewText, setReviewText]       = useState('');
-  const [submittedIds, setSubmittedIds]   = useState<Set<string>>(new Set());
-  const [toast, setToast]                 = useState<string | null>(null);
+  const [reviewStars, setReviewStars]         = useState(5);
+  const [reviewText, setReviewText]           = useState('');
+  const [reviewTags, setReviewTags]           = useState<Set<string>>(new Set());
+  const [reviewMedia, setReviewMedia]         = useState<File[]>([]);
+  const [submittedIds, setSubmittedIds]       = useState<Set<string>>(new Set());
+  const [toast, setToast]                     = useState<string | null>(null);
+  const fileInputRef                          = useRef<HTMLInputElement>(null);
 
   function showToast(msg: string) {
     setToast(msg);
@@ -108,12 +121,32 @@ export function BookingsScreen({ onChat, onCancel, onBookAgain }: BookingsScreen
     onCancel?.(bookingId);
   }
 
+  function toggleTag(tag: string) {
+    setReviewTags(prev => {
+      const next = new Set(prev);
+      if (next.has(tag)) next.delete(tag); else next.add(tag);
+      return next;
+    });
+  }
+
+  function handleMediaChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files ?? []);
+    setReviewMedia(prev => [...prev, ...files].slice(0, 5)); // max 5 файлов
+    e.target.value = ''; // сбросить input
+  }
+
+  function removeMedia(idx: number) {
+    setReviewMedia(prev => prev.filter((_, i) => i !== idx));
+  }
+
   function handleSubmitReview() {
     if (!reviewBookingId) return;
     setSubmittedIds(prev => new Set([...prev, reviewBookingId]));
     setReviewBookingId(null);
     setReviewText('');
     setReviewStars(5);
+    setReviewTags(new Set());
+    setReviewMedia([]);
     showToast('✓ Отзыв опубликован');
   }
 
@@ -192,7 +225,6 @@ export function BookingsScreen({ onChat, onCancel, onBookAgain }: BookingsScreen
 
               {/* Body */}
               <div className={styles.bcBody}>
-                {/* Row 1: avatar + info + rating */}
                 <div className={styles.bcRow1}>
                   <div className={`${styles.av} ${styles.avMd} ${styles[`av-${b.instructorAvatarColor}`]}`}>
                     {b.instructorInitials}
@@ -206,7 +238,6 @@ export function BookingsScreen({ onChat, onCancel, onBookAgain }: BookingsScreen
                   </div>
                 </div>
 
-                {/* Date block */}
                 <div className={styles.bcDate}>
                   <div className={styles.bcDay}>
                     <div className={styles.bcDayNum}>{b.dayNum}</div>
@@ -218,13 +249,11 @@ export function BookingsScreen({ onChat, onCancel, onBookAgain }: BookingsScreen
                   </div>
                 </div>
 
-                {/* Meta + price */}
                 <div className={styles.bcMeta}>
                   <span>{b.meta}</span>
                   <span className={styles.bcPrice}>{b.price}</span>
                 </div>
 
-                {/* Actions */}
                 <div className={styles.bcActions}>
                   {b.status === 'confirmed' && (
                     <>
@@ -255,7 +284,6 @@ export function BookingsScreen({ onChat, onCancel, onBookAgain }: BookingsScreen
                       </button>
                     </>
                   )}
-                  {/* cancelled — no actions */}
                 </div>
               </div>
             </div>
@@ -268,7 +296,10 @@ export function BookingsScreen({ onChat, onCancel, onBookAgain }: BookingsScreen
       {reviewBookingId && (
         <div className={styles.reviewOverlay} onClick={() => setReviewBookingId(null)}>
           <div className={styles.reviewBox} onClick={e => e.stopPropagation()}>
+
             <div className={styles.reviewTitle}>Оставить отзыв</div>
+
+            {/* Stars */}
             <div className={styles.starRow}>
               {[1, 2, 3, 4, 5].map(n => (
                 <button
@@ -280,13 +311,64 @@ export function BookingsScreen({ onChat, onCancel, onBookAgain }: BookingsScreen
                 </button>
               ))}
             </div>
+
+            {/* Tags */}
+            <div>
+              <div className={styles.reviewSectionLabel}>Что понравилось?</div>
+              <div className={styles.reviewTags}>
+                {REVIEW_TAGS.map(tag => (
+                  <button
+                    key={tag}
+                    className={`${styles.reviewTag} ${reviewTags.has(tag) ? styles.reviewTagActive : ''}`}
+                    onClick={() => toggleTag(tag)}
+                  >
+                    {tag}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Textarea */}
             <textarea
               className={styles.reviewTextarea}
               value={reviewText}
               onChange={e => setReviewText(e.target.value)}
               placeholder="Расскажите о занятии..."
-              rows={4}
+              rows={3}
             />
+
+            {/* Media attach */}
+            <div>
+              <div className={styles.reviewSectionLabel}>Фото и видео <span className={styles.reviewMediaHint}>(до 5 файлов)</span></div>
+              <div className={styles.reviewMediaRow}>
+                {reviewMedia.map((file, idx) => (
+                  <div key={idx} className={styles.reviewMediaThumb}>
+                    {file.type.startsWith('image/') ? (
+                      <img src={URL.createObjectURL(file)} alt="" className={styles.reviewMediaImg} />
+                    ) : (
+                      <div className={styles.reviewMediaVideo}>🎬</div>
+                    )}
+                    <button className={styles.reviewMediaRemove} onClick={() => removeMedia(idx)}>✕</button>
+                  </div>
+                ))}
+                {reviewMedia.length < 5 && (
+                  <button className={styles.reviewMediaAdd} onClick={() => fileInputRef.current?.click()}>
+                    <span className={styles.reviewMediaAddIcon}>＋</span>
+                    <span className={styles.reviewMediaAddLabel}>Добавить</span>
+                  </button>
+                )}
+              </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*,video/*"
+                multiple
+                style={{ display: 'none' }}
+                onChange={handleMediaChange}
+              />
+            </div>
+
+            {/* Actions */}
             <div className={styles.reviewActions}>
               <button
                 className={`${styles.btn} ${styles.btnSecondary} ${styles.btnSm}`}
@@ -303,6 +385,7 @@ export function BookingsScreen({ onChat, onCancel, onBookAgain }: BookingsScreen
                 Отправить
               </button>
             </div>
+
           </div>
         </div>
       )}
