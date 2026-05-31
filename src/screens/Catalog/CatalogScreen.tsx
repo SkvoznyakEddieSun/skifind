@@ -115,10 +115,9 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onBecomeInst
   const [onlyFreeToday, setOnlyFreeToday] = useState(false);
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
 
-  // ── Scroll tracking — прямой DOM для плавного следования за скроллом ─────
-  const scrollRef       = useRef<HTMLDivElement>(null);
-  const heroTopRef      = useRef<HTMLDivElement>(null);
-  const filtersSectRef  = useRef<HTMLDivElement>(null);
+  // ── Scroll tracking: один ref на весь collapsible-блок ──────────────────
+  const scrollRef  = useRef<HTMLDivElement>(null);
+  const headerRef  = useRef<HTMLDivElement>(null);   // заголовок + фильтры вместе
   const [showTop, setShowTop] = useState(false);
 
   const handleScroll = useCallback(() => {
@@ -126,19 +125,18 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onBecomeInst
     if (!el) return;
     const scrollTop = el.scrollTop;
 
-    // Пропорциональное следование за скроллом: 0→1 на диапазоне 0–100px
-    const progress = Math.min(scrollTop / 100, 1);
+    // progress 0→1 на диапазоне 0–120px
+    const progress = Math.min(scrollTop / 120, 1);
 
-    if (heroTopRef.current) {
-      heroTopRef.current.style.transform = `translateY(-${progress * 60}px)`;
-      heroTopRef.current.style.opacity   = String(1 - progress * 0.8);
-    }
-    if (filtersSectRef.current) {
-      filtersSectRef.current.style.transform = `translateY(-${progress * 60}px)`;
-      filtersSectRef.current.style.opacity   = String(1 - progress * 0.8);
+    if (headerRef.current) {
+      // translateY(-100%) = элемент уезжает вверх на свою высоту,
+      // overflow:hidden на .hero клипит его — layout-reflow нет.
+      headerRef.current.style.transform    = `translateY(-${progress * 100}%)`;
+      headerRef.current.style.opacity      = String(1 - progress * 0.5);
+      // скрытый элемент не должен перехватывать тапы
+      headerRef.current.style.pointerEvents = progress > 0.8 ? 'none' : '';
     }
 
-    // Кнопка «наверх» — через state (меняется редко, нет jank)
     const shouldShow = scrollTop > 300;
     setShowTop(prev => prev === shouldShow ? prev : shouldShow);
   }, []);
@@ -186,10 +184,12 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onBecomeInst
 
   return (
     <div className={styles.screen}>
-      {/* ── Hero ── */}
+      {/* ── Hero — overflow:hidden клипит headerRef при translateY ── */}
       <div className={styles.hero}>
-        {/* Collapsible: title + action buttons — высота управляется через ref.style в handleScroll */}
-        <div ref={heroTopRef} className={styles.heroTop}>
+
+        {/* ── Collapsible: один ref, один элемент — title + filters вместе ── */}
+        <div ref={headerRef} className={styles.headerCollapsible}>
+          {/* Title row */}
           <div className={styles.tbRow}>
             <div className={styles.titleBlock}>
               <h1 className={styles.heroTitle}>
@@ -215,9 +215,51 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onBecomeInst
               </button>
             </div>
           </div>
+
+          {/* Filters (avail + sort + level) — внутри hero, не перекрывают scroll */}
+          <button
+            className={`${styles.availBtn} ${onlyFreeToday ? styles.availBtnActive : ''}`}
+            onClick={() => setOnlyFreeToday(v => !v)}
+          >
+            <span className={styles.availPulse} />
+            <span className={styles.availLabel}>
+              {onlyFreeToday
+                ? t('catalog.showFreeToday', { count: freeTodayCount })
+                : t('catalog.showAll')}
+            </span>
+            <span className={styles.availCount}>
+              {t('catalog.showFreeToday', { count: freeTodayCount })}
+            </span>
+          </button>
+
+          <div className={styles.sortRow}>
+            <div className={styles.sortLabel}>{t('catalog.sortLabel')}</div>
+            <select
+              className={styles.sortSelect}
+              value={sort}
+              onChange={e => setSort(e.target.value as SortKey)}
+            >
+              <option value="rating">{t('catalog.sortByRating')}</option>
+              <option value="price-asc">{t('catalog.sortByPriceAsc')}</option>
+              <option value="price-desc">{t('catalog.sortByPriceDesc')}</option>
+              <option value="experience">{t('catalog.sortByExp')}</option>
+            </select>
+          </div>
+
+          <div className={styles.levelChips}>
+            {LEVELS.map(({ key, label }) => (
+              <button
+                key={key}
+                className={`${styles.chip} ${level === key ? styles.chipActive : ''}`}
+                onClick={() => setLevel(key)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
 
-        {/* Always visible: search + type tabs */}
+        {/* ── Always visible: search + type tabs (вне headerRef, не двигаются) ── */}
         <div className={styles.searchBox}>
           <span className={styles.searchIcon}>⌕</span>
           <input
@@ -236,50 +278,6 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onBecomeInst
               onClick={() => setType(tab)}
             >
               {tab === 'all' ? t('catalog.filterAll') : tab === 'ski' ? t('catalog.filterAlpine') : t('catalog.filterSnowboard')}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* ── Collapsible filters: avail + sort + level chips ── */}
-      <div ref={filtersSectRef} className={styles.filtersSection}>
-        <button
-          className={`${styles.availBtn} ${onlyFreeToday ? styles.availBtnActive : ''}`}
-          onClick={() => setOnlyFreeToday(v => !v)}
-        >
-          <span className={styles.availPulse} />
-          <span className={styles.availLabel}>
-            {onlyFreeToday
-              ? t('catalog.showFreeToday', { count: freeTodayCount })
-              : t('catalog.showAll')}
-          </span>
-          <span className={styles.availCount}>
-            {t('catalog.showFreeToday', { count: freeTodayCount })}
-          </span>
-        </button>
-
-        <div className={styles.sortRow}>
-          <div className={styles.sortLabel}>{t('catalog.sortLabel')}</div>
-          <select
-            className={styles.sortSelect}
-            value={sort}
-            onChange={e => setSort(e.target.value as SortKey)}
-          >
-            <option value="rating">{t('catalog.sortByRating')}</option>
-            <option value="price-asc">{t('catalog.sortByPriceAsc')}</option>
-            <option value="price-desc">{t('catalog.sortByPriceDesc')}</option>
-            <option value="experience">{t('catalog.sortByExp')}</option>
-          </select>
-        </div>
-
-        <div className={styles.levelChips}>
-          {LEVELS.map(({ key, label }) => (
-            <button
-              key={key}
-              className={`${styles.chip} ${level === key ? styles.chipActive : ''}`}
-              onClick={() => setLevel(key)}
-            >
-              {label}
             </button>
           ))}
         </div>

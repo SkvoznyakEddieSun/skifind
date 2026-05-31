@@ -16,16 +16,10 @@
   overflow: hidden; /* клипит heroTop при translateY вверх */
 }
 
-/* ── Collapsible title/actions block ──
+/* ── Collapsible block (title + filters together) ──
    transform и opacity управляются напрямую из handleScroll (no CSS transition).
-   will-change: transform подсказывает браузеру создать GPU-слой.           */
-.heroTop {
-  will-change: transform, opacity;
-}
-
-/* ── Collapsible filters block ── */
-.filtersSection {
-  flex-shrink: 0;
+   will-change: transform подсказывает браузеру создать GPU-слой.            */
+.headerCollapsible {
   will-change: transform, opacity;
 }
 
@@ -193,7 +187,7 @@
 
 /* ── Avail toggle ── */
 .availBtn {
-  margin: 12px 22px 0;
+  margin: 12px 0 0;
   padding: 14px 16px;
   background: var(--surface-1);
   color: var(--text);
@@ -249,7 +243,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 22px 12px;
+  padding: 14px 0 12px;
   flex-shrink: 0;
 }
 
@@ -283,7 +277,7 @@
   display: flex;
   gap: 6px;
   overflow-x: auto;
-  padding: 0 22px 14px;
+  padding: 0 0 14px;
   scrollbar-width: none;
   flex-shrink: 0;
 }
