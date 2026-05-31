@@ -124,23 +124,23 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onBecomeInst
   const handleScroll = useCallback(() => {
     const el = scrollRef.current;
     if (!el) return;
-    const top = el.scrollTop;
+    const scrollTop = el.scrollTop;
 
-    // progress 0→1 в диапазоне 0–120px — пропорциональное следование
-    const prog = Math.min(1, Math.max(0, top / 120));
+    // Пропорциональное следование за скроллом: 0→1 на диапазоне 0–100px
+    const progress = Math.min(scrollTop / 100, 1);
 
     if (heroTopRef.current) {
-      heroTopRef.current.style.maxHeight     = `${Math.round((1 - prog) * 180)}px`;
-      heroTopRef.current.style.opacity       = String(+(1 - prog).toFixed(3));
-      heroTopRef.current.style.pointerEvents = prog > 0.9 ? 'none' : 'auto';
+      heroTopRef.current.style.transform = `translateY(-${progress * 60}px)`;
+      heroTopRef.current.style.opacity   = String(1 - progress * 0.8);
     }
     if (filtersSectRef.current) {
-      filtersSectRef.current.style.maxHeight = `${Math.round((1 - prog) * 220)}px`;
-      filtersSectRef.current.style.opacity   = String(+(1 - prog).toFixed(3));
+      filtersSectRef.current.style.transform = `translateY(-${progress * 60}px)`;
+      filtersSectRef.current.style.opacity   = String(1 - progress * 0.8);
     }
 
-    // Кнопка «наверх» через state (достаточно редко меняется)
-    setShowTop(prev => (top > 300) !== prev ? (top > 300) : prev);
+    // Кнопка «наверх» — через state (меняется редко, нет jank)
+    const shouldShow = scrollTop > 300;
+    setShowTop(prev => prev === shouldShow ? prev : shouldShow);
   }, []);
 
   function scrollToTop() {
@@ -304,7 +304,10 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onBecomeInst
             <div
               key={instr.id}
               className={styles.instrCard}
+              role="button"
+              tabIndex={0}
               onClick={() => onProfile(instr.id)}
+              onKeyDown={e => e.key === 'Enter' && onProfile(instr.id)}
             >
               {/* Fav button */}
               <button

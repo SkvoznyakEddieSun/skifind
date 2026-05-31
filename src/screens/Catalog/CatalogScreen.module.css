@@ -13,21 +13,20 @@
   background: var(--bg);
   padding: calc(var(--safe-top) + 16px) 22px 18px;
   flex-shrink: 0;
+  overflow: hidden; /* клипит heroTop при translateY вверх */
 }
 
 /* ── Collapsible title/actions block ──
-   max-height и opacity обновляются напрямую из handleScroll (no transition).
-   Начальные значения здесь — для первого рендера до первого скролла.       */
+   transform и opacity управляются напрямую из handleScroll (no CSS transition).
+   will-change: transform подсказывает браузеру создать GPU-слой.           */
 .heroTop {
-  overflow: hidden;
-  max-height: 180px; /* перекрывает реальную высоту с запасом */
+  will-change: transform, opacity;
 }
 
-/* ── Collapsible filters block (avail + sort + level) ── */
+/* ── Collapsible filters block ── */
 .filtersSection {
   flex-shrink: 0;
-  overflow: hidden;
-  max-height: 220px;
+  will-change: transform, opacity;
 }
 
 .tbRow {
