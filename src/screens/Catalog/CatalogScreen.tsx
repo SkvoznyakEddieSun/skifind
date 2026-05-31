@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import styles from './CatalogScreen.module.css';
 import { useTranslation } from '@/i18n/useTranslation';
+import { ScrollToTopBtn } from '@/components/ScrollToTopBtn';
 
 type SportType = 'all' | 'ski' | 'board';
 type Level = 'all' | 'beginner' | 'advanced' | 'kids' | 'freeride';
@@ -96,6 +97,23 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onBecomeInst
   const [onlyFreeToday, setOnlyFreeToday] = useState(false);
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
 
+  // ── Scroll tracking ────────────────────────────────────────────────────────
+  const scrollRef    = useRef<HTMLDivElement>(null);
+  const [collapsed, setCollapsed] = useState(false);
+  const [showTop,   setShowTop]   = useState(false);
+
+  const handleScroll = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const top = el.scrollTop;
+    setCollapsed(top > 80);
+    setShowTop(top > 300);
+  }, []);
+
+  function scrollToTop() {
+    scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
   const freeTodayCount = INSTRUCTORS.filter(i => i.hasFreeSlotsToday).length;
   const avgRating = (INSTRUCTORS.reduce((sum, i) => sum + i.rating, 0) / INSTRUCTORS.length).toFixed(1);
 
@@ -137,33 +155,36 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onBecomeInst
     <div className={styles.screen}>
       {/* ── Hero ── */}
       <div className={styles.hero}>
-        <div className={styles.tbRow}>
-          <div className={styles.titleBlock}>
-            <h1 className={styles.heroTitle}>
-              {t('catalog.titleLine')} <span>{t('catalog.titleAccent')}</span>
-            </h1>
-            <div className={styles.heroStats}>
-              <span className={styles.heroStat}>
-                {t('catalog.statInstructors', { count: INSTRUCTORS.length })}
-              </span>
-              <span className={styles.heroStatSep}>·</span>
-              <span className={styles.heroStat}>
-                {t('catalog.statRating', { rating: avgRating })}
-              </span>
+        {/* Collapsible: title + action buttons */}
+        <div className={`${styles.heroTop} ${collapsed ? styles.heroTopCollapsed : ''}`}>
+          <div className={styles.tbRow}>
+            <div className={styles.titleBlock}>
+              <h1 className={styles.heroTitle}>
+                {t('catalog.titleLine')} <span>{t('catalog.titleAccent')}</span>
+              </h1>
+              <div className={styles.heroStats}>
+                <span className={styles.heroStat}>
+                  {t('catalog.statInstructors', { count: INSTRUCTORS.length })}
+                </span>
+                <span className={styles.heroStatSep}>·</span>
+                <span className={styles.heroStat}>
+                  {t('catalog.statRating', { rating: avgRating })}
+                </span>
+              </div>
             </div>
-          </div>
-          <div className={styles.topActions}>
-            <button className={styles.bellBtn} onClick={onNotifications} aria-label="Уведомления">
-              <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
-              <div className={styles.notifDot} />
-            </button>
-            <button className={styles.becomeBtn} onClick={onBecomeInstructor}>
-              {t('catalog.becomeInstructor')}
-            </button>
+            <div className={styles.topActions}>
+              <button className={styles.bellBtn} onClick={onNotifications} aria-label="Уведомления">
+                <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+                <div className={styles.notifDot} />
+              </button>
+              <button className={styles.becomeBtn} onClick={onBecomeInstructor}>
+                {t('catalog.becomeInstructor')}
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* Search */}
+        {/* Always visible: search + type tabs */}
         <div className={styles.searchBox}>
           <span className={styles.searchIcon}>⌕</span>
           <input
@@ -174,7 +195,6 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onBecomeInst
           />
         </div>
 
-        {/* Type tabs */}
         <div className={styles.typeTabs}>
           {(['all', 'ski', 'board'] as SportType[]).map(tab => (
             <button
@@ -188,52 +208,52 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onBecomeInst
         </div>
       </div>
 
-      {/* ── Avail toggle ── */}
-      <button
-        className={`${styles.availBtn} ${onlyFreeToday ? styles.availBtnActive : ''}`}
-        onClick={() => setOnlyFreeToday(v => !v)}
-      >
-        <span className={styles.availPulse} />
-        <span className={styles.availLabel}>
-          {onlyFreeToday
-            ? t('catalog.showFreeToday', { count: freeTodayCount })
-            : t('catalog.showAll')}
-        </span>
-        <span className={styles.availCount}>
-          {t('catalog.showFreeToday', { count: freeTodayCount })}
-        </span>
-      </button>
-
-      {/* ── Sort row ── */}
-      <div className={styles.sortRow}>
-        <div className={styles.sortLabel}>{t('catalog.sortLabel')}</div>
-        <select
-          className={styles.sortSelect}
-          value={sort}
-          onChange={e => setSort(e.target.value as SortKey)}
+      {/* ── Collapsible filters: avail + sort + level chips ── */}
+      <div className={`${styles.filtersSection} ${collapsed ? styles.filtersSectionCollapsed : ''}`}>
+        <button
+          className={`${styles.availBtn} ${onlyFreeToday ? styles.availBtnActive : ''}`}
+          onClick={() => setOnlyFreeToday(v => !v)}
         >
-          <option value="rating">{t('catalog.sortByRating')}</option>
-          <option value="price-asc">{t('catalog.sortByPriceAsc')}</option>
-          <option value="price-desc">{t('catalog.sortByPriceDesc')}</option>
-          <option value="experience">{t('catalog.sortByExp')}</option>
-        </select>
-      </div>
+          <span className={styles.availPulse} />
+          <span className={styles.availLabel}>
+            {onlyFreeToday
+              ? t('catalog.showFreeToday', { count: freeTodayCount })
+              : t('catalog.showAll')}
+          </span>
+          <span className={styles.availCount}>
+            {t('catalog.showFreeToday', { count: freeTodayCount })}
+          </span>
+        </button>
 
-      {/* ── Level chips ── */}
-      <div className={styles.levelChips}>
-        {LEVELS.map(({ key, label }) => (
-          <button
-            key={key}
-            className={`${styles.chip} ${level === key ? styles.chipActive : ''}`}
-            onClick={() => setLevel(key)}
+        <div className={styles.sortRow}>
+          <div className={styles.sortLabel}>{t('catalog.sortLabel')}</div>
+          <select
+            className={styles.sortSelect}
+            value={sort}
+            onChange={e => setSort(e.target.value as SortKey)}
           >
-            {label}
-          </button>
-        ))}
+            <option value="rating">{t('catalog.sortByRating')}</option>
+            <option value="price-asc">{t('catalog.sortByPriceAsc')}</option>
+            <option value="price-desc">{t('catalog.sortByPriceDesc')}</option>
+            <option value="experience">{t('catalog.sortByExp')}</option>
+          </select>
+        </div>
+
+        <div className={styles.levelChips}>
+          {LEVELS.map(({ key, label }) => (
+            <button
+              key={key}
+              className={`${styles.chip} ${level === key ? styles.chipActive : ''}`}
+              onClick={() => setLevel(key)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* ── Cards ── */}
-      <div className={styles.scroll}>
+      <div ref={scrollRef} className={styles.scroll} onScroll={handleScroll}>
         {/* Master classes banner */}
         <div className={styles.mcBanner} onClick={onMasterClasses}>
           <div className={styles.mcBannerLeft}>
@@ -316,6 +336,8 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onBecomeInst
           ))}
         </div>
       </div>
+
+      <ScrollToTopBtn show={showTop} onClick={scrollToTop} />
     </div>
   );
 }

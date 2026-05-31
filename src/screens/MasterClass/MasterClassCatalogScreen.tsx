@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import styles from './MasterClassCatalogScreen.module.css';
 import { MASTER_CLASSES, type McSport } from './masterClassData';
+import { ScrollToTopBtn } from '@/components/ScrollToTopBtn';
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -43,6 +44,16 @@ export function MasterClassCatalogScreen({
 }: MasterClassCatalogScreenProps) {
   const [sport, setSport] = useState<McSport | 'all'>('all');
 
+  // ── Scroll tracking ────────────────────────────────────────────────────────
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [showTop, setShowTop] = useState(false);
+
+  const handleScroll = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    setShowTop(el.scrollTop > 300);
+  }, []);
+
   const filtered = MASTER_CLASSES
     .filter(mc => sport === 'all' || mc.sport === sport)
     .sort((a, b) => new Date(a.eventDateISO).getTime() - new Date(b.eventDateISO).getTime());
@@ -69,7 +80,7 @@ export function MasterClassCatalogScreen({
       </div>
 
       {/* List */}
-      <div className={styles.scroll}>
+      <div ref={scrollRef} className={styles.scroll} onScroll={handleScroll}>
 
         {/* ── Empty state ── */}
         {filtered.length === 0 ? (
@@ -155,6 +166,11 @@ export function MasterClassCatalogScreen({
 
         <div style={{ height: 32 }} />
       </div>
+
+      <ScrollToTopBtn
+        show={showTop}
+        onClick={() => scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })}
+      />
     </div>
   );
 }

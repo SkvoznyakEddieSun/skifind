@@ -15,6 +15,33 @@
   flex-shrink: 0;
 }
 
+/* ── Collapsible title/actions block ── */
+.heroTop {
+  overflow: hidden;
+  max-height: 160px;
+  opacity: 1;
+  transition: max-height .22s ease, opacity .18s ease;
+}
+
+.heroTopCollapsed {
+  max-height: 0;
+  opacity: 0;
+}
+
+/* ── Collapsible filters block (avail + sort + level) ── */
+.filtersSection {
+  flex-shrink: 0;
+  overflow: hidden;
+  max-height: 200px;
+  opacity: 1;
+  transition: max-height .22s ease, opacity .18s ease;
+}
+
+.filtersSectionCollapsed {
+  max-height: 0;
+  opacity: 0;
+}
+
 .tbRow {
   display: flex;
   align-items: flex-start;

@@ -1,5 +1,6 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useCallback } from 'react';
 import styles from './ScheduleScreen.module.css';
+import { ScrollToTopBtn } from '@/components/ScrollToTopBtn';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -226,6 +227,16 @@ export function ScheduleScreen({ onLesson, onChat, onCreateMasterClass }: Schedu
   const [templateApplied, setTemplateApplied] = useState(false);
   const [showToast, setShowToast] = useState<string | false>(false);
 
+  // ── Scroll tracking ────────────────────────────────────────────────────────
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [showTop, setShowTop] = useState(false);
+
+  const handleScroll = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    setShowTop(el.scrollTop > 300);
+  }, []);
+
   function fireToast(msg: string) {
     setShowToast(msg);
     setTimeout(() => setShowToast(false), 2500);
@@ -383,7 +394,7 @@ export function ScheduleScreen({ onLesson, onChat, onCreateMasterClass }: Schedu
         </div>
       </div>
 
-      <div className={styles.scroll}>
+      <div ref={scrollRef} className={styles.scroll} onScroll={handleScroll}>
 
         {/* ── ЗАНЯТИЯ ── */}
         {tab === 'lessons' && (
@@ -746,6 +757,11 @@ export function ScheduleScreen({ onLesson, onChat, onCreateMasterClass }: Schedu
       {showToast && (
         <div className={styles.toast}>{showToast}</div>
       )}
+
+      <ScrollToTopBtn
+        show={showTop}
+        onClick={() => scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })}
+      />
     </div>
   );
 }
