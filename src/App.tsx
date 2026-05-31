@@ -87,38 +87,57 @@ export function App() {
   const [activeInstructor, setActiveInstructor] = useState<Instructor>(INSTRUCTORS[0]);
   const [joinedMcIds, setJoinedMcIds] = useState<Set<string>>(new Set());
 
+  // ── Анимация навигации ──────────────────────────────────────────────────
+  const [animKey, setAnimKey] = useState(0);
+  const [animDir, setAnimDir] = useState<'push' | 'pop' | 'none'>('none');
+
   const screen = stack[stack.length - 1];
 
-  function push(s: Screen)  { setStack(p => [...p, s]); }
-  function pop()            { setStack(p => p.length > 1 ? p.slice(0, -1) : p); }
+  // push — новый экран въезжает справа
+  function push(s: Screen) {
+    setAnimDir('push');
+    setAnimKey(k => k + 1);
+    setStack(p => [...p, s]);
+  }
 
-  // Swipe-back: активен только когда есть куда возвращаться (оверлеи поверх шелла)
+  // pop — возврат: предыдущий экран плавно выезжает из лёгкого смещения слева
+  function pop() {
+    setAnimDir('pop');
+    setAnimKey(k => k + 1);
+    setStack(p => p.length > 1 ? p.slice(0, -1) : p);
+  }
+
+  // Swipe-back: активен только когда есть куда возвращаться
   useSwipeBack(stack.length > 1 ? pop : null);
-  function goHome(r: Role)  { setRole(r); setStack([r === 'instructor' ? 'instr' : 'guest']); }
 
+  // Переходы без анимации (смена роли / таб-свитч)
+  function goHome(r: Role)  { setRole(r); setAnimDir('none'); setAnimKey(k => k + 1); setStack([r === 'instructor' ? 'instr' : 'guest']); }
   function switchInstrTab(tab: InstrTab) { setInstrTab(tab); setStack(['instr']); }
   function switchGuestTab(tab: GuestTab) { setGuestTab(tab); setStack(['guest']); }
 
-  // ── Auth ──────────────────────────────────────────────────────────────────
+  // ── Собираем контент (единственный return внизу) ─────────────────────────
+  let content: React.ReactNode = null;
+
+  // Auth
   if (screen === 'auth') {
-    return <AuthScreen onSelectRole={r => goHome(r as Role)} onLoginByPhone={() => push('phone')} />;
+    content = <AuthScreen onSelectRole={r => goHome(r as Role)} onLoginByPhone={() => push('phone')} />;
   }
-  if (screen === 'phone') {
-    return <PhoneAuthScreen onBack={pop} onSubmit={p => { setPhone(String(p)); push('sms'); }} />;
+  else if (screen === 'phone') {
+    content = <PhoneAuthScreen onBack={pop} onSubmit={p => { setPhone(String(p)); push('sms'); }} />;
   }
-  if (screen === 'sms') {
-    return <SmsCodeScreen phone={phone} onBack={pop} onVerified={() => goHome(role)} />;
+  else if (screen === 'sms') {
+    content = <SmsCodeScreen phone={phone} onBack={pop} onVerified={() => goHome(role)} />;
   }
 
-  // ── Overlays ──────────────────────────────────────────────────────────────
-  if (screen === 'balance') {
-    return <BalanceScreen onBack={pop} />;
+  // Overlays
+  else if (screen === 'balance') {
+    content = <BalanceScreen onBack={pop} />;
   }
-  if (screen === 'reviews') {
-    return <ReviewsScreen onBack={pop} />;
+  else if (screen === 'reviews') {
+    content = <ReviewsScreen onBack={pop} />;
   }
-  if (screen === 'chat') {
-    return (
+  else if (screen === 'chat') {
+    content = (
       <ChatScreen
         onBack={pop}
         onProfile={() => push('instr-profile')}
@@ -128,17 +147,17 @@ export function App() {
       />
     );
   }
-  if (screen === 'community') {
-    return <CommunityScreen onBack={pop} />;
+  else if (screen === 'community') {
+    content = <CommunityScreen onBack={pop} />;
   }
-  if (screen === 'notifications') {
-    return <NotificationsScreen onBack={pop} />;
+  else if (screen === 'notifications') {
+    content = <NotificationsScreen onBack={pop} />;
   }
-  if (screen === 'register') {
-    return <RegisterScreen onBack={pop} />;
+  else if (screen === 'register') {
+    content = <RegisterScreen onBack={pop} />;
   }
-  if (screen === 'instr-profile') {
-    return (
+  else if (screen === 'instr-profile') {
+    content = (
       <ProfileScreen
         instructor={activeInstructor}
         onBack={pop}
@@ -149,8 +168,8 @@ export function App() {
       />
     );
   }
-  if (screen === 'lesson-detail') {
-    return (
+  else if (screen === 'lesson-detail') {
+    content = (
       <LessonDetailScreen
         onBack={pop}
         onChat={() => push('chat')}
@@ -158,8 +177,8 @@ export function App() {
       />
     );
   }
-  if (screen === 'request-detail') {
-    return (
+  else if (screen === 'request-detail') {
+    content = (
       <RequestDetailScreen
         onBack={pop}
         onChat={() => push('chat')}
@@ -167,8 +186,8 @@ export function App() {
       />
     );
   }
-  if (screen === 'book-slot') {
-    return (
+  else if (screen === 'book-slot') {
+    content = (
       <BookSlotScreen
         onBack={pop}
         onBooked={() => { switchGuestTab('bookings'); }}
@@ -176,8 +195,8 @@ export function App() {
       />
     );
   }
-  if (screen === 'mc-catalog') {
-    return (
+  else if (screen === 'mc-catalog') {
+    content = (
       <MasterClassCatalogScreen
         onBack={pop}
         onDetail={id => { setActiveMcId(id); push('mc-detail'); }}
@@ -185,8 +204,8 @@ export function App() {
       />
     );
   }
-  if (screen === 'mc-detail') {
-    return (
+  else if (screen === 'mc-detail') {
+    content = (
       <MasterClassDetailScreen
         key={activeMcId}
         id={activeMcId}
@@ -204,25 +223,26 @@ export function App() {
       />
     );
   }
-  if (screen === 'mc-create') {
-    return (
+  else if (screen === 'mc-create') {
+    content = (
       <MasterClassCreateScreen
         onBack={pop}
         onPublished={() => { switchInstrTab('dashboard'); }}
       />
     );
   }
-  if (screen === 'mc-group-chat') {
+  else if (screen === 'mc-group-chat') {
     const activeMc = MASTER_CLASSES.find(m => m.id === activeMcId);
-    return (
+    content = (
       <GroupChatScreen
         mcTitle={activeMc?.title}
         isConfirmed={false}
         date={activeMc?.date}
         location={activeMc?.location}
         onBack={() => {
-          // Возвращаемся в каталог МК, пропуская экран деталей
           const idx = stack.lastIndexOf('mc-catalog');
+          setAnimDir('pop');
+          setAnimKey(k => k + 1);
           if (idx >= 0) setStack(stack.slice(0, idx + 1));
           else setStack(['guest']);
         }}
@@ -231,7 +251,7 @@ export function App() {
   }
 
   // ── Instructor shell ──────────────────────────────────────────────────────
-  if (screen === 'instr') {
+  else if (screen === 'instr') {
     let tabContent: React.ReactNode;
 
     if (instrTab === 'dashboard') {
@@ -273,7 +293,7 @@ export function App() {
       );
     }
 
-    return (
+    content = (
       <div style={shellStyle}>
         {tabContent}
         <BottomNav items={INSTR_NAV} active={instrTab} onTab={t => switchInstrTab(t as InstrTab)} />
@@ -282,7 +302,7 @@ export function App() {
   }
 
   // ── Guest shell ───────────────────────────────────────────────────────────
-  if (screen === 'guest') {
+  else if (screen === 'guest') {
     let tabContent: React.ReactNode;
 
     if (guestTab === 'catalog') {
@@ -318,7 +338,6 @@ export function App() {
       tabContent = (
         <ChatListScreen
           onChat={(_id, status, phone) => { setChatBookingStatus(status); setChatInstructorPhone(phone); push('chat'); }}
-          // onCommunity не передаётся — гости не видят чат инструкторов
         />
       );
     } else {
@@ -332,7 +351,7 @@ export function App() {
       );
     }
 
-    return (
+    content = (
       <div style={shellStyle}>
         {tabContent}
         <BottomNav items={GUEST_NAV} active={guestTab} onTab={t => switchGuestTab(t as GuestTab)} />
@@ -340,5 +359,27 @@ export function App() {
     );
   }
 
-  return null;
+  if (!content) return null;
+
+  // ── Единственный return: анимированная обёртка ────────────────────────────
+  // key={animKey} заставляет React размонтировать/монтировать обёртку →
+  // CSS-анимация гарантированно воспроизводится с начала при каждой навигации.
+  return (
+    <div
+      key={animKey}
+      style={{
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+        animation: animDir === 'push'
+          ? 'navPush 260ms cubic-bezier(0.25, 0.46, 0.45, 0.94) both'
+          : animDir === 'pop'
+          ? 'navPop  260ms cubic-bezier(0.25, 0.46, 0.45, 0.94) both'
+          : undefined,
+      }}
+    >
+      {content}
+    </div>
+  );
 }

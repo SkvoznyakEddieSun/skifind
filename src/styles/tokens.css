@@ -142,3 +142,16 @@ input, textarea, select {
   font-size: 16px;
   font-family: var(--ff);
 }
+
+/* ── Навигационные анимации ──────────────────────────────────────────────────
+   push  → новый экран въезжает справа (стандартный forward)
+   pop   → предыдущий экран выезжает из лёгкого смещения слева (iOS back feel)
+   ──────────────────────────────────────────────────────────────────────────── */
+@keyframes navPush {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+@keyframes navPop {
+  from { transform: translateX(-18%); opacity: 0.5; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
