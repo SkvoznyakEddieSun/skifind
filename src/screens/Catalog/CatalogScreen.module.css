@@ -8,19 +8,20 @@
   overflow: hidden;
 }
 
-/* ── Hero ── */
+/* ── Sticky hero: title + search + type tabs ──
+   position:sticky внутри .scroll (scrollable parent).
+   Прилипает к верху при скролле, фильтры уезжают под него.                  */
 .hero {
   background: var(--bg);
-  padding: calc(var(--safe-top) + 16px) 22px 18px;
-  flex-shrink: 0;
-  overflow: hidden; /* клипит heroTop при translateY вверх */
+  padding: calc(var(--safe-top) + 16px) 22px 14px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
-/* ── Collapsible block (title + filters together) ──
-   transform и opacity управляются напрямую из handleScroll (no CSS transition).
-   will-change: transform подсказывает браузеру создать GPU-слой.            */
-.headerCollapsible {
-  will-change: transform, opacity;
+/* ── Scrollable filters (avail + sort + level) ── */
+.filtersSection {
+  padding: 0 22px;
 }
 
 .tbRow {

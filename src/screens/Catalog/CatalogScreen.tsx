@@ -31,8 +31,7 @@ export interface Instructor {
   tags: { label: string; color: 'blue' | 'mint' | 'straw' | 'purple' | 'gray' }[];
 }
 
-// Активные курорты — сейчас только Шерегеш. Когда добавим Розу Хутор,
-// уберём константу и заменим на запрос /resorts — фильтр появится автоматически.
+// Активные курорты — сейчас только Шерегеш.
 export const ACTIVE_RESORTS = ['Шерегеш'] as const;
 
 export const INSTRUCTORS: Instructor[] = [
@@ -103,8 +102,8 @@ interface CatalogScreenProps {
 
 /**
  * Экран каталога инструкторов.
- * 1-в-1 копия из прототипа PROTOTYPE.html, секция scr-catalog.
- * НИКАКИХ изменений дизайна без согласования.
+ * Sticky-шапка (title + поиск + вкладки дисциплин) — всегда видна.
+ * Фильтры (доступность, сортировка, уровень) — скроллятся вместе с контентом.
  */
 export function CatalogScreen({ onProfile, onBook, onNotifications, onBecomeInstructor, onMasterClasses }: CatalogScreenProps) {
   const { t } = useTranslation();
@@ -115,35 +114,16 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onBecomeInst
   const [onlyFreeToday, setOnlyFreeToday] = useState(false);
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
 
-  // ── Scroll tracking: один ref на весь collapsible-блок ──────────────────
-  const scrollRef  = useRef<HTMLDivElement>(null);
-  const headerRef  = useRef<HTMLDivElement>(null);   // заголовок + фильтры вместе
+  // Scroll tracking only for "↑" button — no animation logic
+  const scrollRef = useRef<HTMLDivElement>(null);
   const [showTop, setShowTop] = useState(false);
 
   const handleScroll = useCallback(() => {
     const el = scrollRef.current;
     if (!el) return;
-    const scrollTop = el.scrollTop;
-
-    // progress 0→1 на диапазоне 0–120px
-    const progress = Math.min(scrollTop / 120, 1);
-
-    if (headerRef.current) {
-      // translateY(-100%) = элемент уезжает вверх на свою высоту,
-      // overflow:hidden на .hero клипит его — layout-reflow нет.
-      headerRef.current.style.transform    = `translateY(-${progress * 100}%)`;
-      headerRef.current.style.opacity      = String(1 - progress * 0.5);
-      // скрытый элемент не должен перехватывать тапы
-      headerRef.current.style.pointerEvents = progress > 0.8 ? 'none' : '';
-    }
-
-    const shouldShow = scrollTop > 300;
+    const shouldShow = el.scrollTop > 300;
     setShowTop(prev => prev === shouldShow ? prev : shouldShow);
   }, []);
-
-  function scrollToTop() {
-    scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
-  }
 
   const freeTodayCount = INSTRUCTORS.filter(i => i.hasFreeSlotsToday).length;
   const avgRating = (INSTRUCTORS.reduce((sum, i) => sum + i.rating, 0) / INSTRUCTORS.length).toFixed(1);
@@ -184,12 +164,12 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onBecomeInst
 
   return (
     <div className={styles.screen}>
-      {/* ── Hero — overflow:hidden клипит headerRef при translateY ── */}
-      <div className={styles.hero}>
+      <div ref={scrollRef} className={styles.scroll} onScroll={handleScroll}>
 
-        {/* ── Collapsible: один ref, один элемент — title + filters вместе ── */}
-        <div ref={headerRef} className={styles.headerCollapsible}>
-          {/* Title row */}
+        {/* ── Sticky hero: title + search + type tabs ──
+            position:sticky внутри .scroll — фиксируется у верха при скролле.
+            Фильтры — снаружи hero, скроллятся вместе с карточками.           */}
+        <div className={styles.hero}>
           <div className={styles.tbRow}>
             <div className={styles.titleBlock}>
               <h1 className={styles.heroTitle}>
@@ -216,7 +196,31 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onBecomeInst
             </div>
           </div>
 
-          {/* Filters (avail + sort + level) — внутри hero, не перекрывают scroll */}
+          <div className={styles.searchBox}>
+            <span className={styles.searchIcon}>⌕</span>
+            <input
+              type="search"
+              placeholder={t('catalog.searchPlaceholder')}
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+            />
+          </div>
+
+          <div className={styles.typeTabs}>
+            {(['all', 'ski', 'board'] as SportType[]).map(tab => (
+              <button
+                key={tab}
+                className={`${styles.typeTab} ${type === tab ? styles.typeTabActive : ''}`}
+                onClick={() => setType(tab)}
+              >
+                {tab === 'all' ? t('catalog.filterAll') : tab === 'ski' ? t('catalog.filterAlpine') : t('catalog.filterSnowboard')}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* ── Filters — скроллятся под шапкой ── */}
+        <div className={styles.filtersSection}>
           <button
             className={`${styles.availBtn} ${onlyFreeToday ? styles.availBtnActive : ''}`}
             onClick={() => setOnlyFreeToday(v => !v)}
@@ -259,33 +263,7 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onBecomeInst
           </div>
         </div>
 
-        {/* ── Always visible: search + type tabs (вне headerRef, не двигаются) ── */}
-        <div className={styles.searchBox}>
-          <span className={styles.searchIcon}>⌕</span>
-          <input
-            type="search"
-            placeholder={t('catalog.searchPlaceholder')}
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-          />
-        </div>
-
-        <div className={styles.typeTabs}>
-          {(['all', 'ski', 'board'] as SportType[]).map(tab => (
-            <button
-              key={tab}
-              className={`${styles.typeTab} ${type === tab ? styles.typeTabActive : ''}`}
-              onClick={() => setType(tab)}
-            >
-              {tab === 'all' ? t('catalog.filterAll') : tab === 'ski' ? t('catalog.filterAlpine') : t('catalog.filterSnowboard')}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* ── Cards ── */}
-      <div ref={scrollRef} className={styles.scroll} onScroll={handleScroll}>
-        {/* Master classes banner */}
+        {/* ── Master classes banner ── */}
         <div className={styles.mcBanner} onClick={onMasterClasses}>
           <div className={styles.mcBannerLeft}>
             <div className={styles.mcBannerIcon}>🎿</div>
@@ -297,6 +275,7 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onBecomeInst
           <span className={styles.mcBannerArrow}>→</span>
         </div>
 
+        {/* ── Cards ── */}
         <div className={styles.instrList}>
           {filtered.map(instr => (
             <div
@@ -369,9 +348,11 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onBecomeInst
             </div>
           ))}
         </div>
+
+        <div style={{ height: 32 }} />
       </div>
 
-      <ScrollToTopBtn show={showTop} onClick={scrollToTop} />
+      <ScrollToTopBtn show={showTop} onClick={() => scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })} />
     </div>
   );
 }

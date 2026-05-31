@@ -1,11 +1,13 @@
+import { useState } from 'react';
 import styles from './BookingsScreen.module.css';
 import { useTranslation } from '@/i18n/useTranslation';
 
-type BookingStatus = 'confirmed' | 'pending' | 'completed';
+type BookingStatus = 'confirmed' | 'pending' | 'completed' | 'cancelled';
 
 interface Booking {
   id: string;
   status: BookingStatus;
+  instructorId: string;
   instructorName: string;
   instructorInitials: string;
   instructorAvatarColor: string;
@@ -19,10 +21,11 @@ interface Booking {
   price: string;
 }
 
-const BOOKINGS: Booking[] = [
+const INITIAL_BOOKINGS: Booking[] = [
   {
     id: 'b1',
     status: 'confirmed',
+    instructorId: 'aleksey',
     instructorName: 'Алексей Морозов',
     instructorInitials: 'АМ',
     instructorAvatarColor: 'ice',
@@ -37,6 +40,7 @@ const BOOKINGS: Booking[] = [
   {
     id: 'b2',
     status: 'pending',
+    instructorId: 'natalya',
     instructorName: 'Наталья Петрова',
     instructorInitials: 'НП',
     instructorAvatarColor: 'mint',
@@ -51,6 +55,7 @@ const BOOKINGS: Booking[] = [
   {
     id: 'b3',
     status: 'completed',
+    instructorId: 'marina',
     instructorName: 'Марина Волкова',
     instructorInitials: 'МВ',
     instructorAvatarColor: 'straw',
@@ -68,22 +73,52 @@ const STATUS_LABEL: Record<BookingStatus, string> = {
   confirmed: '● Подтверждено',
   pending:   '⏳ Ожидает подтверждения',
   completed: '✓ Завершено',
+  cancelled: '✕ Отменено',
 };
 
 interface BookingsScreenProps {
   onChat: (instructorId: string) => void;
-  onCancel: (bookingId: string) => void;
-  onLeaveReview: (bookingId: string) => void;
-  onBookAgain: (bookingId: string) => void;
+  onCancel?: (bookingId: string) => void;
+  onLeaveReview?: (bookingId: string) => void;
+  onBookAgain: (instructorId: string) => void;
 }
 
 /**
  * Экран «Мои занятия» (гость).
- * 1-в-1 копия из прототипа PROTOTYPE.html, секция scr-bookings.
- * НИКАКИХ изменений дизайна без согласования.
  */
-export function BookingsScreen({ onChat, onCancel, onLeaveReview, onBookAgain }: BookingsScreenProps) {
+export function BookingsScreen({ onChat, onCancel, onBookAgain }: BookingsScreenProps) {
   const { t } = useTranslation();
+
+  const [bookings, setBookings]           = useState<Booking[]>(INITIAL_BOOKINGS);
+  const [reviewBookingId, setReviewBookingId] = useState<string | null>(null);
+  const [reviewStars, setReviewStars]     = useState(5);
+  const [reviewText, setReviewText]       = useState('');
+  const [submittedIds, setSubmittedIds]   = useState<Set<string>>(new Set());
+  const [toast, setToast]                 = useState<string | null>(null);
+
+  function showToast(msg: string) {
+    setToast(msg);
+    setTimeout(() => setToast(null), 2500);
+  }
+
+  function handleCancel(bookingId: string) {
+    setBookings(prev => prev.map(b =>
+      b.id === bookingId ? { ...b, status: 'cancelled' as const } : b
+    ));
+    onCancel?.(bookingId);
+  }
+
+  function handleSubmitReview() {
+    if (!reviewBookingId) return;
+    setSubmittedIds(prev => new Set([...prev, reviewBookingId]));
+    setReviewBookingId(null);
+    setReviewText('');
+    setReviewStars(5);
+    showToast('✓ Отзыв опубликован');
+  }
+
+  const pendingBookings = bookings.filter(b => b.status === 'pending');
+  const otherBookings   = bookings.filter(b => b.status !== 'pending');
 
   return (
     <div className={styles.screen}>
@@ -102,10 +137,10 @@ export function BookingsScreen({ onChat, onCancel, onLeaveReview, onBookAgain }:
         <div className={styles.bookingsList}>
 
           {/* ── Pending section ── */}
-          {BOOKINGS.filter(b => b.status === 'pending').length > 0 && (
+          {pendingBookings.length > 0 && (
             <div className={styles.pendingSection}>
               <div className={styles.pendingSectionTitle}>⏳ Ожидает подтверждения</div>
-              {BOOKINGS.filter(b => b.status === 'pending').map(b => (
+              {pendingBookings.map(b => (
                 <div key={b.id} className={styles.pendingCard}>
                   <div className={styles.pendingRow1}>
                     <div className={`${styles.av} ${styles.avSm} ${styles[`av-${b.instructorAvatarColor}`]}`}>
@@ -133,7 +168,7 @@ export function BookingsScreen({ onChat, onCancel, onLeaveReview, onBookAgain }:
                     <button
                       className={`${styles.btn} ${styles.btnSecondary} ${styles.btnSm} ${styles.btnDanger}`}
                       style={{ flex: 1 }}
-                      onClick={() => onCancel(b.id)}
+                      onClick={() => handleCancel(b.id)}
                     >
                       {t('bookings.cancel')}
                     </button>
@@ -144,11 +179,11 @@ export function BookingsScreen({ onChat, onCancel, onLeaveReview, onBookAgain }:
           )}
 
           {/* ── All bookings (non-pending) ── */}
-          {BOOKINGS.filter(b => b.status !== 'pending').map(b => (
+          {otherBookings.map(b => (
             <div
               key={b.id}
               className={styles.bookingCard}
-              style={b.status === 'completed' ? { opacity: .75 } : undefined}
+              style={b.status === 'completed' || b.status === 'cancelled' ? { opacity: .75 } : undefined}
             >
               {/* Status strip */}
               <div className={`${styles.bcStatus} ${styles[`bcStatus-${b.status}`]}`}>
@@ -201,26 +236,26 @@ export function BookingsScreen({ onChat, onCancel, onLeaveReview, onBookAgain }:
                       </button>
                     </>
                   )}
-                  {b.status === 'pending' && (
-                    <>
-                      <button className={`${styles.btn} ${styles.btnSecondary} ${styles.btnSm}`} style={{ flex: 1 }} onClick={() => onChat(b.id)}>
-                        💬 {t('bookings.chat')}
-                      </button>
-                      <button className={`${styles.btn} ${styles.btnSecondary} ${styles.btnSm} ${styles.btnDanger}`} style={{ flex: 1 }} onClick={() => onCancel(b.id)}>
-                        {t('bookings.cancel')}
-                      </button>
-                    </>
-                  )}
                   {b.status === 'completed' && (
                     <>
-                      <button className={`${styles.btn} ${styles.btnSecondary} ${styles.btnSm}`} style={{ flex: 1 }} onClick={() => onLeaveReview(b.id)}>
-                        ⭐ {t('bookings.leaveReview')}
+                      <button
+                        className={`${styles.btn} ${styles.btnSm} ${submittedIds.has(b.id) ? styles.btnReviewed : styles.btnSecondary}`}
+                        style={{ flex: 1 }}
+                        onClick={() => { if (!submittedIds.has(b.id)) setReviewBookingId(b.id); }}
+                        disabled={submittedIds.has(b.id)}
+                      >
+                        {submittedIds.has(b.id) ? '✓ Отзыв оставлен' : `⭐ ${t('bookings.leaveReview')}`}
                       </button>
-                      <button className={`${styles.btn} ${styles.btnSecondary} ${styles.btnSm}`} style={{ flex: 1 }} onClick={() => onBookAgain(b.id)}>
+                      <button
+                        className={`${styles.btn} ${styles.btnSecondary} ${styles.btnSm}`}
+                        style={{ flex: 1 }}
+                        onClick={() => onBookAgain(b.instructorId)}
+                      >
                         {t('bookings.bookAgain')}
                       </button>
                     </>
                   )}
+                  {/* cancelled — no actions */}
                 </div>
               </div>
             </div>
@@ -228,6 +263,51 @@ export function BookingsScreen({ onChat, onCancel, onLeaveReview, onBookAgain }:
 
         </div>
       </div>
+
+      {/* ── Review form (bottom sheet) ── */}
+      {reviewBookingId && (
+        <div className={styles.reviewOverlay} onClick={() => setReviewBookingId(null)}>
+          <div className={styles.reviewBox} onClick={e => e.stopPropagation()}>
+            <div className={styles.reviewTitle}>Оставить отзыв</div>
+            <div className={styles.starRow}>
+              {[1, 2, 3, 4, 5].map(n => (
+                <button
+                  key={n}
+                  className={`${styles.starBtn} ${n <= reviewStars ? styles.starBtnOn : ''}`}
+                  onClick={() => setReviewStars(n)}
+                >
+                  ★
+                </button>
+              ))}
+            </div>
+            <textarea
+              className={styles.reviewTextarea}
+              value={reviewText}
+              onChange={e => setReviewText(e.target.value)}
+              placeholder="Расскажите о занятии..."
+              rows={4}
+            />
+            <div className={styles.reviewActions}>
+              <button
+                className={`${styles.btn} ${styles.btnSecondary} ${styles.btnSm}`}
+                style={{ flex: 1 }}
+                onClick={() => setReviewBookingId(null)}
+              >
+                Отмена
+              </button>
+              <button
+                className={`${styles.btn} ${styles.btnPrimary} ${styles.btnSm}`}
+                style={{ flex: 1 }}
+                onClick={handleSubmitReview}
+              >
+                Отправить
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {toast && <div className={styles.toast}>{toast}</div>}
     </div>
   );
 }

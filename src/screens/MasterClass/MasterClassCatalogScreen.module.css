@@ -161,9 +161,9 @@
   flex-shrink: 0;
 }
 
-.level-mint   { background: var(--mint);                             color: var(--mint-text); }
-.level-straw  { background: var(--straw-soft, rgba(200,160,60,.18)); color: var(--straw, #9a6f00); }
-.level-purple { background: #ede9fe;                                 color: #6b21a8; }
+.level-mint   { background: #22c55e; color: #fff; }   /* Начинающие → зелёный */
+.level-straw  { background: #3b82f6; color: #fff; }   /* Продвинутые → синий */
+.level-purple { background: #a855f7; color: #fff; }   /* Фрирайд → фиолетовый */
 
 /* Meta row */
 .cardMeta {
@@ -261,8 +261,8 @@
   font-weight: 700;
   padding: 3px 7px;
   border-radius: 10px;
-  background: var(--mint);
-  color: var(--mint-text);
+  background: var(--accent);
+  color: var(--accent-text);
   white-space: nowrap;
 }
 

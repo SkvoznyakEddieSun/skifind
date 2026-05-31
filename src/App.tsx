@@ -307,9 +307,11 @@ export function App() {
       tabContent = (
         <BookingsScreen
           onChat={() => push('chat')}
-          onCancel={() => {}}
-          onLeaveReview={() => push('reviews')}
-          onBookAgain={() => switchGuestTab('catalog')}
+          onBookAgain={instructorId => {
+            const instr = INSTRUCTORS.find(i => i.id === instructorId) ?? INSTRUCTORS[0];
+            setActiveInstructor(instr);
+            push('book-slot');
+          }}
         />
       );
     } else if (guestTab === 'chat') {
