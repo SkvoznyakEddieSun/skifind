@@ -123,7 +123,7 @@ export function App() {
     content = <AuthScreen onSelectRole={r => goHome(r as Role)} onLoginByPhone={() => push('phone')} />;
   }
   else if (screen === 'phone') {
-    content = <PhoneAuthScreen onBack={pop} onSubmit={p => { setPhone(String(p)); push('sms'); }} />;
+    content = <PhoneAuthScreen onBack={pop} onSubmit={({ phone: p }) => { setPhone(p); push('sms'); }} />;
   }
   else if (screen === 'sms') {
     content = <SmsCodeScreen phone={phone} onBack={pop} onVerified={() => goHome(role)} />;
