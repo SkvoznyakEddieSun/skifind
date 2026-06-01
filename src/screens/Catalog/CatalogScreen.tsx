@@ -97,6 +97,8 @@ interface CatalogScreenProps {
   onBecomeInstructor: () => void;
   onMasterClasses: () => void;
   blockedIds?: Set<string>;
+  favorites?: Set<string>;
+  onToggleFavorite?: (id: string) => void;
 }
 
 /**
@@ -109,14 +111,15 @@ interface CatalogScreenProps {
  *
  * Никакого JS для анимации — только CSS sticky.
  */
-export function CatalogScreen({ onProfile, onBook, onNotifications, onBecomeInstructor, onMasterClasses, blockedIds }: CatalogScreenProps) {
+export function CatalogScreen({ onProfile, onBook, onNotifications, onBecomeInstructor, onMasterClasses, blockedIds, favorites: favoritesProp, onToggleFavorite }: CatalogScreenProps) {
   const { t } = useTranslation();
   const [search, setSearch]           = useState('');
   const [type, setType]               = useState<SportType>('all');
   const [level, setLevel]             = useState<Level>('all');
   const [sort, setSort]               = useState<SortKey>('rating');
   const [onlyFreeToday, setOnlyFreeToday] = useState(false);
-  const [favorites, setFavorites]     = useState<Set<string>>(new Set());
+  const [localFavorites, setLocalFavorites] = useState<Set<string>>(new Set());
+  const favorites = favoritesProp ?? localFavorites;
   const contentRef                    = useRef<HTMLDivElement>(null);
 
   const scrollToTop = useCallback(() => {
@@ -127,11 +130,15 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onBecomeInst
   const avgRating = (INSTRUCTORS.reduce((sum, i) => sum + i.rating, 0) / INSTRUCTORS.length).toFixed(1);
 
   function toggleFav(id: string) {
-    setFavorites(prev => {
-      const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
-      return next;
-    });
+    if (onToggleFavorite) {
+      onToggleFavorite(id);
+    } else {
+      setLocalFavorites(prev => {
+        const next = new Set(prev);
+        next.has(id) ? next.delete(id) : next.add(id);
+        return next;
+      });
+    }
   }
 
   const filtered = INSTRUCTORS

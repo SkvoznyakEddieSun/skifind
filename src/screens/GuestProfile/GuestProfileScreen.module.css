@@ -251,3 +251,151 @@
   from { transform: translateY(12px); opacity: 0; }
   to   { transform: translateY(0);   opacity: 1; }
 }
+
+/* ── Avatar colors (same as catalog) ── */
+.av-ice    { background: var(--accent-soft); color: var(--accent); }
+.av-mint   { background: var(--mint);        color: var(--mint-text); }
+.av-straw  { background: var(--straw);       color: var(--straw-text); }
+.av-blue   { background: var(--accent);      color: var(--accent-text); }
+.av-purple { background: rgba(124,58,237,.15); color: #A78BFA; }
+
+/* ── Overlay (bottom sheet) ── */
+.overlayBg {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.55);
+  display: flex;
+  align-items: flex-end;
+  z-index: 200;
+}
+
+.overlayBox {
+  background: var(--surface-1);
+  border-radius: var(--r16) var(--r16) 0 0;
+  width: 100%;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding-bottom: var(--safe-bot);
+}
+
+.overlayHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 20px 14px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.overlayTitle {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.overlayClose {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--surface-2);
+  border: none;
+  color: var(--text-dim);
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.overlayList {
+  overflow-y: auto;
+  flex: 1;
+  padding: 8px 0;
+}
+
+.overlayEmpty {
+  padding: 40px 20px;
+  text-align: center;
+  font-size: 14px;
+  color: var(--text-dim);
+}
+
+.overlayItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.overlayAv {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 15px;
+  flex-shrink: 0;
+}
+
+.overlayInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.overlayName {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+
+.overlaySub {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.overlayActions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.overlayBtnPrimary {
+  padding: 7px 14px;
+  border-radius: var(--r8);
+  background: var(--accent);
+  color: var(--accent-text);
+  border: none;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--ff);
+  cursor: pointer;
+}
+
+.overlayBtnDanger {
+  padding: 7px 10px;
+  border-radius: var(--r8);
+  background: var(--red-soft);
+  color: var(--red);
+  border: 1px solid var(--red);
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.overlayBtnSecondary {
+  padding: 7px 14px;
+  border-radius: var(--r8);
+  background: var(--surface-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--ff);
+  cursor: pointer;
+  flex-shrink: 0;
+}

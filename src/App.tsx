@@ -87,6 +87,15 @@ export function App() {
   const [activeInstructor, setActiveInstructor] = useState<Instructor>(INSTRUCTORS[0]);
   const [joinedMcIds, setJoinedMcIds]   = useState<Set<string>>(new Set());
   const [blockedIds, setBlockedIds]     = useState<Set<string>>(new Set());
+  const [favorites, setFavorites]       = useState<Set<string>>(new Set());
+
+  function handleToggleFavorite(id: string) {
+    setFavorites(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  }
 
   function handleToggleBlock(instructorId: string, blocked: boolean) {
     setBlockedIds(prev => {
@@ -338,6 +347,8 @@ export function App() {
           onBecomeInstructor={() => push('register')}
           onMasterClasses={() => push('mc-catalog')}
           blockedIds={blockedIds}
+          favorites={favorites}
+          onToggleFavorite={handleToggleFavorite}
         />
       );
     } else if (guestTab === 'bookings') {
@@ -366,6 +377,16 @@ export function App() {
           onBecomeInstructor={() => push('register')}
           onBookings={() => switchGuestTab('bookings')}
           onLogout={() => setStack(['auth'])}
+          favorites={favorites}
+          onUnfavorite={handleToggleFavorite}
+          blockedIds={blockedIds}
+          onUnblock={id => handleToggleBlock(id, false)}
+          allInstructors={INSTRUCTORS}
+          onViewProfile={id => {
+            const instr = INSTRUCTORS.find(i => i.id === id) ?? INSTRUCTORS[0];
+            setActiveInstructor(instr);
+            push('instr-profile');
+          }}
         />
       );
     }

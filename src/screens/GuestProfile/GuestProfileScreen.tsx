@@ -1,20 +1,39 @@
 import { useState } from 'react';
 import styles from './GuestProfileScreen.module.css';
+import type { Instructor } from '@/screens/Catalog/CatalogScreen';
 
 interface GuestProfileScreenProps {
   onBack: () => void;
   onBookings?: () => void;
   onBecomeInstructor?: () => void;
   onLogout?: () => void;
+  favorites?: Set<string>;
+  onUnfavorite?: (id: string) => void;
+  blockedIds?: Set<string>;
+  onUnblock?: (id: string) => void;
+  allInstructors?: Instructor[];
+  onViewProfile?: (id: string) => void;
 }
 
-export function GuestProfileScreen({ onBack: _onBack, onBookings, onBecomeInstructor, onLogout }: GuestProfileScreenProps) {
+export function GuestProfileScreen({
+  onBack: _onBack,
+  onBookings,
+  onBecomeInstructor,
+  onLogout,
+  favorites = new Set(),
+  onUnfavorite,
+  blockedIds = new Set(),
+  onUnblock,
+  allInstructors = [],
+  onViewProfile,
+}: GuestProfileScreenProps) {
   const [darkTheme, setDarkTheme] = useState(
     document.documentElement.getAttribute('data-theme') !== 'light'
   );
-  const [pushOn, setPushOn] = useState(true);
+  const [pushOn, setPushOn]     = useState(true);
   const [remindOn, setRemindOn] = useState(true);
-  const [toast, setToast] = useState<string | null>(null);
+  const [toast, setToast]       = useState<string | null>(null);
+  const [overlay, setOverlay]   = useState<'favorites' | 'hidden' | null>(null);
 
   function showToast(msg: string) {
     setToast(msg);
@@ -26,6 +45,9 @@ export function GuestProfileScreen({ onBack: _onBack, onBookings, onBecomeInstru
     document.documentElement.setAttribute('data-theme', next);
     setDarkTheme(!darkTheme);
   }
+
+  const favoriteInstrs = allInstructors.filter(i => favorites.has(i.id));
+  const hiddenInstrs   = allInstructors.filter(i => blockedIds.has(i.id));
 
   return (
     <div className={styles.screen}>
@@ -55,7 +77,7 @@ export function GuestProfileScreen({ onBack: _onBack, onBookings, onBecomeInstru
               <div className={styles.statLbl}>инструктора</div>
             </div>
             <div className={styles.statCard}>
-              <div className={`${styles.statVal} ${styles.statValAccent}`}>2</div>
+              <div className={`${styles.statVal} ${styles.statValAccent}`}>{favorites.size}</div>
               <div className={styles.statLbl}>в избранном</div>
             </div>
           </div>
@@ -71,19 +93,23 @@ export function GuestProfileScreen({ onBack: _onBack, onBookings, onBecomeInstru
               </div>
               <span className={styles.rowChevron}>›</span>
             </button>
-            <button className={styles.row} onClick={() => showToast('♡ Избранные — скоро в этом разделе')}>
+            <button className={styles.row} onClick={() => setOverlay('favorites')}>
               <div className={styles.rowIcon}>♡</div>
               <div className={styles.rowBody}>
                 <div className={styles.rowTitle}>Избранные</div>
-                <div className={styles.rowSub}>2 инструктора в подборке</div>
+                <div className={styles.rowSub}>
+                  {favorites.size > 0 ? `${favorites.size} инструктор${favorites.size === 1 ? '' : favorites.size < 5 ? 'а' : 'ов'} в подборке` : 'Нет избранных'}
+                </div>
               </div>
               <span className={styles.rowChevron}>›</span>
             </button>
-            <button className={styles.row} onClick={() => showToast('Скрытые инструкторы — скоро в этом разделе')}>
+            <button className={styles.row} onClick={() => setOverlay('hidden')}>
               <div className={styles.rowIcon}>🙈</div>
               <div className={styles.rowBody}>
                 <div className={styles.rowTitle}>Скрытые</div>
-                <div className={styles.rowSub}>Не показывать в каталоге</div>
+                <div className={styles.rowSub}>
+                  {blockedIds.size > 0 ? `${blockedIds.size} скрыт${blockedIds.size === 1 ? '' : blockedIds.size < 5 ? 'о' : 'о'} из каталога` : 'Нет скрытых'}
+                </div>
               </div>
               <span className={styles.rowChevron}>›</span>
             </button>
@@ -162,9 +188,89 @@ export function GuestProfileScreen({ onBack: _onBack, onBookings, onBecomeInstru
         </div>
       </div>
 
-      {toast && (
-        <div className={styles.toast}>{toast}</div>
+      {/* ── Overlay: Избранные ── */}
+      {overlay === 'favorites' && (
+        <div className={styles.overlayBg} onClick={() => setOverlay(null)}>
+          <div className={styles.overlayBox} onClick={e => e.stopPropagation()}>
+            <div className={styles.overlayHeader}>
+              <div className={styles.overlayTitle}>Избранные</div>
+              <button className={styles.overlayClose} onClick={() => setOverlay(null)}>✕</button>
+            </div>
+            {favoriteInstrs.length === 0 ? (
+              <div className={styles.overlayEmpty}>Вы пока не добавили инструкторов в избранное</div>
+            ) : (
+              <div className={styles.overlayList}>
+                {favoriteInstrs.map(instr => (
+                  <div key={instr.id} className={styles.overlayItem}>
+                    <div className={`${styles.overlayAv} ${styles[`av-${instr.avatarColor}`]}`}>
+                      {instr.initials}
+                    </div>
+                    <div className={styles.overlayInfo}>
+                      <div className={styles.overlayName}>{instr.name}</div>
+                      <div className={styles.overlaySub}>
+                        {instr.type.map(t => t === 'ski' ? 'Горные лыжи' : 'Сноуборд').join(' · ')} · ★{instr.rating}
+                      </div>
+                    </div>
+                    <div className={styles.overlayActions}>
+                      <button
+                        className={styles.overlayBtnPrimary}
+                        onClick={() => { setOverlay(null); onViewProfile?.(instr.id); }}
+                      >
+                        Открыть
+                      </button>
+                      <button
+                        className={styles.overlayBtnDanger}
+                        onClick={() => onUnfavorite?.(instr.id)}
+                      >
+                        ♡
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
       )}
+
+      {/* ── Overlay: Скрытые ── */}
+      {overlay === 'hidden' && (
+        <div className={styles.overlayBg} onClick={() => setOverlay(null)}>
+          <div className={styles.overlayBox} onClick={e => e.stopPropagation()}>
+            <div className={styles.overlayHeader}>
+              <div className={styles.overlayTitle}>Скрытые инструкторы</div>
+              <button className={styles.overlayClose} onClick={() => setOverlay(null)}>✕</button>
+            </div>
+            {hiddenInstrs.length === 0 ? (
+              <div className={styles.overlayEmpty}>Нет скрытых инструкторов</div>
+            ) : (
+              <div className={styles.overlayList}>
+                {hiddenInstrs.map(instr => (
+                  <div key={instr.id} className={styles.overlayItem}>
+                    <div className={`${styles.overlayAv} ${styles[`av-${instr.avatarColor}`]}`} style={{ opacity: 0.5 }}>
+                      {instr.initials}
+                    </div>
+                    <div className={styles.overlayInfo}>
+                      <div className={styles.overlayName}>{instr.name}</div>
+                      <div className={styles.overlaySub}>
+                        {instr.type.map(t => t === 'ski' ? 'Горные лыжи' : 'Сноуборд').join(' · ')} · Скрыт из каталога
+                      </div>
+                    </div>
+                    <button
+                      className={styles.overlayBtnSecondary}
+                      onClick={() => { onUnblock?.(instr.id); showToast('✓ Инструктор снова виден'); }}
+                    >
+                      Показать
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {toast && <div className={styles.toast}>{toast}</div>}
     </div>
   );
 }
