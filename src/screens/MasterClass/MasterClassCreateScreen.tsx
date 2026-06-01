@@ -131,6 +131,7 @@ export function MasterClassCreateScreen({ onBack, onPublished }: MasterClassCrea
       levelLabel:           LEVEL_LABELS[level],
       levelColor:           LEVEL_COLORS[level],
       // Инструктор захардкожен для прототипа
+      instructorId:         'aleksey',
       instructorName:       'Алексей Морозов',
       instructorInitials:   'АМ',
       instructorAvatarColor:'ice',
