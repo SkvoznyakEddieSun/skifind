@@ -643,8 +643,8 @@ export function ScheduleScreen({ onLesson, onChat, onCreateMasterClass }: Schedu
                       {[45, 60, 90, 120].map(d => (
                         <button
                           key={d}
-                          className={`${styles.durationChip} ${!customDuration && slotDuration === d ? styles.durationChipActive : ''}`}
-                          onClick={() => { setSlotDuration(d); setCustomDuration(false); }}
+                          className={`${styles.durationChip} ${slotDuration === d ? styles.durationChipActive : ''}`}
+                          onClick={() => setSlotDuration(d)}
                         >
                           {d}
                         </button>
