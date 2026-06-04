@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, ReactNode } from 'react';
 import styles from './SwipeBack.module.css';
 
-const EDGE_PX   = 30;    // зона срабатывания у левого края
+const EDGE_PX   = 60;    // зона срабатывания у левого края
 const THRESHOLD = 0.38;  // доля ширины экрана для подтверждения свайпа
 const PREV_PULL = 0.28;  // насколько предыдущий экран выдвигается навстречу
 
