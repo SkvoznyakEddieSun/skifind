@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import styles from './BalanceScreen.module.css';
+import { getAcceptedLessons, getCommission } from '@/store/bookings';
 
 const AMOUNTS = [500, 1000, 2000, 5000];
 
@@ -13,13 +14,42 @@ interface Tx {
   plus: boolean;
 }
 
-const TRANSACTIONS: Tx[] = [
-  { type: 'out', icon: '⚡', title: 'Комиссия за заявку Кирилла Волкова',  meta: '25 апр · занятие 7 000 ₽',        amount: '−350 ₽',  remainder: 'Остаток: 1 250 ₽', plus: false },
-  { type: 'out', icon: '⚡', title: 'Комиссия за заявку Татьяны Новиковой', meta: '22 апр · занятие 2 800 ₽',        amount: '−140 ₽',  remainder: 'Остаток: 1 600 ₽', plus: false },
-  { type: 'in',  icon: '+',  title: 'Пополнение карты *4521',               meta: '20 апр · 13:42',                  amount: '+2 000 ₽',remainder: 'Остаток: 1 740 ₽', plus: true  },
-  { type: 'out', icon: '⚡', title: 'Комиссия за заявку Романа Матвеева',   meta: '20 апр · занятие 5 000 ₽',        amount: '−250 ₽',  remainder: 'Остаток: −260 ₽',  plus: false },
-  { type: 'out', icon: '⚡', title: 'Комиссия за заявку Анны Беловой',      meta: '12 апр · занятие 5 500 ₽',        amount: '−275 ₽',  remainder: 'Остаток: −10 ₽',   plus: false },
+// Статичная история (финальный остаток = 1 250 ₽ после этих транзакций)
+const BASE_BALANCE = 1250;
+
+const STATIC_TRANSACTIONS: Tx[] = [
+  { type: 'out', icon: '⚡', title: 'Комиссия за заявку Кирилла Волкова',  meta: '25 апр · занятие 7 000 ₽',  amount: '−350 ₽',  remainder: 'Остаток: 1 250 ₽', plus: false },
+  { type: 'out', icon: '⚡', title: 'Комиссия за заявку Татьяны Новиковой', meta: '22 апр · занятие 2 800 ₽', amount: '−140 ₽',  remainder: 'Остаток: 1 600 ₽', plus: false },
+  { type: 'in',  icon: '+',  title: 'Пополнение карты *4521',               meta: '20 апр · 13:42',            amount: '+2 000 ₽',remainder: 'Остаток: 1 740 ₽', plus: true  },
+  { type: 'out', icon: '⚡', title: 'Комиссия за заявку Романа Матвеева',   meta: '20 апр · занятие 5 000 ₽',  amount: '−250 ₽',  remainder: 'Остаток: −260 ₽',  plus: false },
+  { type: 'out', icon: '⚡', title: 'Комиссия за заявку Анны Беловой',      meta: '12 апр · занятие 5 500 ₽',  amount: '−275 ₽',  remainder: 'Остаток: −10 ₽',   plus: false },
 ];
+
+// IDs уже отражённых в статике уроков (чтобы не дублировать)
+const STATIC_LESSON_IDS = new Set(['l1', 'l2']);
+
+function buildTransactions(): { txs: Tx[]; balance: number } {
+  // Новые принятые уроки — те что не в статике
+  const newLessons = getAcceptedLessons('aleksey')
+    .filter(b => !STATIC_LESSON_IDS.has(b.id));
+
+  let balance = BASE_BALANCE;
+  const newTxs: Tx[] = newLessons.map(b => {
+    const comm = getCommission(b.price);
+    balance -= comm;
+    return {
+      type:      'out',
+      icon:      '⚡',
+      title:     `Комиссия за заявку ${b.studentName}`,
+      meta:      `${b.dayNum} ${b.dayMon} · занятие ${b.price.toLocaleString('ru')} ₽`,
+      amount:    `−${comm.toLocaleString('ru')} ₽`,
+      remainder: `Остаток: ${balance.toLocaleString('ru')} ₽`,
+      plus:      false,
+    };
+  });
+
+  return { txs: [...newTxs, ...STATIC_TRANSACTIONS], balance };
+}
 
 interface BalanceScreenProps {
   onBack: () => void;
@@ -108,6 +138,10 @@ function TopupModal({ onClose }: { onClose: () => void }) {
 }
 
 export function BalanceScreen({ onBack }: BalanceScreenProps) {
+  const { txs, balance } = buildTransactions();
+  const [transactions] = useState<Tx[]>(txs);
+  const currentBalance = balance;
+
   const [showTopup, setShowTopup] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
@@ -134,8 +168,12 @@ export function BalanceScreen({ onBack }: BalanceScreenProps) {
       {/* Hero */}
       <div className={styles.hero}>
         <div className={styles.heroLabel}>Текущий баланс</div>
-        <div className={styles.heroAmount}>1 250 ₽</div>
-        <div className={styles.heroSub}>Хватит на ~3 заявки со средним чеком</div>
+        <div className={styles.heroAmount}>{currentBalance.toLocaleString('ru')} ₽</div>
+        <div className={styles.heroSub}>
+          {currentBalance >= 0
+            ? `Хватит на ~${Math.floor(currentBalance / 350)} заявки со средним чеком`
+            : 'Пополните баланс для приёма новых заявок'}
+        </div>
         <div className={styles.heroActions}>
           <button className={`${styles.heroBtn} ${styles.heroBtnPrimary}`} onClick={() => setShowTopup(true)}>
             + Пополнить
@@ -153,7 +191,9 @@ export function BalanceScreen({ onBack }: BalanceScreenProps) {
           </div>
           <div className={styles.histMetrics}>
             <div className={styles.metric}>
-              <div className={`${styles.metricVal} ${styles.metricValMinus}`}>−1 015</div>
+              <div className={`${styles.metricVal} ${styles.metricValMinus}`}>
+                −{transactions.filter(t => !t.plus).reduce((s, t) => s + parseInt(t.amount.replace(/[^0-9]/g, '')), 0).toLocaleString('ru')}
+              </div>
               <div className={styles.metricLbl}>₽ комиссии</div>
             </div>
             <div className={styles.metric}>
@@ -166,7 +206,7 @@ export function BalanceScreen({ onBack }: BalanceScreenProps) {
       {toast && <div className={styles.toast}>{toast}</div>}
 
         <div className={styles.txList}>
-          {TRANSACTIONS.map((tx, i) => (
+          {transactions.map((tx, i) => (
             <div key={i} className={styles.txItem}>
               <div className={`${styles.txIcon} ${tx.type === 'in' ? styles.txIn : styles.txOut}`}>
                 {tx.icon}
