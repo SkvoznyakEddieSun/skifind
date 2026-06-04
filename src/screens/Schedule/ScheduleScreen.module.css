@@ -16,12 +16,44 @@
   flex-shrink: 0;
 }
 
+.headerRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px 12px;
+}
+
 .headerTitle {
   font-size: 20px;
   font-weight: 700;
   letter-spacing: -0.3px;
   color: #fff;
-  padding: 0 16px 12px;
+}
+
+.headerGear {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255,255,255,.35);
+  background: rgba(255,255,255,.12);
+  color: rgba(255,255,255,.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background .2s, color .2s, border-color .2s;
+}
+
+.headerGear svg {
+  width: 18px;
+  height: 18px;
+}
+
+.headerGearActive {
+  background: rgba(255,255,255,.95);
+  color: var(--accent);
+  border-color: transparent;
 }
 
 /* ── Tabs ── */
