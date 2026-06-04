@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import styles from './ProfileScreen.module.css';
 import { useTranslation } from '@/i18n/useTranslation';
 import type { Instructor } from '@/screens/Catalog/CatalogScreen';
@@ -130,6 +130,18 @@ export function ProfileScreen({ instructor, onBack, onBook, onAskQuestion, onAll
   const [toast, setToast]             = useState<string | null>(null);
   const [blocked, setBlocked]         = useState(isBlockedProp ?? false);
   const [reportOpen, setReportOpen]   = useState(false);
+
+  // ── Галерея (редактируемая в своём профиле) ──────────────────────────
+  const [gallery, setGallery] = useState([
+    { id: '1', emoji: '❄', cls: styles.gallerySnow,     isVideo: false },
+    { id: '2', emoji: '⛰', cls: styles.galleryMountain, isVideo: true  },
+    { id: '3', emoji: '🏂', cls: styles.galleryAction,   isVideo: false },
+    { id: '4', emoji: '👥', cls: styles.galleryClass,    isVideo: false },
+    { id: '5', emoji: '🎿', cls: '',                     isVideo: false },
+    { id: '6', emoji: '⛷', cls: styles.gallerySnow,     isVideo: false },
+  ]);
+  const [photoUrls, setPhotoUrls] = useState<Record<string, string>>({});
+  const galleryFileRef = useRef<HTMLInputElement>(null);
   const [reportReason, setReportReason] = useState('');
   const [reportText, setReportText]   = useState('');
 
@@ -243,16 +255,60 @@ export function ProfileScreen({ instructor, onBack, onBook, onAskQuestion, onAll
         <div className={styles.sec}>
           <div className={styles.secHeader}>
             <div className={styles.secT} style={{ marginBottom: 0 }}>{t('profile.gallery')}</div>
-            <span className={styles.galleryCount}>5 фото · 1 видео</span>
+            <span className={styles.galleryCount}>
+              {gallery.filter(g => !g.isVideo).length} фото · {gallery.filter(g => g.isVideo).length} видео
+            </span>
           </div>
           <div className={styles.galleryStrip}>
-            <div className={`${styles.galleryItem} ${styles.gallerySnow}`}>❄</div>
-            <div className={`${styles.galleryItem} ${styles.galleryMountain} ${styles.video}`}>⛰</div>
-            <div className={`${styles.galleryItem} ${styles.galleryAction}`}>🏂</div>
-            <div className={`${styles.galleryItem} ${styles.galleryClass}`}>👥</div>
-            <div className={styles.galleryItem}>🎿</div>
-            <div className={`${styles.galleryItem} ${styles.gallerySnow}`}>⛷</div>
+            {gallery.map(item => (
+              <div
+                key={item.id}
+                className={`${styles.galleryItem} ${item.cls} ${item.isVideo ? styles.video : ''} ${isOwnProfile ? styles.galleryItemEditable : ''}`}
+                style={photoUrls[item.id] ? { backgroundImage: `url(${photoUrls[item.id]})`, backgroundSize: 'cover', backgroundPosition: 'center' } : undefined}
+              >
+                {!photoUrls[item.id] && item.emoji}
+                {isOwnProfile && (
+                  <button
+                    className={styles.galleryRemoveBtn}
+                    onClick={() => setGallery(prev => prev.filter(g => g.id !== item.id))}
+                    aria-label="Удалить"
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
+            ))}
+            {isOwnProfile && (
+              <button
+                className={styles.galleryAddBtn}
+                onClick={() => galleryFileRef.current?.click()}
+                aria-label="Добавить фото"
+              >
+                <span className={styles.galleryAddIcon}>+</span>
+                <span className={styles.galleryAddLabel}>Добавить</span>
+              </button>
+            )}
           </div>
+          {isOwnProfile && (
+            <input
+              ref={galleryFileRef}
+              type="file"
+              accept="image/*,video/*"
+              multiple
+              style={{ display: 'none' }}
+              onChange={e => {
+                const files = Array.from(e.target.files ?? []);
+                files.forEach(file => {
+                  const id = Date.now().toString() + Math.random();
+                  const url = URL.createObjectURL(file);
+                  const isVideo = file.type.startsWith('video/');
+                  setGallery(prev => [...prev, { id, emoji: '', cls: '', isVideo }]);
+                  setPhotoUrls(prev => ({ ...prev, [id]: url }));
+                });
+                e.target.value = '';
+              }}
+            />
+          )}
         </div>
 
         {/* Skills */}
