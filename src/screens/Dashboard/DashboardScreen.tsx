@@ -96,14 +96,14 @@ export function DashboardScreen({
             <div className={styles.notifDot} />
           </button>
         </div>
-        <h1 className={styles.dashTitle}>
-          {t('dashboard.titleStart')}<br />
-          {t('dashboard.titleMid')} <em>{t('dashboard.titleAccent')}</em>
-        </h1>
       </div>
 
       {/* ── Content ── */}
       <div className={styles.dashContent}>
+        <h1 className={styles.dashTitle}>
+          {t('dashboard.titleStart')}<br />
+          {t('dashboard.titleMid')} <em>{t('dashboard.titleAccent')}</em>
+        </h1>
 
         {/* Mountain toggle */}
         <div className={`${styles.mountainNew} ${onMountain ? styles.mountainActive : ''}`}>

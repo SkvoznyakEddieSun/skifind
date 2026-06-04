@@ -180,6 +180,8 @@ export function ChatListScreen({ onBack: _onBack, onChat, onCommunity, joinedMcI
       <div className={styles.topbar}>
         <div className={styles.tbTitle}>Сообщения</div>
         <div className={styles.tbSub}>2 непрочитанных</div>
+      </div>
+      <div className={styles.searchBar}>
         <input
           type="search"
           className={styles.searchInput}

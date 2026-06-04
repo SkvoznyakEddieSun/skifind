@@ -10,15 +10,15 @@
 
 /* ── Hero ── */
 .dashNew {
-  padding: calc(var(--safe-top) + 14px) 22px 0;
+  padding: calc(var(--safe-top) + 14px) 22px 14px;
   flex-shrink: 0;
+  border-bottom: 1px solid var(--border);
 }
 
 .dashRow {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 18px;
 }
 
 /* Avatar */
@@ -114,7 +114,7 @@
   color: var(--text);
   letter-spacing: -1px;
   line-height: 1.05;
-  margin-bottom: 18px;
+  margin: 18px 0 18px;
 }
 
 .dashTitle em {

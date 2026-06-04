@@ -11,7 +11,7 @@
 /* ── Topbar ── */
 .topbar {
   background: var(--bg);
-  padding: calc(var(--safe-top) + 14px) 22px 12px;
+  padding: calc(var(--safe-top) + 14px) 22px 14px;
   flex-shrink: 0;
   border-bottom: 1px solid var(--border);
 }
@@ -27,7 +27,14 @@
   font-size: 11px;
   color: var(--text-dim);
   margin-top: 2px;
-  margin-bottom: 10px;
+}
+
+/* ── Search bar (below topbar) ── */
+.searchBar {
+  background: var(--bg);
+  padding: 10px 22px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
 }
 
 .searchInput {
