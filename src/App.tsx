@@ -88,6 +88,7 @@ export function App() {
   const [joinedMcIds, setJoinedMcIds]   = useState<Set<string>>(new Set());
   const [blockedIds, setBlockedIds]     = useState<Set<string>>(new Set());
   const [favorites, setFavorites]       = useState<Set<string>>(new Set());
+  const [activeRequestId, setActiveRequestId] = useState<string>('');
 
   function handleToggleFavorite(id: string) {
     setFavorites(prev => {
@@ -200,6 +201,8 @@ export function App() {
   else if (screen === 'request-detail') {
     content = (
       <RequestDetailScreen
+        key={activeRequestId}
+        requestId={activeRequestId}
         onBack={pop}
         onChat={() => push('chat')}
         onAccepted={pop}
@@ -296,7 +299,7 @@ export function App() {
         <RequestsScreen
           onBack={() => switchInstrTab('dashboard')}
           onChat={() => push('chat')}
-          onRequest={() => push('request-detail')}
+          onRequest={id => { setActiveRequestId(id); push('request-detail'); }}
         />
       );
     } else if (instrTab === 'chat') {

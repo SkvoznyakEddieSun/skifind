@@ -1,6 +1,8 @@
 import { useState, useRef } from 'react';
 import styles from './BookingsScreen.module.css';
 import { useTranslation } from '@/i18n/useTranslation';
+import { getGuestBookings, declineBooking } from '@/store/bookings';
+import type { Booking as StoreBooking } from '@/store/bookings';
 
 type BookingStatus = 'confirmed' | 'pending' | 'completed' | 'cancelled';
 
@@ -21,53 +23,37 @@ interface Booking {
   price: string;
 }
 
-const INITIAL_BOOKINGS: Booking[] = [
-  {
-    id: 'b1',
-    status: 'confirmed',
-    instructorId: 'aleksey',
-    instructorName: 'Алексей Морозов',
-    instructorInitials: 'АМ',
-    instructorAvatarColor: 'ice',
-    instructorSpec: 'Сноуборд · Шерегеш',
-    rating: 4.9,
-    dayNum: '28', dayMon: 'апр',
-    timeRange: '10:00 — 12:00',
-    lessonType: 'Мини-группа · 2 человека',
-    meta: 'Место встречи · Касса Шерегеш, вход А',
-    price: '7 000 ₽',
-  },
-  {
-    id: 'b2',
-    status: 'pending',
-    instructorId: 'natalya',
-    instructorName: 'Наталья Петрова',
-    instructorInitials: 'НП',
-    instructorAvatarColor: 'mint',
-    instructorSpec: 'Горные лыжи · Шерегеш',
-    rating: 5.0,
-    dayNum: '3', dayMon: 'мая',
-    timeRange: '11:00 — 11:45',
-    lessonType: 'Детское занятие',
-    meta: 'Заявка отправлена · 5 минут назад',
-    price: '2 800 ₽',
-  },
-  {
-    id: 'b3',
-    status: 'completed',
-    instructorId: 'marina',
-    instructorName: 'Марина Волкова',
-    instructorInitials: 'МВ',
-    instructorAvatarColor: 'straw',
-    instructorSpec: 'Горные лыжи · Шерегеш',
-    rating: 4.8,
-    dayNum: '15', dayMon: 'мар',
-    timeRange: '14:00 — 15:00',
-    lessonType: 'Индивидуальное занятие',
-    meta: 'Прошло 6 недель',
-    price: '2 500 ₽',
-  },
-];
+const STATUS_MAP: Record<StoreBooking['status'], BookingStatus> = {
+  pending:   'pending',
+  accepted:  'confirmed',
+  declined:  'cancelled',
+  completed: 'completed',
+};
+
+function toDisplay(b: StoreBooking): Booking {
+  return {
+    id:                    b.id,
+    status:                STATUS_MAP[b.status],
+    instructorId:          b.instructorId,
+    instructorName:        b.instructorName,
+    instructorInitials:    b.instructorInitials,
+    instructorAvatarColor: b.instructorAvatarColor,
+    instructorSpec:        b.instructorSpec,
+    rating:                b.instructorRating,
+    dayNum:                b.dayNum,
+    dayMon:                b.dayMon,
+    timeRange:             `${b.timeStart} — ${b.timeEnd}`,
+    lessonType:            b.formatLabel,
+    meta: b.status === 'accepted'
+      ? 'Место встречи уточните у инструктора'
+      : b.status === 'pending'
+      ? `Заявка отправлена · ${b.createdAt}`
+      : b.status === 'completed'
+      ? 'Занятие завершено'
+      : 'Отменено',
+    price: `${b.price.toLocaleString('ru')} ₽`,
+  };
+}
 
 const STATUS_LABEL: Record<BookingStatus, string> = {
   confirmed: '● Подтверждено',
@@ -99,7 +85,8 @@ interface BookingsScreenProps {
 export function BookingsScreen({ onChat, onCancel, onBookAgain }: BookingsScreenProps) {
   const { t } = useTranslation();
 
-  const [bookings, setBookings]               = useState<Booking[]>(INITIAL_BOOKINGS);
+  // Читаем из хранилища при каждом монтировании (свежие данные после нового бронирования)
+  const [bookings, setBookings]               = useState<Booking[]>(() => getGuestBookings().map(toDisplay));
   const [reviewBookingId, setReviewBookingId] = useState<string | null>(null);
   const [reviewStars, setReviewStars]         = useState(5);
   const [reviewText, setReviewText]           = useState('');
@@ -115,6 +102,7 @@ export function BookingsScreen({ onChat, onCancel, onBookAgain }: BookingsScreen
   }
 
   function handleCancel(bookingId: string) {
+    declineBooking(bookingId); // обновляем хранилище
     setBookings(prev => prev.map(b =>
       b.id === bookingId ? { ...b, status: 'cancelled' as const } : b
     ));

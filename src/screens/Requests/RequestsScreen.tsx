@@ -1,17 +1,17 @@
 import { useState } from 'react';
 import styles from './RequestsScreen.module.css';
+import {
+  getPendingRequests,
+  getAcceptedLessons,
+  acceptBooking,
+  declineBooking,
+  getCommission,
+} from '@/store/bookings';
+import type { Booking } from '@/store/bookings';
 
-interface ReqCardData {
-  id: string;
-  name: string;
-  time: string;
-  tags: { label: string; color: 'blue' | 'mint' | 'straw' | 'gray' | 'purple' }[];
-  msg: string;
-  price: string;
-  commission: string;
-}
+// ── Pre-existing "own" students (без комиссии, добавлены до платформы) ──────
 
-interface StuData {
+interface OwnStudent {
   id: string;
   initials: string;
   color: 'ice' | 'mint' | 'straw' | 'purple';
@@ -22,49 +22,7 @@ interface StuData {
   dim?: boolean;
 }
 
-const REQUESTS: ReqCardData[] = [
-  {
-    id: 'roman',
-    name: 'Роман Ефимов',
-    time: 'сегодня 11:42',
-    tags: [
-      { label: 'Сноуборд', color: 'blue' },
-      { label: 'Новичок', color: 'mint' },
-      { label: '28 апр · 10:00', color: 'gray' },
-    ],
-    msg: '«Хотим с женой научиться с нуля. Можете взять сразу двоих?»',
-    price: '7 000 ₽',
-    commission: '350 ₽',
-  },
-  {
-    id: 'anna',
-    name: 'Анна Белова',
-    time: 'вчера 19:05',
-    tags: [
-      { label: 'Горные лыжи', color: 'blue' },
-      { label: 'Продвинутый', color: 'straw' },
-      { label: '30 апр · 09:00', color: 'gray' },
-    ],
-    msg: '«Хочу поработать над техникой карвинга на красных трассах.»',
-    price: '10 500 ₽',
-    commission: '525 ₽',
-  },
-  {
-    id: 'mikhail',
-    name: 'Михаил Орлов',
-    time: 'вчера 14:30',
-    tags: [
-      { label: 'Сноуборд', color: 'blue' },
-      { label: 'Дети · 8 лет', color: 'purple' },
-      { label: '1 мая · 11:00', color: 'gray' },
-    ],
-    msg: '«Сын первый раз на горе. Работаете с такими маленькими?»',
-    price: '2 800 ₽',
-    commission: '140 ₽',
-  },
-];
-
-const STUDENTS: StuData[] = [
+const OWN_STUDENTS: OwnStudent[] = [
   {
     id: 'kirill',
     initials: 'КВ',
@@ -95,7 +53,7 @@ const STUDENTS: StuData[] = [
   },
 ];
 
-const INACTIVE_STUDENTS: StuData[] = [
+const OWN_STUDENTS_INACTIVE: OwnStudent[] = [
   {
     id: 'tatyana',
     initials: 'ТН',
@@ -106,6 +64,13 @@ const INACTIVE_STUDENTS: StuData[] = [
     status: 'inactive',
   },
 ];
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+
+const DISCIPLINE_LABEL: Record<string, string> = {
+  ski:   'Горные лыжи',
+  board: 'Сноуборд',
+};
 
 const TAG_CLASS: Record<string, string> = {
   blue:   styles.tagBlue,
@@ -134,23 +99,54 @@ const STATUS_LABEL: Record<string, string> = {
   inactive: 'Давно',
 };
 
+// ── Props ──────────────────────────────────────────────────────────────────
+
 interface RequestsScreenProps {
-  onBack:   () => void;
-  onChat:   (id: string) => void;
-  onRequest:(id: string) => void;
+  onBack:    () => void;
+  onChat:    (id: string) => void;
+  onRequest: (id: string) => void;
 }
+
+// ── Component ──────────────────────────────────────────────────────────────
 
 export function RequestsScreen({ onBack: _onBack, onChat, onRequest }: RequestsScreenProps) {
   const [tab, setTab] = useState<'new' | 'mine'>('new');
-  const [dismissed, setDismissed] = useState<Set<string>>(new Set());
   const [toast, setToast] = useState<string | null>(null);
+
+  // Читаем из хранилища; локальный state для реакции на изменения
+  const [pending,  setPending]  = useState<Booking[]>(() => getPendingRequests('aleksey'));
+  const [accepted, setAccepted] = useState<Booking[]>(() => getAcceptedLessons('aleksey'));
 
   function showToast(msg: string) {
     setToast(msg);
     setTimeout(() => setToast(null), 2500);
   }
 
-  const visible = REQUESTS.filter(r => !dismissed.has(r.id));
+  function handleAccept(id: string) {
+    acceptBooking(id);
+    setPending(getPendingRequests('aleksey'));
+    setAccepted(getAcceptedLessons('aleksey'));
+    showToast('✓ Заявка принята — ученик добавлен в список');
+  }
+
+  function handleDecline(id: string) {
+    declineBooking(id);
+    setPending(getPendingRequests('aleksey'));
+    showToast('Заявка отклонена');
+  }
+
+  // Принятые заявки с платформы → превращаем в «учеников» для вкладки «Мои»
+  const acceptedStudents = accepted.map(b => ({
+    id:       b.id,
+    initials: b.studentInitials,
+    color:    b.studentColor,
+    name:     b.studentName,
+    meta:     `${DISCIPLINE_LABEL[b.discipline] ?? b.discipline} · ${b.dayNum} ${b.dayMon} ${b.timeStart}`,
+    stats:    [`${b.formatLabel}`, `${b.dayNum} ${b.dayMon} · ${b.timeStart} — ${b.timeEnd}`],
+    status:   'active' as const,
+  }));
+
+  const totalStudents = OWN_STUDENTS.length + OWN_STUDENTS_INACTIVE.length + acceptedStudents.length;
 
   return (
     <div className={styles.screen}>
@@ -158,7 +154,7 @@ export function RequestsScreen({ onBack: _onBack, onChat, onRequest }: RequestsS
       <div className={styles.topbar}>
         <div className={styles.tbTitle}>Ученики</div>
         <div className={styles.tbSub}>
-          {visible.length} новых заявки · 4 своих ученика
+          {pending.length} новых {pending.length === 1 ? 'заявка' : pending.length < 5 ? 'заявки' : 'заявок'} · {totalStudents} своих ученика
         </div>
       </div>
 
@@ -168,13 +164,13 @@ export function RequestsScreen({ onBack: _onBack, onChat, onRequest }: RequestsS
           className={`${styles.tab} ${tab === 'new' ? styles.tabActive : ''}`}
           onClick={() => setTab('new')}
         >
-          Новые<span className={styles.tabBadge}>{visible.length}</span>
+          Новые<span className={styles.tabBadge}>{pending.length}</span>
         </button>
         <button
           className={`${styles.tab} ${tab === 'mine' ? styles.tabActive : ''}`}
           onClick={() => setTab('mine')}
         >
-          Мои<span className={`${styles.tabBadge} ${styles.tabBadgeGreen}`}>4</span>
+          Мои<span className={`${styles.tabBadge} ${styles.tabBadgeGreen}`}>{totalStudents}</span>
         </button>
       </div>
 
@@ -186,38 +182,51 @@ export function RequestsScreen({ onBack: _onBack, onChat, onRequest }: RequestsS
             <div className={`${styles.infoBanner} ${styles.infoBannerIce}`}>
               ⚡ Заявки с платформы — комиссия 5% при подтверждении
             </div>
+
+            {pending.length === 0 && (
+              <div style={{ padding: '40px 20px', textAlign: 'center', color: 'var(--text-dim)', fontSize: 14 }}>
+                Новых заявок нет
+              </div>
+            )}
+
             <div className={styles.reqList}>
-              {visible.map(r => (
+              {pending.map(r => (
                 <div key={r.id} className={styles.reqCard} onClick={() => onRequest(r.id)}>
                   <div className={styles.rcTop}>
                     <div>
-                      <div className={styles.rcName}>{r.name}</div>
+                      <div className={styles.rcName}>{r.studentName}</div>
                       <span className={styles.lsPlat}>⚡ С платформы</span>
                     </div>
-                    <div className={styles.rcTime}>{r.time}</div>
+                    <div className={styles.rcTime}>{r.createdAt}</div>
                   </div>
 
                   <div className={styles.rcTags}>
-                    {r.tags.map(t => (
-                      <span key={t.label} className={`${styles.tag} ${TAG_CLASS[t.color]}`}>
-                        {t.label}
-                      </span>
-                    ))}
+                    <span className={`${styles.tag} ${TAG_CLASS.blue}`}>
+                      {DISCIPLINE_LABEL[r.discipline] ?? r.discipline}
+                    </span>
+                    <span className={`${styles.tag} ${r.format === 'kids' ? TAG_CLASS.purple : TAG_CLASS.mint}`}>
+                      {r.level}
+                    </span>
+                    <span className={`${styles.tag} ${TAG_CLASS.gray}`}>
+                      {r.dayNum} {r.dayMon} · {r.timeStart}
+                    </span>
                   </div>
 
-                  <div className={styles.rcMsg}>{r.msg}</div>
+                  {r.message ? (
+                    <div className={styles.rcMsg}>«{r.message}»</div>
+                  ) : null}
 
                   <div className={styles.rcFee}>
                     <span className={styles.rcFeeAmt}>
-                      Стоимость: <strong>{r.price}</strong>
+                      Стоимость: <strong>{r.price.toLocaleString('ru')} ₽</strong>
                     </span>
-                    <span className={styles.rcFeeComm}>⚡ Комиссия {r.commission}</span>
+                    <span className={styles.rcFeeComm}>⚡ Комиссия {getCommission(r.price).toLocaleString('ru')} ₽</span>
                   </div>
 
                   <div className={styles.rcActions}>
                     <button
                       className={`${styles.btn} ${styles.btnPrimary}`}
-                      onClick={e => { e.stopPropagation(); setDismissed(s => new Set([...s, r.id])); }}
+                      onClick={e => { e.stopPropagation(); handleAccept(r.id); }}
                     >
                       ✓ Принять
                     </button>
@@ -229,7 +238,7 @@ export function RequestsScreen({ onBack: _onBack, onChat, onRequest }: RequestsS
                     </button>
                     <button
                       className={`${styles.btn} ${styles.btnSecondary}`}
-                      onClick={e => { e.stopPropagation(); setDismissed(s => new Set([...s, r.id])); }}
+                      onClick={e => { e.stopPropagation(); handleDecline(r.id); }}
                     >
                       Отказать
                     </button>
@@ -255,9 +264,35 @@ export function RequestsScreen({ onBack: _onBack, onChat, onRequest }: RequestsS
               </div>
             </div>
 
+            {/* Принятые с платформы */}
+            {acceptedStudents.length > 0 && (
+              <>
+                <div className={styles.stuSectionLabel}>С платформы ⚡</div>
+                {acceptedStudents.map(s => (
+                  <div key={s.id} className={styles.stuItem} onClick={() => onChat(s.id)}>
+                    <div className={`${styles.av} ${AV_CLASS[s.color] ?? styles.avIce}`}>
+                      {s.initials}
+                    </div>
+                    <div className={styles.stuInfo}>
+                      <div className={styles.stuName}>{s.name}</div>
+                      <div className={styles.stuMeta}>{s.meta}</div>
+                      <div className={styles.stuStats}>
+                        {s.stats.map(st => (
+                          <div key={st} className={styles.stuStat}>{st}</div>
+                        ))}
+                      </div>
+                    </div>
+                    <span className={`${styles.stuStatus} ${STATUS_CLASS.active}`}>
+                      {STATUS_LABEL.active}
+                    </span>
+                  </div>
+                ))}
+              </>
+            )}
+
             <div className={styles.stuSectionLabel}>Активные</div>
 
-            {STUDENTS.map(s => (
+            {OWN_STUDENTS.map(s => (
               <div key={s.id} className={styles.stuItem} onClick={() => onChat(s.id)}>
                 <div
                   className={`${styles.av} ${AV_CLASS[s.color]}`}
@@ -282,7 +317,7 @@ export function RequestsScreen({ onBack: _onBack, onChat, onRequest }: RequestsS
 
             <div className={styles.stuSectionLabel}>Неактивные</div>
 
-            {INACTIVE_STUDENTS.map(s => (
+            {OWN_STUDENTS_INACTIVE.map(s => (
               <div key={s.id} className={styles.stuItem} onClick={() => onChat(s.id)}>
                 <div className={`${styles.av} ${AV_CLASS[s.color]}`}>{s.initials}</div>
                 <div className={styles.stuInfo}>

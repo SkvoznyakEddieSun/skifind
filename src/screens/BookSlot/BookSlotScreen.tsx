@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import styles from './BookSlotScreen.module.css';
 import type { Instructor } from '../Catalog/CatalogScreen';
+import { addBooking } from '@/store/bookings';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -166,6 +167,29 @@ export function BookSlotScreen({ onBack, onBooked, instructor }: BookSlotScreenP
 
   function handleSend() {
     if (!selectedSlot) return;
+
+    // Записываем бронь в общее хранилище
+    addBooking({
+      instructorId:          instructor.id,
+      instructorName:        instructor.name,
+      instructorInitials:    instructor.initials,
+      instructorAvatarColor: instructor.avatarColor,
+      instructorSpec:        `${instructor.type.includes('ski') ? 'Горные лыжи' : 'Сноуборд'} · Шерегеш`,
+      instructorRating:      instructor.rating,
+      date:                  selectedDate,
+      timeStart:             selectedSlot.start,
+      timeEnd:               selectedSlot.end,
+      format,
+      formatLabel: format === 'miniGroup'
+        ? `Мини-группа · ${groupSize} чел.`
+        : FORMAT_LABELS[format],
+      discipline: instructor.type.includes('ski') ? 'ski' : 'board',
+      level:      format === 'kids' ? 'Дети' : 'Не указан',
+      groupSize:  format === 'miniGroup' ? groupSize : undefined,
+      price:      FORMAT_PRICES[format],
+      message,
+    });
+
     setBooked(true);
     setShowToast(true);
     setTimeout(() => {
