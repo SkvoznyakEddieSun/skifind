@@ -653,17 +653,16 @@
 }
 
 .durationChip {
-  padding: 8px 14px;
+  padding: 6px 10px;
   border-radius: 20px;
-  border: 1px solid var(--border-strong);
-  background: none;
-  font-size: 14px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  font-size: 12px;
   font-weight: 500;
-  color: var(--text);
+  color: var(--text-dim);
   font-family: var(--ff);
   cursor: pointer;
-  transition: all .15s;
-  min-width: 44px;
+  transition: background .15s, color .15s, border-color .15s;
   text-align: center;
 }
 
