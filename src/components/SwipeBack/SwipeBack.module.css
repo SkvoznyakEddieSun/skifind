@@ -10,12 +10,16 @@
   position: absolute;
   inset: 0;
   will-change: transform;
+  display: flex;
+  flex-direction: column;
 }
 
 .currentScreen {
   position: absolute;
   inset: 0;
   will-change: transform;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Затемняющий слой поверх предыдущего экрана */
