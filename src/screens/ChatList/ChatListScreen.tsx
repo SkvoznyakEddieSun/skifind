@@ -244,12 +244,14 @@ export function ChatListScreen({ onBack, onChat, onCommunity, joinedMcIds, onGro
       {/* Topbar */}
       <div className={styles.topbar}>
         {onBack && <button className={styles.tbBack} onClick={onBack}>‹</button>}
-        <div className={styles.tbTitle}>Сообщения</div>
-        {totalUnread > 0 && (
-          <div className={styles.tbSub}>
-            {totalUnread} {totalUnread === 1 ? 'непрочитанное' : totalUnread < 5 ? 'непрочитанных' : 'непрочитанных'}
-          </div>
-        )}
+        <div className={styles.tbTitleGroup}>
+          <div className={styles.tbTitle}>Сообщения</div>
+          {totalUnread > 0 && (
+            <div className={styles.tbSub}>
+              {totalUnread} {totalUnread === 1 ? 'непрочитанное' : 'непрочитанных'}
+            </div>
+          )}
+        </div>
       </div>
       <div className={styles.searchBar}>
         <input
