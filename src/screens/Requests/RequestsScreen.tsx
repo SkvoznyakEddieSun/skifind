@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import styles from './RequestsScreen.module.css';
+import { applyPhoneMask } from '@/utils/phoneMask';
 import {
   getPendingRequests,
   getAcceptedLessons,
@@ -366,9 +367,11 @@ export function RequestsScreen({ onBack: _onBack, onChat, onRequest }: RequestsS
               <input
                 className={styles.inviteInput}
                 type="tel"
-                placeholder="+7 900 000 00 00"
+                placeholder="+7 (___) ___-__-__"
                 value={invitePhone}
-                onChange={e => setInvitePhone(e.target.value)}
+                maxLength={18}
+                onFocus={e => { if (!e.target.value) setInvitePhone('+7'); }}
+                onChange={e => setInvitePhone(applyPhoneMask(e.target.value))}
               />
             </div>
             <div className={styles.inviteHint}>

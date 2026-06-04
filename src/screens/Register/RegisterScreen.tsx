@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import styles from './RegisterScreen.module.css';
+import { applyPhoneMask } from '@/utils/phoneMask';
 
 type Step = 1 | 2 | 3 | 'success';
 
@@ -42,6 +43,7 @@ export function RegisterScreen({ onBack, isEditMode = false }: RegisterScreenPro
   const [step, setStep] = useState<Step>(1);
   const [name, setName] = useState('');
   const [lname, setLname] = useState('');
+  const [phone, setPhone] = useState('');
   // Курорт зафиксирован — только Шерегеш на старте
   const ACTIVE_RESORTS = ['Шерегеш'];
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
@@ -104,7 +106,14 @@ export function RegisterScreen({ onBack, isEditMode = false }: RegisterScreenPro
 
             <div className={styles.field}>
               <label>Телефон</label>
-              <input type="tel" placeholder="+7 (900) 000-00-00" />
+              <input
+                type="tel"
+                placeholder="+7 (___) ___-__-__"
+                value={phone}
+                onChange={e => setPhone(applyPhoneMask(e.target.value))}
+                onFocus={e => { if (!e.target.value) setPhone('+7'); }}
+                maxLength={18}
+              />
             </div>
             <div className={styles.field}>
               <label>E-mail</label>
