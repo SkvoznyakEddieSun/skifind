@@ -168,9 +168,18 @@
 }
 
 /* Type tabs */
+.typeTabsRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 0 8px;
+}
+
 .typeTabs {
   display: flex;
   gap: 6px;
+  flex-wrap: wrap;
 }
 
 .typeTab {
@@ -247,21 +256,6 @@
 }
 
 /* ── Sort row ── */
-.sortRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 14px 0 12px;
-  flex-shrink: 0;
-}
-
-.sortLabel {
-  font-size: 11px;
-  color: var(--text-dim);
-  text-transform: uppercase;
-  letter-spacing: .7px;
-  font-weight: 500;
-}
 
 .sortSelect {
   padding: 8px 28px 8px 12px;

@@ -380,20 +380,18 @@ const avgRating = (INSTRUCTORS.reduce((sum, i) => sum + i.rating, 0) / INSTRUCTO
             />
           </div>
 
-          <div className={styles.typeTabs}>
-            {(['all', 'ski', 'board'] as SportType[]).map(tab => (
-              <button
-                key={tab}
-                className={`${styles.typeTab} ${type === tab ? styles.typeTabActive : ''}`}
-                onClick={() => { setType(tab); scrollToTop(); }}
-              >
-                {tab === 'all' ? t('catalog.filterAll') : tab === 'ski' ? t('catalog.filterAlpine') : t('catalog.filterSnowboard')}
-              </button>
-            ))}
-          </div>
-
-          <div className={styles.sortRow}>
-            <div className={styles.sortLabel}>{t('catalog.sortLabel')}</div>
+          <div className={styles.typeTabsRow}>
+            <div className={styles.typeTabs}>
+              {(['all', 'ski', 'board'] as SportType[]).map(tab => (
+                <button
+                  key={tab}
+                  className={`${styles.typeTab} ${type === tab ? styles.typeTabActive : ''}`}
+                  onClick={() => { setType(tab); scrollToTop(); }}
+                >
+                  {tab === 'all' ? t('catalog.filterAll') : tab === 'ski' ? t('catalog.filterAlpine') : t('catalog.filterSnowboard')}
+                </button>
+              ))}
+            </div>
             <select
               className={styles.sortSelect}
               value={sort}
