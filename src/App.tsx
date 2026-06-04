@@ -38,6 +38,7 @@ import { MasterClassCreateScreen }  from './screens/MasterClass/MasterClassCreat
 import { GroupChatScreen }          from './screens/GroupChat/GroupChatScreen';
 import { MASTER_CLASSES }           from './screens/MasterClass/masterClassData';
 import { getPendingRequests }       from './store/bookings';
+import { StudentProfileScreen }     from './screens/StudentProfile/StudentProfileScreen';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -51,7 +52,8 @@ type Screen =
   | 'balance' | 'reviews' | 'chat' | 'community'
   | 'notifications' | 'register' | 'instr-profile' | 'my-profile'
   | 'lesson-detail' | 'request-detail' | 'book-slot'
-  | 'mc-catalog' | 'mc-detail' | 'mc-create' | 'mc-group-chat';
+  | 'mc-catalog' | 'mc-detail' | 'mc-create' | 'mc-group-chat'
+  | 'student-profile';
 
 // ── Nav configs ─────────────────────────────────────────────────────────────
 
@@ -89,6 +91,8 @@ export function App() {
   const [chatPersonInitials, setChatPersonInitials] = useState('');
   const [chatPersonAvColor, setChatPersonAvColor] = useState('ice');
   const [chatPersonHasProfile, setChatPersonHasProfile] = useState(false);
+  const [chatPersonProfileType, setChatPersonProfileType] = useState<'instructor' | 'student'>('instructor');
+  const [activeStudentId, setActiveStudentId] = useState('');
   const [activeInstructor, setActiveInstructor] = useState<Instructor>(INSTRUCTORS[0]);
   const [joinedMcIds, setJoinedMcIds]   = useState<Set<string>>(new Set());
   const [blockedIds, setBlockedIds]     = useState<Set<string>>(new Set());
@@ -174,7 +178,7 @@ export function App() {
     content = (
       <ChatScreen
         onBack={pop}
-        onProfile={chatPersonHasProfile ? () => push('instr-profile') : undefined}
+        onProfile={chatPersonHasProfile ? () => push(chatPersonProfileType === 'student' ? 'student-profile' : 'instr-profile') : undefined}
         onBook={() => push('book-slot')}
         bookingStatus={chatBookingStatus}
         instructorPhone={chatInstructorPhone}
@@ -313,6 +317,16 @@ export function App() {
     );
   }
 
+  else if (screen === 'student-profile') {
+    content = (
+      <StudentProfileScreen
+        studentId={activeStudentId}
+        onBack={pop}
+        onChat={() => { pop(); }}
+      />
+    );
+  }
+
   // ── Instructor shell ──────────────────────────────────────────────────────
   else if (screen === 'instr') {
     let tabContent: React.ReactNode;
@@ -340,9 +354,20 @@ export function App() {
     } else if (instrTab === 'chat') {
       tabContent = (
         <ChatListScreen
-          onChat={(id, status, phone, name, initials, avColor) => {
+          onChat={(id, status, phone, name, initials, avColor, role) => {
+            const isStudent = role === 'ученик' || role === 'ученица';
             const instr = INSTRUCTORS.find(i => i.id === id);
-            if (instr) { setActiveInstructor(instr); setChatPersonHasProfile(true); } else { setChatPersonHasProfile(false); }
+            if (isStudent) {
+              setActiveStudentId(id);
+              setChatPersonHasProfile(true);
+              setChatPersonProfileType('student');
+            } else if (instr) {
+              setActiveInstructor(instr);
+              setChatPersonHasProfile(true);
+              setChatPersonProfileType('instructor');
+            } else {
+              setChatPersonHasProfile(false);
+            }
             setChatBookingStatus(status === 'DECLINED' ? 'NONE' : status);
             setChatInstructorPhone(phone);
             setChatPersonName(name ?? '');
@@ -429,7 +454,13 @@ export function App() {
         <ChatListScreen
           onChat={(id, status, phone, name, initials, avColor) => {
             const instr = INSTRUCTORS.find(i => i.id === id);
-            if (instr) { setActiveInstructor(instr); setChatPersonHasProfile(true); } else { setChatPersonHasProfile(false); }
+            if (instr) {
+              setActiveInstructor(instr);
+              setChatPersonHasProfile(true);
+              setChatPersonProfileType('instructor');
+            } else {
+              setChatPersonHasProfile(false);
+            }
             setChatBookingStatus(status);
             setChatInstructorPhone(phone);
             setChatPersonName(name ?? '');
