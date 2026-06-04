@@ -10,7 +10,7 @@
 
 /* ── Hero ── */
 .profHero {
-  background: var(--bg);
+  background: var(--accent);
   padding: calc(var(--safe-top) + 12px) 22px 0;
   flex-shrink: 0;
 }
@@ -36,12 +36,12 @@
 .spacer { flex: 1; }
 
 .shareBtn {
-  color: var(--accent);
-  background: rgba(255, 255, 255, .1);
-  border: none;
+  color: #fff;
+  background: rgba(255, 255, 255, .15);
+  border: 1.5px solid rgba(255,255,255,.35);
   width: 36px;
   height: 36px;
-  border-radius: 10px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -77,7 +77,7 @@
   height: 12px;
   background: var(--success-on-dark);
   border-radius: 50%;
-  border: 2px solid var(--bg);
+  border: 2px solid var(--accent);
 }
 
 .profInfo {
@@ -89,7 +89,7 @@
   font-family: var(--ff);
   font-size: 24px;
   font-weight: 700;
-  color: var(--text);
+  color: #fff;
   letter-spacing: -0.5px;
   line-height: 1.1;
   margin-bottom: 4px;
@@ -97,7 +97,7 @@
 
 .profSub {
   font-size: 13px;
-  color: var(--text-dim);
+  color: rgba(255,255,255,.8);
   margin-bottom: 10px;
   font-weight: 400;
 }
@@ -112,9 +112,9 @@
   font-size: 11px;
   padding: 4px 10px;
   border-radius: 20px;
-  border: 1px solid var(--border);
-  background: var(--surface-1);
-  color: var(--text-dim);
+  border: 1px solid rgba(255,255,255,.35);
+  background: rgba(255,255,255,.15);
+  color: rgba(255,255,255,.9);
 }
 
 /* ── Avatar ── */

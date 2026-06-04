@@ -10,10 +10,9 @@
 
 /* Topbar */
 .topbar {
-  background: var(--bg);
+  background: var(--accent);
   padding: calc(var(--safe-top) + 14px) 22px 14px;
   flex-shrink: 0;
-  border-bottom: 1px solid var(--border);
 }
 
 .tbRow {
@@ -23,7 +22,7 @@
 }
 
 .tbTitle {
-  color: var(--text);
+  color: #fff;
   font-size: 18px;
   font-weight: 600;
   letter-spacing: -0.3px;
@@ -31,7 +30,7 @@
 
 .tbSub {
   font-size: 11px;
-  color: var(--text-dim);
+  color: rgba(255,255,255,.75);
   margin-top: 2px;
   font-weight: 400;
 }
