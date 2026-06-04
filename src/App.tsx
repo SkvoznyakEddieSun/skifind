@@ -196,15 +196,16 @@ export function App() {
       onBack={pop}
       role={role}
       onNavigate={s => {
-        pop();
+        // Не делаем pop() — чтобы кнопка «назад» на целевом экране
+        // возвращала обратно в уведомления
         if (role === 'instructor') {
-          if (s === 'requests')        switchInstrTab('requests');
-          else if (s === 'chat-list')  switchInstrTab('chat');
-          else                         push(s as Screen);
+          if (s === 'requests')       { setInstrTab('requests'); push('instr'); }
+          else if (s === 'chat-list') { setInstrTab('chat');     push('instr'); }
+          else                        { push(s as Screen); }
         } else {
-          if (s === 'bookings')        switchGuestTab('bookings');
-          else if (s === 'chat-list')  switchGuestTab('chat');
-          else                         push(s as Screen);
+          if (s === 'bookings')       { setGuestTab('bookings'); push('guest'); }
+          else if (s === 'chat-list') { setGuestTab('chat');     push('guest'); }
+          else                        { push(s as Screen); }
         }
       }}
     />;
