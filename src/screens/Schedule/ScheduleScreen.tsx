@@ -233,7 +233,8 @@ export function ScheduleScreen({ onLesson, onChat, onCreateMasterClass }: Schedu
   const handleScroll = useCallback(() => {
     const el = scrollRef.current;
     if (!el) return;
-    setShowTop(el.scrollTop > 300);
+    const nearBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 120;
+    setShowTop(el.scrollTop > 300 && !nearBottom);
   }, []);
 
   function fireToast(msg: string) {

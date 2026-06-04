@@ -16,7 +16,7 @@ export function ScrollToTopBtn({ show, onClick, bottomOffset = 80 }: ScrollToTop
       onClick={onClick}
       style={{
         position:      'fixed',
-        left:          16,
+        right:         16,
         bottom:        bottomOffset,
         width:         44,
         height:        44,
