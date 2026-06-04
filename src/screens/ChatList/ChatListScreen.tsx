@@ -219,7 +219,7 @@ function ChatRow({ item, onClick }: { item: ChatItem; onClick?: () => void }) {
 
 // ── Screen ─────────────────────────────────────────────────────────────────
 
-export function ChatListScreen({ onBack: _onBack, onChat, onCommunity, joinedMcIds, onGroupChat, isInstructor }: ChatListScreenProps) {
+export function ChatListScreen({ onBack, onChat, onCommunity, joinedMcIds, onGroupChat, isInstructor }: ChatListScreenProps) {
   const [query, setQuery] = useState('');
 
   const RECENT = isInstructor ? INSTR_RECENT : GUEST_RECENT;
@@ -243,6 +243,7 @@ export function ChatListScreen({ onBack: _onBack, onChat, onCommunity, joinedMcI
     <div className={styles.screen}>
       {/* Topbar */}
       <div className={styles.topbar}>
+        {onBack && <button className={styles.tbBack} onClick={onBack}>‹</button>}
         <div className={styles.tbTitle}>Сообщения</div>
         {totalUnread > 0 && (
           <div className={styles.tbSub}>

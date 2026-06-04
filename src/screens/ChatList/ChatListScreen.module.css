@@ -15,6 +15,16 @@
   flex-shrink: 0;
 }
 
+.tbBack {
+  background: none;
+  border: none;
+  font-size: 28px;
+  color: var(--text);
+  cursor: pointer;
+  padding: 0 12px 0 0;
+  line-height: 1;
+}
+
 .tbTitle {
   font-size: 18px;
   font-weight: 600;

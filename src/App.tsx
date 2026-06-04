@@ -53,7 +53,8 @@ type Screen =
   | 'notifications' | 'register' | 'instr-profile' | 'my-profile'
   | 'lesson-detail' | 'request-detail' | 'book-slot'
   | 'mc-catalog' | 'mc-detail' | 'mc-create' | 'mc-group-chat'
-  | 'student-profile';
+  | 'student-profile'
+  | 'notif-chat' | 'notif-requests' | 'notif-bookings';
 
 // ── Nav configs ─────────────────────────────────────────────────────────────
 
@@ -196,17 +197,65 @@ export function App() {
       onBack={pop}
       role={role}
       onNavigate={s => {
-        // Не делаем pop() — чтобы кнопка «назад» на целевом экране
-        // возвращала обратно в уведомления
-        if (role === 'instructor') {
-          if (s === 'requests')       { setInstrTab('requests'); push('instr'); }
-          else if (s === 'chat-list') { setInstrTab('chat');     push('instr'); }
-          else                        { push(s as Screen); }
-        } else {
-          if (s === 'bookings')       { setGuestTab('bookings'); push('guest'); }
-          else if (s === 'chat-list') { setGuestTab('chat');     push('guest'); }
-          else                        { push(s as Screen); }
-        }
+        if (s === 'chat-list')  push('notif-chat');
+        else if (s === 'requests') push('notif-requests');
+        else if (s === 'bookings') push('notif-bookings');
+        else push(s as Screen);
+      }}
+    />;
+  }
+  else if (screen === 'notif-chat') {
+    const ChatComp = role === 'instructor'
+      ? <ChatListScreen
+          onBack={pop}
+          onChat={(id, status, phone, name, initials, avColor, chatRole) => {
+            const isStudent = chatRole === 'ученик' || chatRole === 'ученица';
+            const instr = INSTRUCTORS.find(i => i.id === id);
+            if (isStudent) { setActiveStudentId(id); setChatPersonHasProfile(true); setChatPersonProfileType('student'); }
+            else if (instr) { setActiveInstructor(instr); setChatPersonHasProfile(true); setChatPersonProfileType('instructor'); }
+            else { setChatPersonHasProfile(false); }
+            setChatBookingStatus(status === 'DECLINED' ? 'NONE' : status);
+            setChatInstructorPhone(phone);
+            setChatPersonName(name ?? ''); setChatPersonInitials(initials ?? ''); setChatPersonAvColor(avColor ?? 'ice');
+            push('chat');
+          }}
+          isInstructor
+        />
+      : <ChatListScreen
+          onBack={pop}
+          onChat={(id, status, phone, name, initials, avColor) => {
+            const instr = INSTRUCTORS.find(i => i.id === id);
+            if (instr) setActiveInstructor(instr);
+            setChatPersonHasProfile(true); setChatPersonProfileType('instructor');
+            setChatBookingStatus(status); setChatInstructorPhone(phone);
+            setChatPersonName(name ?? ''); setChatPersonInitials(initials ?? ''); setChatPersonAvColor(avColor ?? 'ice');
+            push('chat');
+          }}
+          joinedMcIds={joinedMcIds}
+          onGroupChat={mcId => { setActiveMcId(mcId); push('mc-group-chat'); }}
+        />;
+    content = ChatComp;
+  }
+  else if (screen === 'notif-requests') {
+    content = <RequestsScreen
+      onBack={pop}
+      onChat={() => push('chat')}
+      onRequest={id => { setActiveRequestId(id); push('request-detail'); }}
+    />;
+  }
+  else if (screen === 'notif-bookings') {
+    content = <BookingsScreen
+      onChat={instructorId => {
+        const instr = INSTRUCTORS.find(i => i.id === instructorId) ?? activeInstructor;
+        setActiveInstructor(instr);
+        setChatPersonName(instr.name); setChatPersonInitials(instr.initials); setChatPersonAvColor(instr.avatarColor);
+        setChatPersonHasProfile(true);
+        push('chat');
+      }}
+      onBookAgain={instructorId => {
+        const instr = INSTRUCTORS.find(i => i.id === instructorId) ?? INSTRUCTORS[0];
+        setActiveInstructor(instr);
+        push('book-slot');
       }}
     />;
   }
