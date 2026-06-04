@@ -2,6 +2,7 @@ import { useState, useRef, useCallback } from 'react';
 import styles from './ProfileScreen.module.css';
 import { useTranslation } from '@/i18n/useTranslation';
 import type { Instructor } from '@/screens/Catalog/CatalogScreen';
+import { ShareModal } from '@/components/ShareModal/ShareModal';
 
 interface PriceRow {
   label: string;
@@ -130,6 +131,7 @@ export function ProfileScreen({ instructor, onBack, onBook, onAskQuestion, onAll
   const [toast, setToast]             = useState<string | null>(null);
   const [blocked, setBlocked]         = useState(isBlockedProp ?? false);
   const [reportOpen, setReportOpen]   = useState(false);
+  const [showShare, setShowShare]     = useState(false);
 
   // ── Галерея (редактируемая в своём профиле) ──────────────────────────
   const GALLERY_MAX = 10;
@@ -179,12 +181,14 @@ export function ProfileScreen({ instructor, onBack, onBook, onAskQuestion, onAll
 
   return (
     <div className={styles.screen}>
+      {showShare && <ShareModal onClose={() => setShowShare(false)} />}
+
       {/* ── Hero ── */}
       <div className={styles.profHero}>
         <div className={styles.tbRow}>
           <button className={styles.tbBack} onClick={onBack} aria-label="Назад">‹</button>
           <div className={styles.spacer} />
-          <button className={styles.shareBtn} aria-label="Поделиться" onClick={() => { if (navigator.share) { navigator.share({ title: 'SkiFind', url: window.location.href }); } else { navigator.clipboard?.writeText(window.location.href); alert('Ссылка скопирована'); } }}>
+          <button className={styles.shareBtn} aria-label="Поделиться" onClick={() => setShowShare(true)}>
             <svg viewBox="0 0 24 24">
               <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
               <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
