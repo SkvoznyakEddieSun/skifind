@@ -10,9 +10,10 @@
 
 /* ── Topbar ── */
 .topbar {
-  background: var(--accent);
+  background: var(--bg);
   padding: calc(var(--safe-top) + 14px) 16px 14px;
   flex-shrink: 0;
+  border-bottom: 1px solid var(--border);
 }
 
 .tbRow {
@@ -34,18 +35,18 @@
 .avSm { width: 36px; height: 36px; font-size: 12px; }
 
 .avBlue   { background: var(--accent);      color: var(--accent-text); }
-.avIce    { background: rgba(255,255,255,.25); color: #fff; }
+.avIce    { background: var(--accent-soft);  color: var(--accent); }
 .avMint   { background: var(--mint);         color: var(--mint-text); }
 .avPurple { background: rgba(124,58,237,.15); color: #A78BFA; }
 
 .tbInfo { flex: 1; }
-.tbName { font-size: 15px; font-weight: 600; color: #fff; }
-.tbRole { font-size: 11px; color: rgba(255,255,255,.75); }
+.tbName { font-size: 15px; font-weight: 600; color: var(--text); }
+.tbRole { font-size: 11px; color: var(--text-dim); }
 
 .shareBtn {
-  color: #fff;
-  background: rgba(255,255,255,.15);
-  border: 1.5px solid rgba(255,255,255,.35);
+  color: var(--accent);
+  background: var(--surface-1);
+  border: 1px solid var(--border);
   width: 36px;
   height: 36px;
   border-radius: 50%;
