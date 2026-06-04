@@ -31,21 +31,23 @@
 
 /* ── Search bar (below topbar) ── */
 .searchBar {
-  background: var(--bg);
-  padding: 10px 22px;
-  border-bottom: 1px solid var(--border);
+  background: var(--surface-1);
+  padding: 3px 22px;
+  border-bottom: 0.5px solid var(--border);
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
 }
 
 .searchInput {
   width: 100%;
-  padding: 11px 14px 11px 38px;
+  padding: 8px 14px 8px 36px;
   border: 1px solid var(--border);
-  border-radius: 24px;
-  font-size: 15px;
+  border-radius: 20px;
+  font-size: 14px;
   font-family: var(--ff);
   color: var(--text);
-  background: var(--surface-1) url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="%23999" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>') no-repeat 14px center;
+  background: var(--bg) url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="%23999" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>') no-repeat 13px center;
   outline: none;
   box-sizing: border-box;
   transition: border-color .15s;

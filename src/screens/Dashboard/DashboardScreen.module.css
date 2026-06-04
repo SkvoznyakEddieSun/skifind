@@ -108,13 +108,27 @@
   border: 2px solid var(--surface-1);
 }
 
+/* ── Secondary title bar (same height as tab bars) ── */
+.dashTitleBar {
+  background: var(--surface-1);
+  border-bottom: 0.5px solid var(--border);
+  padding: 0 22px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
 .dashTitle {
-  font-size: 32px;
+  font-size: 22px;
   font-weight: 700;
   color: var(--text);
-  letter-spacing: -1px;
-  line-height: 1.05;
-  margin: 18px 0 18px;
+  letter-spacing: -0.5px;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 8px 0;
+  margin: 0;
 }
 
 .dashTitle em {
