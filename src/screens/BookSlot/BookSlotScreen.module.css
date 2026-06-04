@@ -416,7 +416,7 @@
 .stepperLabel {
   font-size: 13px;
   color: var(--text-dim);
-  flex: 1;
+  margin-right: 8px;
 }
 
 .stepperBtn {
