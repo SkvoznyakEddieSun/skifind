@@ -1,13 +1,6 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "**/*",
-      "use": "@vercel/static"
-    }
-  ],
-  "routes": [
-    { "handle": "filesystem" },
-    { "src": "/(.*)", "dest": "/index.html" }
-  ]
+  "buildCommand": "echo 'static build'",
+  "installCommand": "echo 'no install'",
+  "outputDirectory": ".",
+  "framework": null
 }
