@@ -157,6 +157,12 @@ export function App() {
     setStack(p => p.length > 1 ? p.slice(0, -1) : p);
   }
 
+  // ── Навигация общая ──────────────────────────────────────────────────────
+  const pendingCount = getPendingRequests('aleksey').length;
+  const instrNavLive = INSTR_NAV.map(item =>
+    item.id === 'requests' ? { ...item, badge: pendingCount > 0 ? pendingCount : undefined } : item
+  );
+
   // ── Собираем контент ─────────────────────────────────────────────────────
   function buildContent(s: Screen): React.ReactNode {
 
@@ -200,20 +206,15 @@ export function App() {
       onBack={pop}
       role={role}
       onNavigate={nav => {
-        if (role === 'instructor') {
-          if (nav === 'requests')  { setInstrTab('requests');  setAnimDir('none'); setStack(['instr']); }
-          else if (nav === 'chat-list') { setInstrTab('chat'); setAnimDir('none'); setStack(['instr']); }
-          else { setAnimDir('none'); setStack(['instr', nav as Screen]); }
-        } else {
-          if (nav === 'bookings')  { setGuestTab('bookings');  setAnimDir('none'); setStack(['guest']); }
-          else if (nav === 'chat-list') { setGuestTab('chat'); setAnimDir('none'); setStack(['guest']); }
-          else { setAnimDir('none'); setStack(['guest', nav as Screen]); }
-        }
+        if (nav === 'chat-list') push('notif-chat');
+        else if (nav === 'requests') push('notif-requests');
+        else if (nav === 'bookings') push('notif-bookings');
+        else push(nav as Screen);
       }}
     />;
   }
   else if (s === 'notif-chat') {
-    const ChatComp = role === 'instructor'
+    const chatContent = role === 'instructor'
       ? <ChatListScreen
           onBack={pop}
           onChat={(id, status, phone, name, initials, avColor, chatRole) => {
@@ -242,31 +243,48 @@ export function App() {
           joinedMcIds={joinedMcIds}
           onGroupChat={mcId => { setActiveMcId(mcId); push('mc-group-chat'); }}
         />;
-    return ChatComp;
+    return (
+      <div style={shellStyle}>
+        {chatContent}
+        {role === 'instructor'
+          ? <BottomNav items={instrNavLive} active={instrTab} onTab={t => switchInstrTab(t as InstrTab)} />
+          : <BottomNav items={GUEST_NAV}   active={guestTab} onTab={t => switchGuestTab(t as GuestTab)} />}
+      </div>
+    );
   }
   else if (s === 'notif-requests') {
-    return <RequestsScreen
-      onBack={pop}
-      onChat={() => push('chat')}
-      onRequest={id => { setActiveRequestId(id); push('request-detail'); }}
-    />;
+    return (
+      <div style={shellStyle}>
+        <RequestsScreen
+          onBack={pop}
+          onChat={() => push('chat')}
+          onRequest={id => { setActiveRequestId(id); push('request-detail'); }}
+        />
+        <BottomNav items={instrNavLive} active={instrTab} onTab={t => switchInstrTab(t as InstrTab)} />
+      </div>
+    );
   }
   else if (s === 'notif-bookings') {
-    return <BookingsScreen
-      onBack={pop}
-      onChat={instructorId => {
-        const instr = INSTRUCTORS.find(i => i.id === instructorId) ?? activeInstructor;
-        setActiveInstructor(instr);
-        setChatPersonName(instr.name); setChatPersonInitials(instr.initials); setChatPersonAvColor(instr.avatarColor);
-        setChatPersonHasProfile(true);
-        push('chat');
-      }}
-      onBookAgain={instructorId => {
-        const instr = INSTRUCTORS.find(i => i.id === instructorId) ?? INSTRUCTORS[0];
-        setActiveInstructor(instr);
-        push('book-slot');
-      }}
-    />;
+    return (
+      <div style={shellStyle}>
+        <BookingsScreen
+          onBack={pop}
+          onChat={instructorId => {
+            const instr = INSTRUCTORS.find(i => i.id === instructorId) ?? activeInstructor;
+            setActiveInstructor(instr);
+            setChatPersonName(instr.name); setChatPersonInitials(instr.initials); setChatPersonAvColor(instr.avatarColor);
+            setChatPersonHasProfile(true);
+            push('chat');
+          }}
+          onBookAgain={instructorId => {
+            const instr = INSTRUCTORS.find(i => i.id === instructorId) ?? INSTRUCTORS[0];
+            setActiveInstructor(instr);
+            push('book-slot');
+          }}
+        />
+        <BottomNav items={GUEST_NAV} active={guestTab} onTab={t => switchGuestTab(t as GuestTab)} />
+      </div>
+    );
   }
   else if (s === 'register') {
     // isEditMode = true когда открыт из профиля инструктора (не из каталога)
@@ -464,13 +482,6 @@ export function App() {
         />
       );
     }
-
-    const pending = getPendingRequests('aleksey').length;
-    const instrNavLive = INSTR_NAV.map(item =>
-      item.id === 'requests'
-        ? { ...item, badge: pending > 0 ? pending : undefined }
-        : item
-    );
 
     return (
       <div style={shellStyle}>
