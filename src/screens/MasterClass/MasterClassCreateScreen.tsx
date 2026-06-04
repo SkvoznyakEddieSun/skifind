@@ -26,7 +26,6 @@ const DURATIONS       = [60, 90, 120, 180] as const;
 const DEADLINE_HOURS  = [2, 6, 12, 24, 48] as const;
 const MAX_DESC        = 300;
 const PRICE_MIN       = 300;
-const PRICE_MAX       = 30_000;
 const COMMISSION_RATE = 0.05;
 
 function durationLabel(min: number): string {
@@ -102,9 +101,9 @@ export function MasterClassCreateScreen({ onBack, onPublished }: MasterClassCrea
 
   // ── Price validation ──────────────────────────────────────────────────────
   const priceNum   = parseInt(price, 10);
-  const priceValid = !price.trim() || (!isNaN(priceNum) && priceNum >= PRICE_MIN && priceNum <= PRICE_MAX);
+  const priceValid = !price.trim() || (!isNaN(priceNum) && priceNum >= PRICE_MIN);
   const priceError = price.trim() && !priceValid
-    ? `Цена от ${PRICE_MIN.toLocaleString('ru')} до ${PRICE_MAX.toLocaleString('ru')} ₽`
+    ? `Цена от ${PRICE_MIN.toLocaleString('ru')} ₽`
     : null;
 
   // ── Full-group revenue preview ────────────────────────────────────────────
@@ -291,7 +290,7 @@ export function MasterClassCreateScreen({ onBack, onPublished }: MasterClassCrea
               type="number"
               inputMode="numeric"
               className={`${styles.textInput} ${priceError ? styles.textInputError : ''}`}
-              placeholder={`${PRICE_MIN.toLocaleString('ru')} — ${PRICE_MAX.toLocaleString('ru')}`}
+              placeholder={`от ${PRICE_MIN.toLocaleString('ru')}`}
               value={price}
               onChange={e => setPrice(e.target.value)}
             />
