@@ -192,7 +192,7 @@ export function App() {
     content = <CommunityScreen onBack={pop} />;
   }
   else if (screen === 'notifications') {
-    content = <NotificationsScreen onBack={pop} />;
+    content = <NotificationsScreen onBack={pop} onNavigate={s => { pop(); push(s as Screen); }} />;
   }
   else if (screen === 'register') {
     // isEditMode = true когда открыт из профиля инструктора (не из каталога)

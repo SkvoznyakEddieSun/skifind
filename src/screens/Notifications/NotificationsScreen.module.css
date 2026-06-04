@@ -95,6 +95,15 @@
 
 .notifItemUnread { background: var(--accent-soft); }
 
+.notifItemTappable::after {
+  content: '›';
+  font-size: 20px;
+  color: var(--text-faint);
+  align-self: center;
+  margin-left: auto;
+  padding-left: 8px;
+}
+
 /* ── Notif icon ── */
 .notifIcon {
   width: 38px;
