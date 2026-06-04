@@ -11,7 +11,7 @@ interface RegisterScreenProps {
 const STEP_LABELS: Record<number, string> = {
   1: 'Шаг 1 из 4 · Личные данные',
   2: 'Шаг 2 из 4 · Специализация',
-  3: 'Шаг 3 из 4 · Курорты и цены',
+  3: 'Шаг 3 из 4 · Курорт и видео',
   4: 'Шаг 4 из 4 · Проверка',
 };
 
@@ -47,23 +47,6 @@ export function RegisterScreen({ onBack, isEditMode = false }: RegisterScreenPro
   const ACTIVE_RESORTS = ['Шерегеш'];
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
-  const [priceRows, setPriceRows] = useState([
-    { label: 'Индивидуальное', dur: '1 час',  price: '' },
-    { label: 'Мини-группа',    dur: '2 часа', price: '' },
-    { label: 'Полдня',         dur: '4 часа', price: '' },
-    { label: 'Детское',        dur: '45 мин', price: '' },
-  ]);
-
-  function updatePriceRow(i: number, field: 'label' | 'dur' | 'price', val: string) {
-    setPriceRows(prev => prev.map((r, idx) => idx === i ? { ...r, [field]: val } : r));
-  }
-  function addPriceRow() {
-    setPriceRows(prev => [...prev, { label: '', dur: '', price: '' }]);
-  }
-  function removePriceRow(i: number) {
-    setPriceRows(prev => prev.filter((_, idx) => idx !== i));
-  }
-
   const initials = (name[0] || '') + (lname[0] || '') || 'АМ';
 
   const stepNum = typeof step === 'number' ? step : 4;
@@ -207,7 +190,7 @@ export function RegisterScreen({ onBack, isEditMode = false }: RegisterScreenPro
         {/* ── Step 3 ── */}
         {step === 3 && (
           <div className={styles.stepBody}>
-            <div className={styles.stepTitle}>Курорты и цены</div>
+            <div className={styles.stepTitle}>Курорт и видео</div>
 
             <div className={styles.field}>
               <label>Курорт</label>
@@ -221,33 +204,6 @@ export function RegisterScreen({ onBack, isEditMode = false }: RegisterScreenPro
                   </div>
                 </div>
               </div>
-            </div>
-
-            <div className={styles.field}>
-              <label>Стоимость занятий</label>
-              <table className={styles.priceTable}>
-                <thead>
-                  <tr>
-                    <th style={{ width: '38%' }}>Формат</th>
-                    <th>Длит.</th>
-                    <th>Цена</th>
-                    <th style={{ width: '24px' }}></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {priceRows.map((row, i) => (
-                    <tr key={i}>
-                      <td><input type="text" value={row.label} placeholder="Формат" onChange={e => updatePriceRow(i, 'label', e.target.value)} /></td>
-                      <td><input type="text" value={row.dur}   placeholder="Длит."  onChange={e => updatePriceRow(i, 'dur',   e.target.value)} /></td>
-                      <td><input type="text" value={row.price} placeholder="₽"      onChange={e => updatePriceRow(i, 'price', e.target.value)} /></td>
-                      <td>
-                        <button className={styles.priceRowRemove} onClick={() => removePriceRow(i)}>×</button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              <button className={styles.addPriceRowBtn} onClick={addPriceRow}>+ Добавить формат</button>
             </div>
 
             <div className={styles.field}>
@@ -278,7 +234,6 @@ export function RegisterScreen({ onBack, isEditMode = false }: RegisterScreenPro
               <div className={styles.reviewBoxRow}><span>Дисциплина</span><span>Сноуборд, горные лыжи</span></div>
               <div className={styles.reviewBoxRow}><span>Курорт</span><span>{ACTIVE_RESORTS[0]}</span></div>
               <div className={styles.reviewBoxRow}><span>Языки</span><span>Русский</span></div>
-              <div className={styles.reviewBoxRow}><span>Цена от</span><span>3 500 ₽ / час</span></div>
             </div>
 
             <AgreeItem link="правилами платформы">
