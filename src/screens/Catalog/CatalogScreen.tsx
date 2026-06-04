@@ -283,7 +283,7 @@ interface CatalogScreenProps {
  *
  * Никакого JS для анимации — только CSS sticky.
  */
-export function CatalogScreen({ onProfile, onBook, onNotifications, onBecomeInstructor, onMasterClasses, blockedIds, favorites: favoritesProp, onToggleFavorite }: CatalogScreenProps) {
+export function CatalogScreen({ onProfile, onBook, onNotifications, onMasterClasses, blockedIds, favorites: favoritesProp, onToggleFavorite }: CatalogScreenProps) {
   const { t } = useTranslation();
   const [search, setSearch]           = useState('');
   const [type, setType]               = useState<SportType>('all');
@@ -298,7 +298,7 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onBecomeInst
     contentRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
 
-const avgRating = (INSTRUCTORS.reduce((sum, i) => sum + i.rating, 0) / INSTRUCTORS.length).toFixed(1);
+
 
   function toggleFav(id: string) {
     if (onToggleFavorite) {

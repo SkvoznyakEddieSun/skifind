@@ -192,12 +192,22 @@ export function App() {
     content = <CommunityScreen onBack={pop} />;
   }
   else if (screen === 'notifications') {
-    content = <NotificationsScreen onBack={pop} onNavigate={s => {
-      pop();
-      if (s === 'requests')   { switchInstrTab('requests'); }
-      else if (s === 'chat-list') { switchInstrTab('chat'); }
-      else                    { push(s as Screen); }
-    }} />;
+    content = <NotificationsScreen
+      onBack={pop}
+      role={role}
+      onNavigate={s => {
+        pop();
+        if (role === 'instructor') {
+          if (s === 'requests')        switchInstrTab('requests');
+          else if (s === 'chat-list')  switchInstrTab('chat');
+          else                         push(s as Screen);
+        } else {
+          if (s === 'bookings')        switchGuestTab('bookings');
+          else if (s === 'chat-list')  switchGuestTab('chat');
+          else                         push(s as Screen);
+        }
+      }}
+    />;
   }
   else if (screen === 'register') {
     // isEditMode = true когда открыт из профиля инструктора (не из каталога)
