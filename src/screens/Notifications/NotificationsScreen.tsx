@@ -47,6 +47,10 @@ const PERIOD_LABELS: Record<Period, string> = {
   earlier:   'Раньше',
 };
 
+// Персистентное хранилище прочитанных — живёт вне компонента,
+// переживает ремонт при push/pop. Ключ: `${role}-${id}`
+const readIds = new Set<string>();
+
 interface NotificationsScreenProps {
   onBack:       () => void;
   onNavigate?:  (screen: string) => void;
@@ -59,11 +63,12 @@ export function NotificationsScreen({ onBack, onNavigate, role = 'instructor' }:
   const [items, setItems] = useState<Notif[]>(() => [
     ...DYNAMIC_NOTIFS.map(n => ({ ...n, icon: n.icon as Notif['icon'] })),
     ...base,
-  ]);
+  ].map(n => ({ ...n, unread: n.unread && !readIds.has(`${role}-${n.id}`) })));
 
   const unreadCount = items.filter(n => n.unread).length;
 
   function markRead(id: number) {
+    readIds.add(`${role}-${id}`);
     setItems(prev => prev.map(n => n.id === id ? { ...n, unread: false } : n));
   }
 
@@ -73,6 +78,7 @@ export function NotificationsScreen({ onBack, onNavigate, role = 'instructor' }:
   }
 
   function markAllRead() {
+    items.forEach(n => readIds.add(`${role}-${n.id}`));
     setItems(prev => prev.map(n => ({ ...n, unread: false })));
   }
 
