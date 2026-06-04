@@ -564,96 +564,124 @@ export function ScheduleScreen({ onLesson, onChat, onCreateMasterClass }: Schedu
           <div className={styles.tabContent}>
             {templateMode === 'simple' ? (
               <>
-                <div className={styles.sectionTitle}>Рабочие часы</div>
+                {/* ── Рабочие часы ── */}
+                <div className={styles.tmSecLabel}>Рабочие часы</div>
 
-                {/* Single time block */}
-                <div className={styles.dayBlock}>
-                  <div className={styles.timeRow}>
-                    <TimeSelect value={dayCfg.startTime} onChange={v => setDayCfg(p => ({ ...p, startTime: v }))} label="Начало" />
-                    <span className={styles.timeSep}>—</span>
-                    <TimeSelect value={dayCfg.endTime} onChange={v => setDayCfg(p => ({ ...p, endTime: v }))} label="Конец" />
-                  </div>
-                  <label className={styles.checkRow} onClick={() => setDayCfg(p => ({ ...p, breakEnabled: !p.breakEnabled }))}>
-                    <span className={`${styles.checkbox} ${dayCfg.breakEnabled ? styles.checkboxOn : ''}`}>
-                      {dayCfg.breakEnabled ? '✓' : ''}
-                    </span>
-                    <span className={styles.checkLabel}>Перерыв</span>
-                  </label>
-                  {dayCfg.breakEnabled && (
-                    <div className={styles.timeRow} style={{ marginTop: 8 }}>
-                      <TimeSelect value={dayCfg.breakStart} onChange={v => setDayCfg(p => ({ ...p, breakStart: v }))} label="Начало перерыва" />
-                      <span className={styles.timeSep}>—</span>
-                      <TimeSelect value={dayCfg.breakEnd} onChange={v => setDayCfg(p => ({ ...p, breakEnd: v }))} label="Конец перерыва" />
+                <div className={styles.tmCard}>
+                  <div className={styles.tmCardLabel}>РАБОЧИЕ ЧАСЫ</div>
+                  <div className={styles.tmCardBody}>
+                    <div className={styles.tmTimeRow}>
+                      <span className={styles.tmTimeLabel}>С</span>
+                      <TimeSelect value={dayCfg.startTime} onChange={v => setDayCfg(p => ({ ...p, startTime: v }))} label="Начало" />
+                      <span className={styles.tmTimeLabel}>До</span>
+                      <TimeSelect value={dayCfg.endTime} onChange={v => setDayCfg(p => ({ ...p, endTime: v }))} label="Конец" />
                     </div>
-                  )}
-                </div>
-
-                {/* Work days */}
-                <div className={styles.sectionTitle}>Рабочие дни</div>
-                <div className={styles.chipRow}>
-                  {DAY_CHIPS.map(({ label, dow }) => (
-                    <button
-                      key={dow}
-                      className={`${styles.durationChip} ${workDays.has(dow) ? styles.durationChipActive : ''}`}
-                      onClick={() => toggleWorkDay(dow)}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
-                <div className={styles.chipUnit}>
-                  {workDays.size === 7 ? 'Каждый день' : workDays.size === 0 ? 'Выберите дни' : `${workDays.size} дн. в неделю`}
-                </div>
-
-                {/* Duration chips */}
-                <div className={styles.sectionTitle}>Длительность занятия</div>
-                <div className={styles.chipRow}>
-                  {[45, 60, 90, 120].map(d => (
-                    <button
-                      key={d}
-                      className={`${styles.durationChip} ${!customDuration && slotDuration === d ? styles.durationChipActive : ''}`}
-                      onClick={() => { setSlotDuration(d); setCustomDuration(false); }}
-                    >
-                      {d}
-                    </button>
-                  ))}
-                  <button
-                    className={`${styles.durationChip} ${customDuration ? styles.durationChipActive : ''}`}
-                    onClick={() => setCustomDuration(true)}
-                  >
-                    ⚙
-                  </button>
-                </div>
-                {customDuration && (
-                  <div className={styles.customDurRow}>
-                    <input
-                      type="number"
-                      className={styles.customDurInput}
-                      value={customDurationVal}
-                      min={30}
-                      max={240}
-                      step={15}
-                      onChange={e => setCustomDurationVal(Number(e.target.value))}
-                    />
-                    <span className={styles.customDurLabel}>мин (30–240, шаг 15)</span>
                   </div>
-                )}
-                <div className={styles.chipUnit}>минут</div>
-
-                {/* Buffer chips */}
-                <div className={styles.sectionTitle}>Перерыв между занятиями</div>
-                <div className={styles.chipRow}>
-                  {[0, 15, 30].map(b => (
-                    <button
-                      key={b}
-                      className={`${styles.durationChip} ${buffer === b ? styles.durationChipActive : ''}`}
-                      onClick={() => setBuffer(b)}
-                    >
-                      {b}
-                    </button>
-                  ))}
                 </div>
-                <div className={styles.chipUnit}>минут</div>
+
+                <div className={styles.tmCard}>
+                  <div className={styles.tmCardBody}>
+                    <div className={styles.tmSwRow}>
+                      <div className={styles.tmSwInfo}>
+                        <div className={styles.tmSwTitle}>Перерыв на обед</div>
+                        <div className={styles.tmSwSub}>
+                          {dayCfg.breakEnabled ? `${dayCfg.breakStart} — ${dayCfg.breakEnd}` : 'Выключен'}
+                        </div>
+                      </div>
+                      <button
+                        className={`${styles.tmSw} ${dayCfg.breakEnabled ? styles.tmSwOn : ''}`}
+                        onClick={() => setDayCfg(p => ({ ...p, breakEnabled: !p.breakEnabled }))}
+                      />
+                    </div>
+                    {dayCfg.breakEnabled && (
+                      <div className={styles.tmTimeRow} style={{ paddingTop: 8 }}>
+                        <span className={styles.tmTimeLabel}>С</span>
+                        <TimeSelect value={dayCfg.breakStart} onChange={v => setDayCfg(p => ({ ...p, breakStart: v }))} label="Начало перерыва" />
+                        <span className={styles.tmTimeLabel}>До</span>
+                        <TimeSelect value={dayCfg.breakEnd} onChange={v => setDayCfg(p => ({ ...p, breakEnd: v }))} label="Конец перерыва" />
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* ── Рабочие дни ── */}
+                <div className={styles.tmSecLabel}>Рабочие дни</div>
+                <div className={styles.tmCard}>
+                  <div className={styles.tmCardBody}>
+                    <div className={styles.tmDayChips}>
+                      {DAY_CHIPS.map(({ label, dow }) => (
+                        <button
+                          key={dow}
+                          className={`${styles.tmDayChip} ${workDays.has(dow) ? styles.tmDayChipOn : ''}`}
+                          onClick={() => toggleWorkDay(dow)}
+                        >
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+                    <div className={styles.tmChipHint}>
+                      {workDays.size === 7 ? 'Каждый день' : workDays.size === 0 ? 'Выберите дни' : `${workDays.size} дн. в неделю`}
+                    </div>
+                  </div>
+                </div>
+
+                {/* ── Длительность занятия ── */}
+                <div className={styles.tmSecLabel}>Длительность занятия</div>
+                <div className={styles.tmCard}>
+                  <div className={styles.tmCardBody}>
+                    <div className={styles.chipRow}>
+                      {[45, 60, 90, 120].map(d => (
+                        <button
+                          key={d}
+                          className={`${styles.durationChip} ${!customDuration && slotDuration === d ? styles.durationChipActive : ''}`}
+                          onClick={() => { setSlotDuration(d); setCustomDuration(false); }}
+                        >
+                          {d}
+                        </button>
+                      ))}
+                      <button
+                        className={`${styles.durationChip} ${customDuration ? styles.durationChipActive : ''}`}
+                        onClick={() => setCustomDuration(true)}
+                      >
+                        ⚙
+                      </button>
+                    </div>
+                    {customDuration && (
+                      <div className={styles.customDurRow}>
+                        <input
+                          type="number"
+                          className={styles.customDurInput}
+                          value={customDurationVal}
+                          min={30}
+                          max={240}
+                          step={15}
+                          onChange={e => setCustomDurationVal(Number(e.target.value))}
+                        />
+                        <span className={styles.customDurLabel}>мин (30–240, шаг 15)</span>
+                      </div>
+                    )}
+                    <div className={styles.tmChipHint}>минут</div>
+                  </div>
+                </div>
+
+                {/* ── Перерыв между занятиями ── */}
+                <div className={styles.tmSecLabel}>Перерыв между занятиями</div>
+                <div className={styles.tmCard}>
+                  <div className={styles.tmCardBody}>
+                    <div className={styles.chipRow}>
+                      {[0, 15, 30].map(b => (
+                        <button
+                          key={b}
+                          className={`${styles.durationChip} ${buffer === b ? styles.durationChipActive : ''}`}
+                          onClick={() => setBuffer(b)}
+                        >
+                          {b}
+                        </button>
+                      ))}
+                    </div>
+                    <div className={styles.tmChipHint}>минут</div>
+                  </div>
+                </div>
 
                 {/* Preview */}
                 <div className={styles.previewBlock}>

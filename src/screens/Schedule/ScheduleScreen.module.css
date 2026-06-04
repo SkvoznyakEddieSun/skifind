@@ -373,6 +373,141 @@
   color: var(--text-dim);
 }
 
+/* ── Template tab — card-style groups ── */
+
+.tmSecLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.2px;
+  margin-bottom: 8px;
+  margin-top: 16px;
+}
+
+.tmSecLabel:first-child {
+  margin-top: 0;
+}
+
+.tmCard {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--r12);
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+.tmCardLabel {
+  padding: 7px 14px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: .7px;
+  border-bottom: 0.5px solid var(--border);
+}
+
+.tmCardBody {
+  padding: 4px 14px 10px;
+}
+
+/* Time row С / До */
+.tmTimeRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+}
+
+.tmTimeLabel {
+  font-size: 12px;
+  color: var(--text-dim);
+  flex-shrink: 0;
+  min-width: 16px;
+}
+
+/* Toggle switch row */
+.tmSwRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+}
+
+.tmSwInfo { flex: 1; }
+
+.tmSwTitle {
+  font-size: 13px;
+  color: var(--text);
+}
+
+.tmSwSub {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+
+.tmSw {
+  width: 44px;
+  height: 26px;
+  background: var(--surface-3);
+  border-radius: 13px;
+  position: relative;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background .25s;
+  border: none;
+  padding: 0;
+}
+
+.tmSw::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 22px;
+  height: 22px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform .25s;
+  box-shadow: 0 1px 3px rgba(0,0,0,.2);
+}
+
+.tmSwOn { background: var(--accent); }
+.tmSwOn::after { transform: translateX(18px); }
+
+/* Day chips */
+.tmDayChips {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding: 8px 0 4px;
+}
+
+.tmDayChip {
+  padding: 6px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  background: var(--bg);
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  font-family: var(--ff);
+  transition: background .15s, color .15s, border-color .15s;
+}
+
+.tmDayChipOn {
+  background: var(--accent);
+  color: var(--accent-text);
+  border-color: var(--accent);
+}
+
+.tmChipHint {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-top: 6px;
+}
+
 /* ── Template tab ── */
 .sectionTitle {
   font-size: 15px;
@@ -386,7 +521,7 @@
   margin-top: 0;
 }
 
-/* Day block */
+/* Day block (still used in advanced mode) */
 .dayBlock {
   background: var(--surface-1);
   border: 1px solid var(--border);
@@ -402,7 +537,7 @@
   margin-bottom: 10px;
 }
 
-/* Time row */
+/* Time row (used in advanced mode blocks) */
 .timeRow {
   display: flex;
   align-items: center;
@@ -412,16 +547,16 @@
 
 .timeSelect {
   flex: 1;
-  padding: 10px 8px;
+  padding: 9px 8px;
   border: 1px solid var(--border);
   border-radius: var(--r8);
-  font-size: 16px; /* iOS no-zoom */
+  font-size: 14px;
+  font-weight: 500;
   background: var(--bg);
   color: var(--text);
   font-family: var(--ff);
   text-align: center;
-  appearance: none;
-  -webkit-appearance: none;
+  appearance: auto;
   cursor: pointer;
 }
 
@@ -436,7 +571,7 @@
   flex-shrink: 0;
 }
 
-/* Checkbox row */
+/* Checkbox row — kept for backwards compat */
 .checkRow {
   display: flex;
   align-items: center;
