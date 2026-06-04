@@ -10,9 +10,9 @@
 
 /* ── Hero ── */
 .dashNew {
+  background: var(--surface-1);
   padding: calc(var(--safe-top) + 14px) 22px 14px;
   flex-shrink: 0;
-  border-bottom: 1px solid var(--border);
 }
 
 .dashRow {

@@ -11,10 +11,9 @@
 
 /* ── Header ── */
 .header {
-  background: var(--bg);
+  background: var(--surface-1);
   padding: calc(var(--safe-top) + 14px) 0 0;
   flex-shrink: 0;
-  border-bottom: 1px solid var(--border);
 }
 
 .headerRow {

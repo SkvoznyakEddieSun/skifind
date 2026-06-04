@@ -11,7 +11,7 @@
 /* ── Фиксированная шапка: не скроллится ── */
 .header {
   flex-shrink: 0;
-  background: var(--bg);
+  background: var(--surface-1);
   padding: calc(var(--safe-top) + 16px) 22px 14px;
   border-bottom: 1px solid var(--border);
 }

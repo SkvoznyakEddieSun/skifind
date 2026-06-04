@@ -10,7 +10,7 @@
 
 /* ── Topbar ── */
 .topbar {
-  background: var(--bg);
+  background: var(--surface-1);
   padding: calc(var(--safe-top) + 14px) 16px 14px;
   flex-shrink: 0;
   border-bottom: 1px solid var(--border);

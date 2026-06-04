@@ -10,9 +10,10 @@
 
 /* ── Hero ── */
 .profHero {
-  background: var(--bg);
+  background: var(--surface-1);
   padding: calc(var(--safe-top) + 12px) 22px 0;
   flex-shrink: 0;
+  border-bottom: 1px solid var(--border);
 }
 
 .tbRow {
@@ -77,7 +78,7 @@
   height: 12px;
   background: var(--success-on-dark);
   border-radius: 50%;
-  border: 2px solid var(--bg);
+  border: 2px solid var(--surface-1);
 }
 
 .profInfo {
