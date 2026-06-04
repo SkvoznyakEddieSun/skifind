@@ -85,12 +85,23 @@ export function App() {
   const [activeMcId, setActiveMcId] = useState('mc1');
   const [chatBookingStatus, setChatBookingStatus] = useState<BookingStatus>('PENDING');
   const [chatInstructorPhone, setChatInstructorPhone] = useState<string | undefined>(undefined);
+  const [chatPersonName, setChatPersonName] = useState('');
+  const [chatPersonInitials, setChatPersonInitials] = useState('');
+  const [chatPersonAvColor, setChatPersonAvColor] = useState('ice');
   const [activeInstructor, setActiveInstructor] = useState<Instructor>(INSTRUCTORS[0]);
   const [joinedMcIds, setJoinedMcIds]   = useState<Set<string>>(new Set());
   const [blockedIds, setBlockedIds]     = useState<Set<string>>(new Set());
   const [favorites, setFavorites]       = useState<Set<string>>(new Set());
   const [activeRequestId, setActiveRequestId] = useState<string>('');
   const [activeLessonId,  setActiveLessonId]  = useState<string>('');
+
+  /** Open chat pre-filled with the active instructor's identity. */
+  function openInstrChat() {
+    setChatPersonName(activeInstructor.name);
+    setChatPersonInitials(activeInstructor.initials);
+    setChatPersonAvColor(activeInstructor.avatarColor);
+    push('chat');
+  }
 
   function handleToggleFavorite(id: string) {
     setFavorites(prev => {
@@ -165,6 +176,9 @@ export function App() {
         onBook={() => push('book-slot')}
         bookingStatus={chatBookingStatus}
         instructorPhone={chatInstructorPhone}
+        personName={chatPersonName || undefined}
+        personInitials={chatPersonInitials || undefined}
+        personAvColor={chatPersonAvColor || undefined}
       />
     );
   }
@@ -185,9 +199,9 @@ export function App() {
         instructor={activeInstructor}
         onBack={pop}
         onBook={() => push('book-slot')}
-        onAskQuestion={() => push('chat')}
+        onAskQuestion={openInstrChat}
         onAllReviews={() => push('reviews')}
-        onChat={() => push('chat')}
+        onChat={openInstrChat}
         isBlocked={blockedIds.has(activeInstructor.id)}
         onToggleBlock={handleToggleBlock}
       />
@@ -212,7 +226,7 @@ export function App() {
         key={activeLessonId}
         lessonId={activeLessonId}
         onBack={pop}
-        onChat={() => push('chat')}
+        onChat={openInstrChat}
         onCancel={pop}
       />
     );
@@ -223,7 +237,7 @@ export function App() {
         key={activeRequestId}
         requestId={activeRequestId}
         onBack={pop}
-        onChat={() => push('chat')}
+        onChat={openInstrChat}
         onAccepted={pop}
       />
     );
@@ -324,7 +338,7 @@ export function App() {
     } else if (instrTab === 'chat') {
       tabContent = (
         <ChatListScreen
-          onChat={(_id, status, phone) => { setChatBookingStatus(status === 'DECLINED' ? 'NONE' : status); setChatInstructorPhone(phone); push('chat'); }}
+          onChat={(_id, status, phone, name, initials, avColor) => { setChatBookingStatus(status === 'DECLINED' ? 'NONE' : status); setChatInstructorPhone(phone); setChatPersonName(name ?? ''); setChatPersonInitials(initials ?? ''); setChatPersonAvColor(avColor ?? 'ice'); push('chat'); }}
           onCommunity={() => push('community')}
         />
       );
@@ -383,7 +397,13 @@ export function App() {
     } else if (guestTab === 'bookings') {
       tabContent = (
         <BookingsScreen
-          onChat={() => push('chat')}
+          onChat={instructorId => {
+            const instr = INSTRUCTORS.find(i => i.id === instructorId) ?? activeInstructor;
+            setChatPersonName(instr.name);
+            setChatPersonInitials(instr.initials);
+            setChatPersonAvColor(instr.avatarColor);
+            push('chat');
+          }}
           onBookAgain={instructorId => {
             const instr = INSTRUCTORS.find(i => i.id === instructorId) ?? INSTRUCTORS[0];
             setActiveInstructor(instr);
@@ -394,7 +414,7 @@ export function App() {
     } else if (guestTab === 'chat') {
       tabContent = (
         <ChatListScreen
-          onChat={(_id, status, phone) => { setChatBookingStatus(status); setChatInstructorPhone(phone); push('chat'); }}
+          onChat={(_id, status, phone, name, initials, avColor) => { setChatBookingStatus(status); setChatInstructorPhone(phone); setChatPersonName(name ?? ''); setChatPersonInitials(initials ?? ''); setChatPersonAvColor(avColor ?? 'ice'); push('chat'); }}
           joinedMcIds={joinedMcIds}
           onGroupChat={mcId => { setActiveMcId(mcId); push('mc-group-chat'); }}
         />

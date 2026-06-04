@@ -667,3 +667,6 @@
 }
 
 .declinedBtn:active { opacity: .8; }
+.av-straw  { background: var(--straw);             color: var(--straw-text); }
+.av-purple { background: rgba(124,58,237,.15);      color: #A78BFA; }
+.av-coral  { background: rgba(251,146,60,.15);      color: #FDBA74; }

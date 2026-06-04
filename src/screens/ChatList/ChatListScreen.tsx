@@ -117,7 +117,7 @@ const OLDER: ChatItem[] = [
 
 interface ChatListScreenProps {
   onBack?: () => void;
-  onChat?: (id: string, status: BookingStatus, phone?: string) => void;
+  onChat?: (id: string, status: BookingStatus, phone?: string, name?: string, initials?: string, avColor?: string) => void;
   onCommunity?: () => void;
   joinedMcIds?: Set<string>;
   onGroupChat?: (mcId: string) => void;
@@ -249,7 +249,7 @@ export function ChatListScreen({ onBack: _onBack, onChat, onCommunity, joinedMcI
                   <ChatRow
                     key={item.id}
                     item={item}
-                    onClick={() => onChat?.(item.id, item.bookingStatus, item.instructorPhone)}
+                    onClick={() => onChat?.(item.id, item.bookingStatus, item.instructorPhone, item.name, item.initials, item.avClass.replace('av', '').toLowerCase())}
                   />
                 ))}
               </>
@@ -261,7 +261,7 @@ export function ChatListScreen({ onBack: _onBack, onChat, onCommunity, joinedMcI
                   <ChatRow
                     key={item.id}
                     item={item}
-                    onClick={() => onChat?.(item.id, item.bookingStatus, item.instructorPhone)}
+                    onClick={() => onChat?.(item.id, item.bookingStatus, item.instructorPhone, item.name, item.initials, item.avClass.replace('av', '').toLowerCase())}
                   />
                 ))}
               </>

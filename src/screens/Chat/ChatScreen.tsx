@@ -86,6 +86,9 @@ interface ChatScreenProps {
   onBook?: () => void;
   bookingStatus?: BookingStatus;   // default: 'PENDING'
   instructorPhone?: string;
+  personName?: string;
+  personInitials?: string;
+  personAvColor?: string;          // 'ice' | 'mint' | 'blue' | 'straw' | 'purple' | 'coral'
 }
 
 // ── Component ──────────────────────────────────────────────────────────────
@@ -104,6 +107,9 @@ export function ChatScreen({
   onBook,
   bookingStatus = 'PENDING',
   instructorPhone,
+  personName = 'Собеседник',
+  personInitials = '?',
+  personAvColor = 'ice',
 }: ChatScreenProps) {
   const { t } = useTranslation();
   const [items, setItems] = useState<ChatItem[]>(INITIAL);
@@ -195,11 +201,11 @@ export function ChatScreen({
       <div className={styles.chatTop}>
         <button className={styles.tbBack} onClick={onBack} aria-label="Назад">‹</button>
         <div className={styles.avatarWrap}>
-          <div className={`${styles.av} ${styles.avSm} ${styles['av-ice']}`}>АМ</div>
+          <div className={`${styles.av} ${styles.avSm} ${styles[`av-${personAvColor}`]}`}>{personInitials}</div>
           <div className={styles.onlineDot} />
         </div>
         <div className={styles.ctInfo}>
-          <div className={styles.ctName}>Алексей Морозов</div>
+          <div className={styles.ctName}>{personName}</div>
           <div className={styles.ctStatus}>{t('chat.online')} · Шерегеш</div>
         </div>
         <div className={styles.ctActions}>
