@@ -376,3 +376,106 @@
   from { transform: translateY(12px); opacity: 0; }
   to   { transform: translateY(0);   opacity: 1; }
 }
+
+/* ── Invite bottom sheet ── */
+.inviteOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.55);
+  display: flex;
+  align-items: flex-end;
+  z-index: 100;
+}
+
+.inviteBox {
+  background: var(--surface-1);
+  border-radius: var(--r16) var(--r16) 0 0;
+  padding: 24px 22px calc(var(--safe-bot) + 24px);
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.inviteTitle {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.3px;
+}
+
+.inviteField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.inviteLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: .4px;
+}
+
+.inviteInput {
+  width: 100%;
+  padding: 13px 14px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r12);
+  font-size: 16px;
+  font-family: var(--ff);
+  color: var(--text);
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color .15s;
+}
+
+.inviteInput:focus { border-color: var(--accent); }
+.inviteInput::placeholder { color: var(--text-faint); }
+
+.inviteHint {
+  font-size: 12px;
+  color: var(--text-dim);
+  line-height: 1.5;
+  padding: 10px 12px;
+  background: var(--surface-2);
+  border-radius: var(--r8);
+}
+
+.inviteActions {
+  display: flex;
+  gap: 8px;
+}
+
+.inviteBtnSecondary {
+  flex: 1;
+  padding: 13px;
+  border-radius: var(--r12);
+  font-size: 14px;
+  font-weight: 600;
+  background: var(--surface-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  font-family: var(--ff);
+  cursor: pointer;
+  transition: opacity .15s;
+}
+
+.inviteBtnPrimary {
+  flex: 2;
+  padding: 13px;
+  border-radius: var(--r12);
+  font-size: 14px;
+  font-weight: 600;
+  background: var(--accent);
+  color: var(--accent-text);
+  border: none;
+  font-family: var(--ff);
+  cursor: pointer;
+  transition: opacity .15s;
+}
+
+.inviteBtnPrimary:disabled { opacity: .4; cursor: not-allowed; }
+.inviteBtnSecondary:active, .inviteBtnPrimary:active { opacity: .8; }

@@ -112,6 +112,9 @@ interface RequestsScreenProps {
 export function RequestsScreen({ onBack: _onBack, onChat, onRequest }: RequestsScreenProps) {
   const [tab, setTab] = useState<'new' | 'mine'>('new');
   const [toast, setToast] = useState<string | null>(null);
+  const [showInvite, setShowInvite] = useState(false);
+  const [invitePhone, setInvitePhone] = useState('');
+  const [inviteName, setInviteName] = useState('');
 
   // Читаем из хранилища; локальный state для реакции на изменения
   const [pending,  setPending]  = useState<Booking[]>(() => getPendingRequests('aleksey'));
@@ -256,7 +259,7 @@ export function RequestsScreen({ onBack: _onBack, onChat, onRequest }: RequestsS
               ★ Свои ученики — без комиссии. Не публикуются в каталоге, отзывы видите только вы
             </div>
 
-            <div className={styles.msaWrap} onClick={() => showToast('📲 Приглашение отправлено ученику по SMS')}>
+            <div className={styles.msaWrap} onClick={() => setShowInvite(true)}>
               <div className={styles.msaIcon}>+</div>
               <div className={styles.msaText}>
                 <div className={styles.msaTitle}>Добавить своего ученика</div>
@@ -341,6 +344,55 @@ export function RequestsScreen({ onBack: _onBack, onChat, onRequest }: RequestsS
       </div>
 
       {toast && <div className={styles.toast}>{toast}</div>}
+
+      {/* ── Invite bottom sheet ── */}
+      {showInvite && (
+        <div className={styles.inviteOverlay} onClick={() => setShowInvite(false)}>
+          <div className={styles.inviteBox} onClick={e => e.stopPropagation()}>
+            <div className={styles.inviteTitle}>Добавить ученика</div>
+            <div className={styles.inviteField}>
+              <label className={styles.inviteLabel}>Имя</label>
+              <input
+                className={styles.inviteInput}
+                type="text"
+                placeholder="Например, Иван"
+                value={inviteName}
+                onChange={e => setInviteName(e.target.value)}
+                autoFocus
+              />
+            </div>
+            <div className={styles.inviteField}>
+              <label className={styles.inviteLabel}>Номер телефона</label>
+              <input
+                className={styles.inviteInput}
+                type="tel"
+                placeholder="+7 900 000 00 00"
+                value={invitePhone}
+                onChange={e => setInvitePhone(e.target.value)}
+              />
+            </div>
+            <div className={styles.inviteHint}>
+              Ученик получит SMS со ссылкой на чат с вами. Занятия с ним проходят без комиссии платформы.
+            </div>
+            <div className={styles.inviteActions}>
+              <button
+                className={styles.inviteBtnSecondary}
+                onClick={() => { setShowInvite(false); setInvitePhone(''); setInviteName(''); }}
+              >Отмена</button>
+              <button
+                className={styles.inviteBtnPrimary}
+                disabled={!invitePhone.trim()}
+                onClick={() => {
+                  setShowInvite(false);
+                  setInvitePhone('');
+                  setInviteName('');
+                  showToast('📲 Приглашение отправлено по SMS');
+                }}
+              >Отправить</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
