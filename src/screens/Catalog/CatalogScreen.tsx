@@ -418,11 +418,6 @@ const avgRating = (INSTRUCTORS.reduce((sum, i) => sum + i.rating, 0) / INSTRUCTO
             ))}
           </div>
 
-      </div>{/* /header */}
-
-      {/* ── Скроллируемый контент ── */}
-      <div className={styles.content} ref={contentRef}>
-
         {/* ── Баннер мастер-классов ── */}
         <div className={styles.mcBanner} onClick={onMasterClasses}>
           <div className={styles.mcBannerLeft}>
@@ -434,6 +429,11 @@ const avgRating = (INSTRUCTORS.reduce((sum, i) => sum + i.rating, 0) / INSTRUCTO
           </div>
           <span className={styles.mcBannerArrow}>→</span>
         </div>
+
+      </div>{/* /header */}
+
+      {/* ── Скроллируемый контент ── */}
+      <div className={styles.content} ref={contentRef}>
 
         {/* ── Карточки инструкторов ── */}
         <div className={styles.instrList}>
