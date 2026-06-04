@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import styles from './ProfileScreen.module.css';
 import { useTranslation } from '@/i18n/useTranslation';
 import type { Instructor } from '@/screens/Catalog/CatalogScreen';
@@ -132,16 +132,24 @@ export function ProfileScreen({ instructor, onBack, onBook, onAskQuestion, onAll
   const [reportOpen, setReportOpen]   = useState(false);
 
   // ── Галерея (редактируемая в своём профиле) ──────────────────────────
+  const GALLERY_MAX = 10;
   const [gallery, setGallery] = useState([
     { id: '1', emoji: '❄', cls: styles.gallerySnow,     isVideo: false },
     { id: '2', emoji: '⛰', cls: styles.galleryMountain, isVideo: true  },
     { id: '3', emoji: '🏂', cls: styles.galleryAction,   isVideo: false },
     { id: '4', emoji: '👥', cls: styles.galleryClass,    isVideo: false },
-    { id: '5', emoji: '🎿', cls: '',                     isVideo: false },
-    { id: '6', emoji: '⛷', cls: styles.gallerySnow,     isVideo: false },
+    { id: '5', emoji: '🎿', cls: styles.gallerySnow,     isVideo: false },
+    { id: '6', emoji: '⛷', cls: styles.galleryAction,   isVideo: false },
   ]);
   const [photoUrls, setPhotoUrls] = useState<Record<string, string>>({});
   const galleryFileRef = useRef<HTMLInputElement>(null);
+
+  // ── Лайтбокс ──────────────────────────────────────────────────────────
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const lbTouchX = useRef<number | null>(null);
+
+  const lbPrev = useCallback(() => setLightboxIndex(i => i !== null ? (i - 1 + gallery.length) % gallery.length : null), [gallery.length]);
+  const lbNext = useCallback(() => setLightboxIndex(i => i !== null ? (i + 1) % gallery.length : null), [gallery.length]);
   const [reportReason, setReportReason] = useState('');
   const [reportText, setReportText]   = useState('');
 
@@ -260,17 +268,18 @@ export function ProfileScreen({ instructor, onBack, onBook, onAskQuestion, onAll
             </span>
           </div>
           <div className={styles.galleryStrip}>
-            {gallery.map(item => (
+            {gallery.map((item, idx) => (
               <div
                 key={item.id}
                 className={`${styles.galleryItem} ${item.cls} ${item.isVideo ? styles.video : ''} ${isOwnProfile ? styles.galleryItemEditable : ''}`}
                 style={photoUrls[item.id] ? { backgroundImage: `url(${photoUrls[item.id]})`, backgroundSize: 'cover', backgroundPosition: 'center' } : undefined}
+                onClick={() => setLightboxIndex(idx)}
               >
                 {!photoUrls[item.id] && item.emoji}
                 {isOwnProfile && (
                   <button
                     className={styles.galleryRemoveBtn}
-                    onClick={() => setGallery(prev => prev.filter(g => g.id !== item.id))}
+                    onClick={e => { e.stopPropagation(); setGallery(prev => prev.filter(g => g.id !== item.id)); }}
                     aria-label="Удалить"
                   >
                     ×
@@ -278,7 +287,7 @@ export function ProfileScreen({ instructor, onBack, onBook, onAskQuestion, onAll
                 )}
               </div>
             ))}
-            {isOwnProfile && (
+            {isOwnProfile && gallery.length < GALLERY_MAX && (
               <button
                 className={styles.galleryAddBtn}
                 onClick={() => galleryFileRef.current?.click()}
@@ -298,12 +307,19 @@ export function ProfileScreen({ instructor, onBack, onBook, onAskQuestion, onAll
               style={{ display: 'none' }}
               onChange={e => {
                 const files = Array.from(e.target.files ?? []);
-                files.forEach(file => {
-                  const id = Date.now().toString() + Math.random();
-                  const url = URL.createObjectURL(file);
-                  const isVideo = file.type.startsWith('video/');
-                  setGallery(prev => [...prev, { id, emoji: '', cls: '', isVideo }]);
-                  setPhotoUrls(prev => ({ ...prev, [id]: url }));
+                setGallery(prev => {
+                  const slots = GALLERY_MAX - prev.length;
+                  const toAdd = files.slice(0, slots).map(file => ({
+                    id: Date.now().toString() + Math.random(),
+                    emoji: '',
+                    cls: '',
+                    isVideo: file.type.startsWith('video/'),
+                  }));
+                  files.slice(0, slots).forEach((file, i) => {
+                    const url = URL.createObjectURL(file);
+                    setPhotoUrls(p => ({ ...p, [toAdd[i].id]: url }));
+                  });
+                  return [...prev, ...toAdd];
                 });
                 e.target.value = '';
               }}
@@ -417,6 +433,44 @@ export function ProfileScreen({ instructor, onBack, onBook, onAskQuestion, onAll
         </div>
 
       </div>
+
+      {/* ── Лайтбокс ── */}
+      {lightboxIndex !== null && (() => {
+        const item = gallery[lightboxIndex];
+        const bg = photoUrls[item.id] ?? undefined;
+        return (
+          <div
+            className={styles.lbOverlay}
+            onClick={() => setLightboxIndex(null)}
+            onTouchStart={e => { lbTouchX.current = e.touches[0].clientX; }}
+            onTouchEnd={e => {
+              if (lbTouchX.current === null) return;
+              const dx = e.changedTouches[0].clientX - lbTouchX.current;
+              lbTouchX.current = null;
+              if (dx > 50) lbPrev();
+              else if (dx < -50) lbNext();
+            }}
+          >
+            <button className={styles.lbClose} onClick={() => setLightboxIndex(null)} aria-label="Закрыть">×</button>
+            <div className={styles.lbCounter}>{lightboxIndex + 1} / {gallery.length}</div>
+
+            <div
+              className={`${styles.lbMedia} ${item.cls} ${item.isVideo ? styles.video : ''}`}
+              style={bg ? { backgroundImage: `url(${bg})`, backgroundSize: 'contain', backgroundRepeat: 'no-repeat', backgroundPosition: 'center' } : undefined}
+              onClick={e => e.stopPropagation()}
+            >
+              {!bg && <span className={styles.lbEmoji}>{item.emoji}</span>}
+            </div>
+
+            {gallery.length > 1 && (
+              <>
+                <button className={`${styles.lbNav} ${styles.lbNavL}`} onClick={e => { e.stopPropagation(); lbPrev(); }} aria-label="Назад">‹</button>
+                <button className={`${styles.lbNav} ${styles.lbNavR}`} onClick={e => { e.stopPropagation(); lbNext(); }} aria-label="Вперёд">›</button>
+              </>
+            )}
+          </div>
+        );
+      })()}
 
       {/* ── Report bottom sheet ── */}
       {reportOpen && (
