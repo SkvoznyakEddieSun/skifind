@@ -324,7 +324,7 @@ export function App() {
     } else if (instrTab === 'chat') {
       tabContent = (
         <ChatListScreen
-          onChat={(_id, status, phone) => { setChatBookingStatus(status); setChatInstructorPhone(phone); push('chat'); }}
+          onChat={(_id, status, phone) => { setChatBookingStatus(status === 'DECLINED' ? 'NONE' : status); setChatInstructorPhone(phone); push('chat'); }}
           onCommunity={() => push('community')}
         />
       );
