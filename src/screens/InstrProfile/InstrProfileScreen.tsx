@@ -4,11 +4,7 @@ import { ShareModal } from '@/components/ShareModal/ShareModal';
 import { getAcceptedLessons } from '@/store/bookings';
 import {
   INSTRUCTOR_PRICES,
-  INSTRUCTOR_SCHEDULE,
-  DAY_CHIPS,
-  TIME_OPTIONS,
   updatePrice,
-  updateSchedule,
 } from '@/store/instructorProfile';
 
 interface ToggleSetting {
@@ -21,20 +17,18 @@ interface ToggleSetting {
 interface InstrProfileScreenProps {
   onBalance:     () => void;
   onEditProfile: () => void;
-  onSchedule:    () => void;
   onLogout:      () => void;
 }
 
-export function InstrProfileScreen({ onBalance, onEditProfile, onSchedule, onLogout }: InstrProfileScreenProps) {
-  // Реальные цифры заработка
+export function InstrProfileScreen({ onBalance, onEditProfile, onLogout }: InstrProfileScreenProps) {
   const accepted      = getAcceptedLessons('aleksey');
   const totalEarnings = accepted.reduce((s, b) => s + b.price, 0);
   const lessonCount   = accepted.length;
   const avgCheck      = lessonCount > 0 ? Math.round(totalEarnings / lessonCount) : 0;
 
-  const [isDark, setIsDark]     = useState(true);
+  const [isDark, setIsDark]       = useState(true);
   const [showShare, setShowShare] = useState(false);
-  const [toast, setToast]       = useState<string | null>(null);
+  const [toast, setToast]         = useState<string | null>(null);
 
   // ── Цены ──────────────────────────────────────────────────────────────
   const [prices, setPrices] = useState(() =>
@@ -57,43 +51,12 @@ export function InstrProfileScreen({ onBalance, onEditProfile, onSchedule, onLog
     showToast('✓ Цены сохранены');
   }
 
-  // ── Расписание ────────────────────────────────────────────────────────
-  const [workDays,  setWorkDays]  = useState<Set<number>>(new Set(INSTRUCTOR_SCHEDULE.workDays));
-  const [startTime, setStartTime] = useState(INSTRUCTOR_SCHEDULE.startTime);
-  const [endTime,   setEndTime]   = useState(INSTRUCTOR_SCHEDULE.endTime);
-  const [breakOn,   setBreakOn]   = useState(INSTRUCTOR_SCHEDULE.breakEnabled);
-  const [breakStart, setBreakStart] = useState(INSTRUCTOR_SCHEDULE.breakStart);
-  const [breakEnd,   setBreakEnd]   = useState(INSTRUCTOR_SCHEDULE.breakEnd);
-  const [schedSaved, setSchedSaved] = useState(false);
-
-  function toggleDay(dow: number) {
-    setWorkDays(prev => {
-      const next = new Set(prev);
-      next.has(dow) ? next.delete(dow) : next.add(dow);
-      return next;
-    });
-    setSchedSaved(false);
-  }
-
-  function saveSchedule() {
-    updateSchedule({
-      workDays:     Array.from(workDays),
-      startTime,
-      endTime,
-      breakEnabled: breakOn,
-      breakStart,
-      breakEnd,
-    });
-    setSchedSaved(true);
-    showToast('✓ Расписание сохранено');
-  }
-
   // ── Видимость ─────────────────────────────────────────────────────────
   const [settings, setSettings] = useState<ToggleSetting[]>([
-    { id: 'published', title: 'Профиль опубликован',   sub: 'Виден гостям в каталоге',            on: true },
-    { id: 'requests',  title: 'Принимать заявки',       sub: 'Гости могут отправлять заявки',      on: true },
-    { id: 'notif',     title: 'Уведомления о заявках',  sub: 'Push при новой заявке',              on: true },
-    { id: 'community', title: 'Видимость в сообществе', sub: 'Коллеги могут найти вас',            on: true },
+    { id: 'published', title: 'Профиль опубликован',   sub: 'Виден гостям в каталоге',       on: true },
+    { id: 'requests',  title: 'Принимать заявки',       sub: 'Гости могут отправлять заявки', on: true },
+    { id: 'notif',     title: 'Уведомления о заявках',  sub: 'Push при новой заявке',         on: true },
+    { id: 'community', title: 'Видимость в сообществе', sub: 'Коллеги могут найти вас',       on: true },
   ]);
 
   function toggleSetting(id: string) {
@@ -111,7 +74,6 @@ export function InstrProfileScreen({ onBalance, onEditProfile, onSchedule, onLog
     setTimeout(() => setToast(null), 2500);
   }
 
-  // Проверка: есть ли несохранённые изменения в ценах
   const pricesDirty = prices.some(r => {
     const n = parseInt(r.draft, 10);
     return !isNaN(n) && n !== r.price;
@@ -218,99 +180,6 @@ export function InstrProfileScreen({ onBalance, onEditProfile, onSchedule, onLog
             disabled={!pricesDirty && pricesSaved}
           >
             {pricesSaved && !pricesDirty ? '✓ Цены сохранены' : 'Сохранить цены'}
-          </button>
-        </div>
-
-        {/* ── Расписание ── */}
-        <div className={styles.settingsWrap}>
-          <div className={styles.secLabel}>Расписание</div>
-          <div className={styles.settingsGroup}>
-            <div className={styles.settingsGroupLabel}>Рабочие дни</div>
-            <div className={styles.settingsGroupBody}>
-              <div className={styles.dayChips}>
-                {DAY_CHIPS.map(d => (
-                  <button
-                    key={d.dow}
-                    className={`${styles.dayChip} ${workDays.has(d.dow) ? styles.dayChipOn : ''}`}
-                    onClick={() => toggleDay(d.dow)}
-                  >
-                    {d.short}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div className={styles.settingsGroup}>
-            <div className={styles.settingsGroupLabel}>Рабочие часы</div>
-            <div className={styles.settingsGroupBody}>
-              <div className={styles.timeRow}>
-                <span className={styles.timeRowLabel}>С</span>
-                <select
-                  className={styles.timeSelect}
-                  value={startTime}
-                  onChange={e => { setStartTime(e.target.value); setSchedSaved(false); }}
-                >
-                  {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
-                </select>
-                <span className={styles.timeRowLabel}>До</span>
-                <select
-                  className={styles.timeSelect}
-                  value={endTime}
-                  onChange={e => { setEndTime(e.target.value); setSchedSaved(false); }}
-                >
-                  {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
-                </select>
-              </div>
-            </div>
-          </div>
-
-          <div className={styles.settingsGroup}>
-            <div className={styles.settingsGroupBody}>
-              <div className={styles.settingRow}>
-                <div className={styles.settingLabel}>
-                  <div className={styles.settingTitle}>Перерыв на обед</div>
-                  <div className={styles.settingSub}>
-                    {breakOn ? `${breakStart} — ${breakEnd}` : 'Выключен'}
-                  </div>
-                </div>
-                <button
-                  className={`${styles.sw} ${breakOn ? styles.swOn : ''}`}
-                  onClick={() => { setBreakOn(v => !v); setSchedSaved(false); }}
-                />
-              </div>
-              {breakOn && (
-                <div className={styles.timeRow} style={{ paddingTop: 8 }}>
-                  <span className={styles.timeRowLabel}>С</span>
-                  <select
-                    className={styles.timeSelect}
-                    value={breakStart}
-                    onChange={e => { setBreakStart(e.target.value); setSchedSaved(false); }}
-                  >
-                    {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
-                  </select>
-                  <span className={styles.timeRowLabel}>До</span>
-                  <select
-                    className={styles.timeSelect}
-                    value={breakEnd}
-                    onChange={e => { setBreakEnd(e.target.value); setSchedSaved(false); }}
-                  >
-                    {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
-                  </select>
-                </div>
-              )}
-            </div>
-          </div>
-
-          <button
-            className={`${styles.btnBlock} ${schedSaved ? styles.btnBlockSaved : ''}`}
-            onClick={saveSchedule}
-            disabled={schedSaved}
-          >
-            {schedSaved ? '✓ Расписание сохранено' : 'Сохранить расписание'}
-          </button>
-          <button className={styles.btnBlockSecondary} onClick={onSchedule}>
-            📅 Управление слотами и занятиями →
           </button>
         </div>
 
