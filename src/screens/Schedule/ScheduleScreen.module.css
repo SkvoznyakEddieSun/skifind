@@ -121,7 +121,7 @@
   border-radius: var(--r12);
   padding: 12px;
   margin-bottom: 10px;
-  align-items: center;
+  align-items: stretch;
 }
 
 .bookingCard-today    { border-left-color: var(--accent); }
@@ -133,6 +133,9 @@
   text-align: center;
   min-width: 36px;
   flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .bookingDay {
@@ -153,6 +156,9 @@
 .bookingMain {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .bookingTime {
@@ -181,12 +187,13 @@
   flex-direction: column;
   gap: 6px;
   flex-shrink: 0;
+  justify-content: center;
 }
 
 .bookingActBtn {
   width: 36px;
   height: 36px;
-  border-radius: var(--r8);
+  border-radius: 50%;
   border: 1px solid var(--border);
   background: var(--surface-2);
   font-size: 16px;
