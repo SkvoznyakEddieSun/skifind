@@ -342,44 +342,49 @@ const avgRating = (INSTRUCTORS.reduce((sum, i) => sum + i.rating, 0) / INSTRUCTO
   return (
     <div className={styles.screen}>
 
-      {/* ── Фиксированная шапка: title + поиск + дисциплины ── */}
+      {/* ── Фиксированная шапка: заголовок + поиск ── */}
       <div className={styles.header}>
         <div className={styles.tbRow}>
-            <div className={styles.titleBlock}>
-              <h1 className={styles.heroTitle}>
-                {t('catalog.titleLine')} <span>{t('catalog.titleAccent')}</span>
-              </h1>
-              <div className={styles.heroStats}>
-                <span className={styles.heroStat}>
-                  {t('catalog.statInstructors', { count: INSTRUCTORS.length })}
-                </span>
-                <span className={styles.heroStatSep}>·</span>
-                <span className={styles.heroStat}>
-                  {t('catalog.statRating', { rating: avgRating })}
-                </span>
-              </div>
-            </div>
-            <div className={styles.topActions}>
-              <button className={styles.bellBtn} onClick={onNotifications} aria-label="Уведомления">
-                <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
-                <div className={styles.notifDot} />
-              </button>
-              <button className={styles.becomeBtn} onClick={onBecomeInstructor}>
-                {t('catalog.becomeInstructor')}
-              </button>
+          <div className={styles.titleBlock}>
+            <h1 className={styles.heroTitle}>
+              {t('catalog.titleLine')} <span>{t('catalog.titleAccent')}</span>
+            </h1>
+            <div className={styles.heroStats}>
+              <span className={styles.heroStat}>
+                {t('catalog.statInstructors', { count: INSTRUCTORS.length })}
+              </span>
+              <span className={styles.heroStatSep}>·</span>
+              <span className={styles.heroStat}>
+                {t('catalog.statRating', { rating: avgRating })}
+              </span>
             </div>
           </div>
-
-          <div className={styles.searchBox}>
-            <span className={styles.searchIcon}>⌕</span>
-            <input
-              type="search"
-              placeholder={t('catalog.searchPlaceholder')}
-              value={search}
-              onChange={e => { setSearch(e.target.value); scrollToTop(); }}
-            />
+          <div className={styles.topActions}>
+            <button className={styles.bellBtn} onClick={onNotifications} aria-label="Уведомления">
+              <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+              <div className={styles.notifDot} />
+            </button>
+            <button className={styles.becomeBtn} onClick={onBecomeInstructor}>
+              {t('catalog.becomeInstructor')}
+            </button>
           </div>
+        </div>
+        <div className={styles.searchBox}>
+          <span className={styles.searchIcon}>⌕</span>
+          <input
+            type="search"
+            placeholder={t('catalog.searchPlaceholder')}
+            value={search}
+            onChange={e => { setSearch(e.target.value); scrollToTop(); }}
+          />
+        </div>
+      </div>{/* /header */}
 
+      {/* ── Скроллируемый контент ── */}
+      <div className={styles.content} ref={contentRef}>
+
+        {/* ── Фильтры (уезжают при скролле) ── */}
+        <div className={styles.filtersSection}>
           <div className={styles.typeTabsRow}>
             <div className={styles.typeTabs}>
               {(['all', 'ski', 'board'] as SportType[]).map(tab => (
@@ -392,16 +397,22 @@ const avgRating = (INSTRUCTORS.reduce((sum, i) => sum + i.rating, 0) / INSTRUCTO
                 </button>
               ))}
             </div>
-            <select
-              className={styles.sortSelect}
-              value={sort}
-              onChange={e => { setSort(e.target.value as SortKey); scrollToTop(); }}
-            >
-              <option value="rating">{t('catalog.sortByRating')}</option>
-              <option value="price-asc">{t('catalog.sortByPriceAsc')}</option>
-              <option value="price-desc">{t('catalog.sortByPriceDesc')}</option>
-              <option value="experience">{t('catalog.sortByExp')}</option>
-            </select>
+            <div className={`${styles.sortIconBtn} ${sort !== 'rating' ? styles.sortIconBtnActive : ''}`}>
+              <svg viewBox="0 0 16 16">
+                <line x1="2" y1="4" x2="14" y2="4"/>
+                <line x1="4" y1="8" x2="12" y2="8"/>
+                <line x1="6" y1="12" x2="10" y2="12"/>
+              </svg>
+              <select
+                value={sort}
+                onChange={e => { setSort(e.target.value as SortKey); scrollToTop(); }}
+              >
+                <option value="rating">{t('catalog.sortByRating')}</option>
+                <option value="price-asc">{t('catalog.sortByPriceAsc')}</option>
+                <option value="price-desc">{t('catalog.sortByPriceDesc')}</option>
+                <option value="experience">{t('catalog.sortByExp')}</option>
+              </select>
+            </div>
           </div>
 
           <div className={styles.levelChips}>
@@ -416,22 +427,18 @@ const avgRating = (INSTRUCTORS.reduce((sum, i) => sum + i.rating, 0) / INSTRUCTO
             ))}
           </div>
 
-        {/* ── Баннер мастер-классов ── */}
-        <div className={styles.mcBanner} onClick={onMasterClasses}>
-          <div className={styles.mcBannerLeft}>
-            <div className={styles.mcBannerIcon}>🎿</div>
-            <div>
-              <div className={styles.mcBannerTitle}>Мастер-классы</div>
-              <div className={styles.mcBannerSub}>Групповые занятия · от 2 800 ₽ · 3 ближайших</div>
+          {/* ── Баннер мастер-классов ── */}
+          <div className={styles.mcBanner} onClick={onMasterClasses}>
+            <div className={styles.mcBannerLeft}>
+              <div className={styles.mcBannerIcon}>🎿</div>
+              <div>
+                <div className={styles.mcBannerTitle}>Мастер-классы</div>
+                <div className={styles.mcBannerSub}>Групповые занятия · от 2 800 ₽ · 3 ближайших</div>
+              </div>
             </div>
+            <span className={styles.mcBannerArrow}>→</span>
           </div>
-          <span className={styles.mcBannerArrow}>→</span>
         </div>
-
-      </div>{/* /header */}
-
-      {/* ── Скроллируемый контент ── */}
-      <div className={styles.content} ref={contentRef}>
 
         {/* ── Карточки инструкторов ── */}
         <div className={styles.instrList}>

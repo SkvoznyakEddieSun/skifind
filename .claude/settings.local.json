@@ -8,7 +8,18 @@
       "mcp__Claude_Preview__preview_start",
       "Bash(npx tsc *)",
       "Bash(python3 -c ' *)",
-      "Bash(npx netlify-cli *)"
+      "Bash(npx netlify-cli *)",
+      "Bash(gh pr *)",
+      "Read(//Users/mak/go/bin/**)",
+      "Read(//Users/mak/.local/bin/**)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "Bash(python3 -c \"import sys,json; c=json.load\\(sys.stdin\\); print\\(c['sha'][:7], c['commit']['message'][:60], '|', c['commit']['author']['date'][:16]\\)\")",
+      "Bash(git checkout *)",
+      "Bash(git merge *)",
+      "Bash(git stash *)",
+      "Bash(git commit *)"
     ]
   }
 }
