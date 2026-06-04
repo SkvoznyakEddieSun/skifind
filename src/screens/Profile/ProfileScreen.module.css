@@ -61,7 +61,7 @@
 .profAvRow {
   display: flex;
   gap: 14px;
-  align-items: flex-end;
+  align-items: flex-start;
   margin-bottom: 0;
 }
 
