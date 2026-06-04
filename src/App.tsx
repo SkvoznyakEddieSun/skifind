@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { BottomNav } from './components/BottomNav/BottomNav';
-import { useSwipeBack } from './hooks/useSwipeBack';
+import { SwipeBack } from './components/SwipeBack/SwipeBack';
 
 // Auth
 import { AuthScreen }      from './screens/Auth/AuthScreen';
@@ -146,37 +146,40 @@ export function App() {
     setStack(p => p.length > 1 ? p.slice(0, -1) : p);
   }
 
-  // Swipe-back: активен только когда есть куда возвращаться
-  useSwipeBack(stack.length > 1 ? pop : null);
-
   // Переходы без анимации (смена роли / таб-свитч)
   function goHome(r: Role)  { setRole(r); setAnimDir('none'); setAnimKey(k => k + 1); setStack([r === 'instructor' ? 'instr' : 'guest']); }
   function switchInstrTab(tab: InstrTab) { setInstrTab(tab); setStack(['instr']); }
   function switchGuestTab(tab: GuestTab) { setGuestTab(tab); setStack(['guest']); }
 
-  // ── Собираем контент (единственный return внизу) ─────────────────────────
-  let content: React.ReactNode = null;
+  // pop без анимации — используется при свайп-назад (SwipeBack сам анимирует)
+  function popNoAnim() {
+    setAnimDir('none');
+    setStack(p => p.length > 1 ? p.slice(0, -1) : p);
+  }
+
+  // ── Собираем контент ─────────────────────────────────────────────────────
+  function buildContent(s: Screen): React.ReactNode {
 
   // Auth
-  if (screen === 'auth') {
-    content = <AuthScreen onSelectRole={r => goHome(r as Role)} onLoginByPhone={() => push('phone')} />;
+  if (s === 'auth') {
+    return <AuthScreen onSelectRole={r => goHome(r as Role)} onLoginByPhone={() => push('phone')} />;
   }
-  else if (screen === 'phone') {
-    content = <PhoneAuthScreen onBack={pop} onSubmit={({ phone: p }) => { setPhone(p); push('sms'); }} />;
+  else if (s === 'phone') {
+    return <PhoneAuthScreen onBack={pop} onSubmit={({ phone: p }) => { setPhone(p); push('sms'); }} />;
   }
-  else if (screen === 'sms') {
-    content = <SmsCodeScreen phone={phone} onBack={pop} onVerified={() => goHome(role)} />;
+  else if (s === 'sms') {
+    return <SmsCodeScreen phone={phone} onBack={pop} onVerified={() => goHome(role)} />;
   }
 
   // Overlays
-  else if (screen === 'balance') {
-    content = <BalanceScreen onBack={pop} />;
+  else if (s === 'balance') {
+    return <BalanceScreen onBack={pop} />;
   }
-  else if (screen === 'reviews') {
-    content = <ReviewsScreen onBack={pop} />;
+  else if (s === 'reviews') {
+    return <ReviewsScreen onBack={pop} />;
   }
-  else if (screen === 'chat') {
-    content = (
+  else if (s === 'chat') {
+    return (
       <ChatScreen
         onBack={pop}
         onProfile={chatPersonHasProfile ? () => push(chatPersonProfileType === 'student' ? 'student-profile' : 'instr-profile') : undefined}
@@ -189,22 +192,22 @@ export function App() {
       />
     );
   }
-  else if (screen === 'community') {
-    content = <CommunityScreen onBack={pop} />;
+  else if (s === 'community') {
+    return <CommunityScreen onBack={pop} />;
   }
-  else if (screen === 'notifications') {
-    content = <NotificationsScreen
+  else if (s === 'notifications') {
+    return <NotificationsScreen
       onBack={pop}
       role={role}
-      onNavigate={s => {
-        if (s === 'chat-list')  push('notif-chat');
-        else if (s === 'requests') push('notif-requests');
-        else if (s === 'bookings') push('notif-bookings');
-        else push(s as Screen);
+      onNavigate={nav => {
+        if (nav === 'chat-list')  push('notif-chat');
+        else if (nav === 'requests') push('notif-requests');
+        else if (nav === 'bookings') push('notif-bookings');
+        else push(nav as Screen);
       }}
     />;
   }
-  else if (screen === 'notif-chat') {
+  else if (s === 'notif-chat') {
     const ChatComp = role === 'instructor'
       ? <ChatListScreen
           onBack={pop}
@@ -234,17 +237,17 @@ export function App() {
           joinedMcIds={joinedMcIds}
           onGroupChat={mcId => { setActiveMcId(mcId); push('mc-group-chat'); }}
         />;
-    content = ChatComp;
+    return ChatComp;
   }
-  else if (screen === 'notif-requests') {
-    content = <RequestsScreen
+  else if (s === 'notif-requests') {
+    return <RequestsScreen
       onBack={pop}
       onChat={() => push('chat')}
       onRequest={id => { setActiveRequestId(id); push('request-detail'); }}
     />;
   }
-  else if (screen === 'notif-bookings') {
-    content = <BookingsScreen
+  else if (s === 'notif-bookings') {
+    return <BookingsScreen
       onBack={pop}
       onChat={instructorId => {
         const instr = INSTRUCTORS.find(i => i.id === instructorId) ?? activeInstructor;
@@ -260,13 +263,13 @@ export function App() {
       }}
     />;
   }
-  else if (screen === 'register') {
+  else if (s === 'register') {
     // isEditMode = true когда открыт из профиля инструктора (не из каталога)
     const isEditMode = role === 'instructor';
-    content = <RegisterScreen onBack={pop} isEditMode={isEditMode} />;
+    return <RegisterScreen onBack={pop} isEditMode={isEditMode} />;
   }
-  else if (screen === 'instr-profile') {
-    content = (
+  else if (s === 'instr-profile') {
+    return (
       <ProfileScreen
         instructor={activeInstructor}
         onBack={pop}
@@ -279,8 +282,8 @@ export function App() {
       />
     );
   }
-  else if (screen === 'my-profile') {
-    content = (
+  else if (s === 'my-profile') {
+    return (
       <ProfileScreen
         instructor={INSTRUCTORS[0]}
         onBack={pop}
@@ -292,8 +295,8 @@ export function App() {
       />
     );
   }
-  else if (screen === 'lesson-detail') {
-    content = (
+  else if (s === 'lesson-detail') {
+    return (
       <LessonDetailScreen
         key={activeLessonId}
         lessonId={activeLessonId}
@@ -303,8 +306,8 @@ export function App() {
       />
     );
   }
-  else if (screen === 'request-detail') {
-    content = (
+  else if (s === 'request-detail') {
+    return (
       <RequestDetailScreen
         key={activeRequestId}
         requestId={activeRequestId}
@@ -314,8 +317,8 @@ export function App() {
       />
     );
   }
-  else if (screen === 'book-slot') {
-    content = (
+  else if (s === 'book-slot') {
+    return (
       <BookSlotScreen
         onBack={pop}
         onBooked={() => { switchGuestTab('bookings'); }}
@@ -323,8 +326,8 @@ export function App() {
       />
     );
   }
-  else if (screen === 'mc-catalog') {
-    content = (
+  else if (s === 'mc-catalog') {
+    return (
       <MasterClassCatalogScreen
         onBack={pop}
         onDetail={id => { setActiveMcId(id); push('mc-detail'); }}
@@ -332,8 +335,8 @@ export function App() {
       />
     );
   }
-  else if (screen === 'mc-detail') {
-    content = (
+  else if (s === 'mc-detail') {
+    return (
       <MasterClassDetailScreen
         key={activeMcId}
         id={activeMcId}
@@ -356,17 +359,17 @@ export function App() {
       />
     );
   }
-  else if (screen === 'mc-create') {
-    content = (
+  else if (s === 'mc-create') {
+    return (
       <MasterClassCreateScreen
         onBack={pop}
         onPublished={() => { switchInstrTab('dashboard'); }}
       />
     );
   }
-  else if (screen === 'mc-group-chat') {
+  else if (s === 'mc-group-chat') {
     const activeMc = MASTER_CLASSES.find(m => m.id === activeMcId);
-    content = (
+    return (
       <GroupChatScreen
         mcTitle={activeMc?.title}
         isConfirmed={false}
@@ -383,8 +386,8 @@ export function App() {
     );
   }
 
-  else if (screen === 'student-profile') {
-    content = (
+  else if (s === 'student-profile') {
+    return (
       <StudentProfileScreen
         studentId={activeStudentId}
         onBack={pop}
@@ -394,7 +397,7 @@ export function App() {
   }
 
   // ── Instructor shell ──────────────────────────────────────────────────────
-  else if (screen === 'instr') {
+  else if (s === 'instr') {
     let tabContent: React.ReactNode;
 
     if (instrTab === 'dashboard') {
@@ -464,7 +467,7 @@ export function App() {
         : item
     );
 
-    content = (
+    return (
       <div style={shellStyle}>
         {tabContent}
         <BottomNav items={instrNavLive} active={instrTab} onTab={t => switchInstrTab(t as InstrTab)} />
@@ -473,7 +476,7 @@ export function App() {
   }
 
   // ── Guest shell ───────────────────────────────────────────────────────────
-  else if (screen === 'guest') {
+  else if (s === 'guest') {
     let tabContent: React.ReactNode;
 
     if (guestTab === 'catalog') {
@@ -557,7 +560,7 @@ export function App() {
       );
     }
 
-    content = (
+    return (
       <div style={shellStyle}>
         {tabContent}
         <BottomNav items={GUEST_NAV} active={guestTab} onTab={t => switchGuestTab(t as GuestTab)} />
@@ -565,27 +568,40 @@ export function App() {
     );
   }
 
+    return null;
+  } // end buildContent
+
+  const content    = buildContent(screen);
+  const prevScreen = stack.length > 1 ? stack[stack.length - 2] : null;
+  const prevContent = prevScreen ? buildContent(prevScreen) : null;
+
   if (!content) return null;
 
   // ── Единственный return: анимированная обёртка ────────────────────────────
   // key={animKey} заставляет React размонтировать/монтировать обёртку →
   // CSS-анимация гарантированно воспроизводится с начала при каждой навигации.
   return (
-    <div
-      key={animKey}
-      style={{
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        overflow: 'hidden',
-        animation: animDir === 'push'
-          ? 'navPush 260ms cubic-bezier(0.25, 0.46, 0.45, 0.94) both'
-          : animDir === 'pop'
-          ? 'navPop  260ms cubic-bezier(0.25, 0.46, 0.45, 0.94) both'
-          : undefined,
-      }}
+    <SwipeBack
+      canSwipe={stack.length > 1}
+      prevContent={prevContent}
+      onBack={popNoAnim}
     >
-      {content}
-    </div>
+      <div
+        key={animKey}
+        style={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+          animation: animDir === 'push'
+            ? 'navPush 260ms cubic-bezier(0.25, 0.46, 0.45, 0.94) both'
+            : animDir === 'pop'
+            ? 'navPop  260ms cubic-bezier(0.25, 0.46, 0.45, 0.94) both'
+            : undefined,
+        }}
+      >
+        {content}
+      </div>
+    </SwipeBack>
   );
 }

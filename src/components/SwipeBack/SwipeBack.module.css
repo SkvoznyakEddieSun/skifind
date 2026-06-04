@@ -1,0 +1,27 @@
+.container {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.prevScreen {
+  position: absolute;
+  inset: 0;
+  will-change: transform;
+}
+
+.currentScreen {
+  position: absolute;
+  inset: 0;
+  will-change: transform;
+}
+
+/* Затемняющий слой поверх предыдущего экрана */
+.dimOverlay {
+  position: absolute;
+  inset: 0;
+  background: #000;
+  pointer-events: none;
+}
