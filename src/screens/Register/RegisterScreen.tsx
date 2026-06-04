@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import styles from './RegisterScreen.module.css';
 
-type Step = 1 | 2 | 3 | 4 | 'success';
+type Step = 1 | 2 | 3 | 'success';
 
 interface RegisterScreenProps {
   onBack:    () => void;
@@ -9,10 +9,9 @@ interface RegisterScreenProps {
 }
 
 const STEP_LABELS: Record<number, string> = {
-  1: 'Шаг 1 из 4 · Личные данные',
-  2: 'Шаг 2 из 4 · Специализация',
-  3: 'Шаг 3 из 4 · Видео',
-  4: 'Шаг 4 из 4 · Проверка',
+  1: 'Шаг 1 из 3 · Личные данные',
+  2: 'Шаг 2 из 3 · Специализация',
+  3: 'Шаг 3 из 3 · Проверка',
 };
 
 function CheckItem({ label, defaultOn }: { label: string; defaultOn?: boolean }) {
@@ -49,7 +48,7 @@ export function RegisterScreen({ onBack, isEditMode = false }: RegisterScreenPro
   const fileRef = useRef<HTMLInputElement>(null);
   const initials = (name[0] || '') + (lname[0] || '') || 'АМ';
 
-  const stepNum = typeof step === 'number' ? step : 4;
+  const stepNum = typeof step === 'number' ? step : 3;
 
   return (
     <div className={styles.screen}>
@@ -64,7 +63,7 @@ export function RegisterScreen({ onBack, isEditMode = false }: RegisterScreenPro
         </div>
         {step !== 'success' && (
           <div className={styles.progPills}>
-            {[1, 2, 3, 4].map(n => (
+            {[1, 2, 3].map(n => (
               <div
                 key={n}
                 className={`${styles.pp} ${n < stepNum ? styles.ppDone : n === stepNum ? styles.ppActive : ''}`}
@@ -204,23 +203,6 @@ export function RegisterScreen({ onBack, isEditMode = false }: RegisterScreenPro
         {/* ── Step 3 ── */}
         {step === 3 && (
           <div className={styles.stepBody}>
-            <div className={styles.stepTitle}>Видео</div>
-
-            <div className={styles.field}>
-              <label>Ссылка на видео (YouTube / VK)</label>
-              <input type="url" placeholder="https://youtube.com/..." />
-            </div>
-
-            <div className={styles.stepNav}>
-              <button className={styles.btnSecondary} onClick={() => setStep(2)}>← Назад</button>
-              <button className={styles.btnPrimary} onClick={() => setStep(4)}>Далее →</button>
-            </div>
-          </div>
-        )}
-
-        {/* ── Step 4 ── */}
-        {step === 4 && (
-          <div className={styles.stepBody}>
             <div className={styles.stepTitle}>Проверка</div>
 
             <div className={styles.reviewBox}>
@@ -242,7 +224,7 @@ export function RegisterScreen({ onBack, isEditMode = false }: RegisterScreenPro
             <AgreeItem>Получать уведомления о новых заявках</AgreeItem>
 
             <div className={styles.stepNav} style={{ marginTop: 16 }}>
-              <button className={styles.btnSecondary} onClick={() => setStep(3)}>← Назад</button>
+              <button className={styles.btnSecondary} onClick={() => setStep(2)}>← Назад</button>
               <button
                 className={`${styles.btnPrimary} ${styles.btnPrimaryGreen}`}
                 onClick={() => setStep('success')}
