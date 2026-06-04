@@ -703,7 +703,7 @@ export function ScheduleScreen({ onLesson, onChat, onCreateMasterClass }: Schedu
                     Применить
                   </button>
                   <button className={styles.btnAdvanced} onClick={() => setTemplateMode('advanced')}>
-                    Гибкий режим ⚙
+                    Гибкий режим
                   </button>
                 </div>
               </>
