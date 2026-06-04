@@ -11,7 +11,7 @@ interface RegisterScreenProps {
 const STEP_LABELS: Record<number, string> = {
   1: 'Шаг 1 из 4 · Личные данные',
   2: 'Шаг 2 из 4 · Специализация',
-  3: 'Шаг 3 из 4 · Курорт и видео',
+  3: 'Шаг 3 из 4 · Видео',
   4: 'Шаг 4 из 4 · Проверка',
 };
 
@@ -180,18 +180,6 @@ export function RegisterScreen({ onBack, isEditMode = false }: RegisterScreenPro
               <textarea placeholder="Расскажите о подходе к обучению..." />
             </div>
 
-            <div className={styles.stepNav}>
-              <button className={styles.btnSecondary} onClick={() => setStep(1)}>← Назад</button>
-              <button className={styles.btnPrimary} onClick={() => setStep(3)}>Далее →</button>
-            </div>
-          </div>
-        )}
-
-        {/* ── Step 3 ── */}
-        {step === 3 && (
-          <div className={styles.stepBody}>
-            <div className={styles.stepTitle}>Курорт и видео</div>
-
             <div className={styles.field}>
               <label>Курорт</label>
               <div className={styles.resortLocked}>
@@ -205,6 +193,18 @@ export function RegisterScreen({ onBack, isEditMode = false }: RegisterScreenPro
                 </div>
               </div>
             </div>
+
+            <div className={styles.stepNav}>
+              <button className={styles.btnSecondary} onClick={() => setStep(1)}>← Назад</button>
+              <button className={styles.btnPrimary} onClick={() => setStep(3)}>Далее →</button>
+            </div>
+          </div>
+        )}
+
+        {/* ── Step 3 ── */}
+        {step === 3 && (
+          <div className={styles.stepBody}>
+            <div className={styles.stepTitle}>Видео</div>
 
             <div className={styles.field}>
               <label>Ссылка на видео (YouTube / VK)</label>
