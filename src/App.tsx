@@ -89,6 +89,7 @@ export function App() {
   const [blockedIds, setBlockedIds]     = useState<Set<string>>(new Set());
   const [favorites, setFavorites]       = useState<Set<string>>(new Set());
   const [activeRequestId, setActiveRequestId] = useState<string>('');
+  const [activeLessonId,  setActiveLessonId]  = useState<string>('');
 
   function handleToggleFavorite(id: string) {
     setFavorites(prev => {
@@ -192,6 +193,8 @@ export function App() {
   else if (screen === 'lesson-detail') {
     content = (
       <LessonDetailScreen
+        key={activeLessonId}
+        lessonId={activeLessonId}
         onBack={pop}
         onChat={() => push('chat')}
         onCancel={pop}
@@ -290,7 +293,7 @@ export function App() {
           onBalance={() => push('balance')}
           onReviews={() => push('reviews')}
           onNotifications={() => push('notifications')}
-          onLesson={() => push('lesson-detail')}
+          onLesson={id => { setActiveLessonId(id); push('lesson-detail'); }}
           onCreateMasterClass={() => push('mc-create')}
         />
       );
@@ -310,7 +313,7 @@ export function App() {
         />
       );
     } else if (instrTab === 'calendar') {
-      tabContent = <ScheduleScreen onLesson={() => push('lesson-detail')} onChat={() => push('chat')} onCreateMasterClass={() => push('mc-create')} />;
+      tabContent = <ScheduleScreen onLesson={id => { setActiveLessonId(id ?? ''); push('lesson-detail'); }} onChat={() => push('chat')} onCreateMasterClass={() => push('mc-create')} />;
     } else {
       tabContent = (
         <InstrProfileScreen

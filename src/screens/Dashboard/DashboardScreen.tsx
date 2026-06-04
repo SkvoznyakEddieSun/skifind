@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import styles from './DashboardScreen.module.css';
 import { useTranslation } from '@/i18n/useTranslation';
+import { getAcceptedLessons, getPendingRequests } from '@/store/bookings';
 
 interface UpcomingLesson {
   id: string;
@@ -11,10 +12,16 @@ interface UpcomingLesson {
   price: string;
 }
 
-const LESSONS: UpcomingLesson[] = [
-  { id: 'l1', day: '27', mon: 'апр', name: 'Кирилл Волков',    meta: '10:00 · Индивид. · 2 ч',  price: '7 000 ₽' },
-  { id: 'l2', day: '29', mon: 'апр', name: 'Татьяна Новикова', meta: '14:00 · Детское · 45 мин', price: '2 800 ₽' },
-];
+function buildLessons(): UpcomingLesson[] {
+  return getAcceptedLessons('aleksey').map(b => ({
+    id:    b.id,
+    day:   b.dayNum,
+    mon:   b.dayMon,
+    name:  b.studentName,
+    meta:  `${b.timeStart} · ${b.formatLabel}`,
+    price: `${b.price.toLocaleString('ru')} ₽`,
+  }));
+}
 
 interface DashboardScreenProps {
   onRequests:         () => void;
@@ -36,6 +43,8 @@ export function DashboardScreen({
 }: DashboardScreenProps) {
   const { t } = useTranslation();
   const [onMountain, setOnMountain] = useState(false);
+  const [lessons] = useState<UpcomingLesson[]>(buildLessons);
+  const pendingCount = getPendingRequests('aleksey').length;
   const AUTO_OFF = 1 * 3600 + 47 * 60; // 1ч 47мин в секундах
   const [remaining, setRemaining] = useState(AUTO_OFF);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -137,7 +146,7 @@ export function DashboardScreen({
               <div className={styles.mcLabel}>{t('dashboard.requests')}</div>
             </div>
             <div>
-              <div className={styles.mcValue}>3</div>
+              <div className={styles.mcValue}>{pendingCount}</div>
               <div className={styles.mcDelta}>↑ {t('dashboard.newLabel')}</div>
             </div>
           </div>
@@ -149,7 +158,7 @@ export function DashboardScreen({
               <div className={styles.mcLabel}>{t('dashboard.lessons')}</div>
             </div>
             <div>
-              <div className={styles.mcValue}>2</div>
+              <div className={styles.mcValue}>{lessons.length}</div>
               <div className={styles.mcSub}>{t('dashboard.today')}</div>
             </div>
           </div>
@@ -187,7 +196,7 @@ export function DashboardScreen({
           </button>
         </div>
 
-        {LESSONS.map(l => (
+        {lessons.map(l => (
           <div key={l.id} className={styles.lcard} onClick={() => onLesson(l.id)}>
             <div className={styles.lcardDate}>
               <div className={styles.lcardDay}>{l.day}</div>

@@ -183,7 +183,7 @@ const DEFAULT_CFG: DayConfig = {
 const WEEK_DAYS = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота', 'Воскресенье'];
 
 interface ScheduleScreenProps {
-  onLesson: () => void;
+  onLesson: (id?: string) => void;
   onChat: () => void;
   onCreateMasterClass?: () => void;
 }
@@ -429,7 +429,7 @@ export function ScheduleScreen({ onLesson, onChat, onCreateMasterClass }: Schedu
                       </div>
                       <div className={styles.bookingActions}>
                         <button className={styles.bookingActBtn} onClick={onChat}>💬</button>
-                        <button className={`${styles.bookingActBtn} ${styles.bookingActBtnPrimary}`} onClick={onLesson}>→</button>
+                        <button className={`${styles.bookingActBtn} ${styles.bookingActBtnPrimary}`} onClick={() => onLesson(b.id)}>→</button>
                       </div>
                     </div>
                   ))}
