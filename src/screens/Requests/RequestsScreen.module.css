@@ -15,6 +15,24 @@
   flex-shrink: 0;
 }
 
+.tbRow {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.tbBack {
+  background: none;
+  border: none;
+  font-size: 28px;
+  color: var(--text);
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  flex-shrink: 0;
+  margin-right: 4px;
+}
+
 .tbTitle {
   color: var(--text);
   font-size: 18px;

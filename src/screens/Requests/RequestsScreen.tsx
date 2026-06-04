@@ -111,7 +111,7 @@ interface RequestsScreenProps {
 
 // ── Component ──────────────────────────────────────────────────────────────
 
-export function RequestsScreen({ onBack: _onBack, onChat, onRequest }: RequestsScreenProps) {
+export function RequestsScreen({ onBack, onChat, onRequest }: RequestsScreenProps) {
   const [tab, setTab] = useState<'new' | 'mine'>('new');
   const [toast, setToast] = useState<string | null>(null);
   const [tabAnimDir, setTabAnimDir] = useState<'left' | 'right' | null>(null);
@@ -189,9 +189,14 @@ export function RequestsScreen({ onBack: _onBack, onChat, onRequest }: RequestsS
     <div className={styles.screen}>
       {/* Topbar */}
       <div className={styles.topbar}>
-        <div className={styles.tbTitle}>Ученики</div>
-        <div className={styles.tbSub}>
-          {pending.length} новых {pending.length === 1 ? 'заявка' : pending.length < 5 ? 'заявки' : 'заявок'} · {totalStudents} своих ученика
+        <div className={styles.tbRow}>
+          {onBack && <button className={styles.tbBack} onClick={onBack}>‹</button>}
+          <div>
+            <div className={styles.tbTitle}>Ученики</div>
+            <div className={styles.tbSub}>
+              {pending.length} новых {pending.length === 1 ? 'заявка' : pending.length < 5 ? 'заявки' : 'заявок'} · {totalStudents} своих ученика
+            </div>
+          </div>
         </div>
       </div>
 

@@ -200,10 +200,15 @@ export function App() {
       onBack={pop}
       role={role}
       onNavigate={nav => {
-        if (nav === 'chat-list')  push('notif-chat');
-        else if (nav === 'requests') push('notif-requests');
-        else if (nav === 'bookings') push('notif-bookings');
-        else push(nav as Screen);
+        if (role === 'instructor') {
+          if (nav === 'requests')  { setInstrTab('requests');  setAnimDir('none'); setStack(['instr']); }
+          else if (nav === 'chat-list') { setInstrTab('chat'); setAnimDir('none'); setStack(['instr']); }
+          else { setAnimDir('none'); setStack(['instr', nav as Screen]); }
+        } else {
+          if (nav === 'bookings')  { setGuestTab('bookings');  setAnimDir('none'); setStack(['guest']); }
+          else if (nav === 'chat-list') { setGuestTab('chat'); setAnimDir('none'); setStack(['guest']); }
+          else { setAnimDir('none'); setStack(['guest', nav as Screen]); }
+        }
       }}
     />;
   }
