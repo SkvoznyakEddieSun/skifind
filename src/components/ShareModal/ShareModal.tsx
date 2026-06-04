@@ -1,14 +1,18 @@
 import { useRef, useState } from 'react';
 import styles from './ShareModal.module.css';
 
-const PROFILE_URL = 'skifind.app/u/aleksey-morozov';
 const CLOSE_THRESHOLD = 100; // px вниз для закрытия
 
 interface ShareModalProps {
   onClose: () => void;
+  instructorId?: string;   // e.g. 'aleksey'
+  instructorName?: string; // e.g. 'Алексей Морозов'
 }
 
-export function ShareModal({ onClose }: ShareModalProps) {
+export function ShareModal({ onClose, instructorId = 'aleksey-morozov', instructorName = 'Инструктор' }: ShareModalProps) {
+  // slug: 'aleksey' → 'aleksey', или транслитерация имени если id отсутствует
+  const slug = instructorId.includes('-') ? instructorId : instructorId;
+  const PROFILE_URL = `skifind.app/u/${slug}`;
   const [copied, setCopied] = useState(false);
   const [dragY, setDragY] = useState(0);
   const [dragging, setDragging] = useState(false);
@@ -42,7 +46,7 @@ export function ShareModal({ onClose }: ShareModalProps) {
 
   function handleShare() {
     if (navigator.share) {
-      navigator.share({ title: 'Алексей Морозов — инструктор по сноуборду', url: 'https://' + PROFILE_URL });
+      navigator.share({ title: `${instructorName} — инструктор`, url: 'https://' + PROFILE_URL });
     } else {
       handleCopy();
     }

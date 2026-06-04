@@ -181,7 +181,7 @@ export function ProfileScreen({ instructor, onBack, onBook, onAskQuestion, onAll
 
   return (
     <div className={styles.screen}>
-      {showShare && <ShareModal onClose={() => setShowShare(false)} />}
+      {showShare && <ShareModal onClose={() => setShowShare(false)} instructorId={p.id} instructorName={p.name} />}
 
       {/* ── Hero ── */}
       <div className={styles.profHero}>
