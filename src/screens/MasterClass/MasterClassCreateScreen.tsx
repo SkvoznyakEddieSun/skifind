@@ -165,174 +165,197 @@ export function MasterClassCreateScreen({ onBack, onPublished }: MasterClassCrea
       </div>
 
       <div className={styles.scroll}>
+        <div className={styles.body}>
 
-        {/* Title */}
-        <div className={styles.sectionLabel}>НАЗВАНИЕ</div>
-        <input
-          className={styles.textInput}
-          placeholder='Например, «Техника карвинга»'
-          value={title}
-          onChange={e => setTitle(e.target.value)}
-          maxLength={60}
-        />
+          {/* Название */}
+          <div className={styles.sectionLabel}>Название</div>
+          <div className={styles.card}>
+            <input
+              className={styles.textInput}
+              placeholder='Например, «Техника карвинга»'
+              value={title}
+              onChange={e => setTitle(e.target.value)}
+              maxLength={60}
+            />
+          </div>
 
-        {/* Sport */}
-        <div className={styles.sectionLabel}>ВИД СПОРТА</div>
-        <div className={styles.chips}>
-          {(['ski', 'board'] as McSport[]).map(s => (
-            <button
-              key={s}
-              className={`${styles.chip} ${sport === s ? styles.chipActive : ''}`}
-              onClick={() => setSport(s)}
-            >
-              {s === 'ski' ? '🎿 Горные лыжи' : '🏂 Сноуборд'}
-            </button>
-          ))}
-        </div>
-
-        {/* Level */}
-        <div className={styles.sectionLabel}>УРОВЕНЬ УЧАСТНИКОВ</div>
-        <div className={styles.chips}>
-          {(Object.keys(LEVEL_LABELS) as McLevel[]).map(l => (
-            <button
-              key={l}
-              className={`${styles.chip} ${level === l ? styles.chipActive : ''}`}
-              onClick={() => setLevel(l)}
-            >
-              {LEVEL_LABELS[l]}
-            </button>
-          ))}
-        </div>
-
-        {/* Date + Time */}
-        <div className={styles.row2}>
-          <div style={{ flex: 1 }}>
-            <div className={styles.sectionLabel}>ДАТА</div>
-            <select
-              className={styles.selectInput}
-              value={selectedDay ? selectedDay.toISOString() : ''}
-              onChange={e => {
-                const d = UPCOMING_DAYS.find(d => d.toISOString() === e.target.value) ?? null;
-                setSelectedDay(d);
-              }}
-            >
-              <option value="">— выберите —</option>
-              {UPCOMING_DAYS.map((d, i) => (
-                <option key={i} value={d.toISOString()}>{dayOptionLabel(d)}</option>
+          {/* Вид спорта */}
+          <div className={styles.sectionLabel}>Вид спорта</div>
+          <div className={styles.card}>
+            <div className={styles.chips}>
+              {(['ski', 'board'] as McSport[]).map(s => (
+                <button
+                  key={s}
+                  className={`${styles.chip} ${sport === s ? styles.chipActive : ''}`}
+                  onClick={() => setSport(s)}
+                >
+                  {s === 'ski' ? '🎿 Горные лыжи' : '🏂 Сноуборд'}
+                </button>
               ))}
-            </select>
+            </div>
           </div>
-          <div style={{ flex: 1 }}>
-            <div className={styles.sectionLabel}>ВРЕМЯ</div>
-            <select
-              className={styles.selectInput}
-              value={time}
-              onChange={e => setTime(e.target.value)}
-            >
-              <option value="">— выберите —</option>
-              {START_TIMES.map(t => (
-                <option key={t} value={t}>{t}</option>
+
+          {/* Уровень участников */}
+          <div className={styles.sectionLabel}>Уровень участников</div>
+          <div className={styles.card}>
+            <div className={styles.chips}>
+              {(Object.keys(LEVEL_LABELS) as McLevel[]).map(l => (
+                <button
+                  key={l}
+                  className={`${styles.chip} ${level === l ? styles.chipActive : ''}`}
+                  onClick={() => setLevel(l)}
+                >
+                  {LEVEL_LABELS[l]}
+                </button>
               ))}
-            </select>
+            </div>
           </div>
-        </div>
 
-        {/* Duration */}
-        <div className={styles.sectionLabel}>ПРОДОЛЖИТЕЛЬНОСТЬ</div>
-        <div className={styles.chips}>
-          {DURATIONS.map(d => (
-            <button
-              key={d}
-              className={`${styles.chip} ${duration === d ? styles.chipActive : ''}`}
-              onClick={() => setDuration(d)}
-            >
-              {durationLabel(d)}
-            </button>
-          ))}
-        </div>
-
-        {/* Max participants */}
-        <div className={styles.sectionLabel}>МАКС. УЧАСТНИКОВ</div>
-        <div className={styles.stepper}>
-          <button className={styles.stepperBtn} onClick={() => setMaxParts(p => Math.max(2, p - 1))}>−</button>
-          <span className={styles.stepperVal}>{maxParts}</span>
-          <button className={styles.stepperBtn} onClick={() => setMaxParts(p => Math.min(30, p + 1))}>+</button>
-          <span className={styles.stepperHint}>человек</span>
-        </div>
-
-        {/* Min participants (КРИТИЧНО 1) */}
-        <div className={styles.sectionLabel}>МИН. УЧАСТНИКОВ</div>
-        <div className={styles.stepper}>
-          <button className={styles.stepperBtn} onClick={() => setMinParts(p => Math.max(2, p - 1))}>−</button>
-          <span className={styles.stepperVal}>{minParts}</span>
-          <button className={styles.stepperBtn} onClick={() => setMinParts(p => Math.min(maxParts, p + 1))}>+</button>
-          <span className={styles.stepperHintLong}>человек (если не наберётся — занятие отменится)</span>
-        </div>
-
-        {/* Price (МЕЛКОЕ 2: валидация + МЕЛКОЕ 3: превью) */}
-        <div className={styles.sectionLabel}>ЦЕНА ЗА УЧАСТИЕ (₽)</div>
-        <input
-          type="number"
-          inputMode="numeric"
-          className={`${styles.textInput} ${priceError ? styles.textInputError : ''}`}
-          placeholder={`${PRICE_MIN.toLocaleString('ru')} — ${PRICE_MAX.toLocaleString('ru')}`}
-          value={price}
-          onChange={e => setPrice(e.target.value)}
-        />
-        {priceError && (
-          <div className={styles.fieldError}>{priceError}</div>
-        )}
-        {totalRevenue && !priceError && (
-          <div className={styles.pricePreview}>
-            При полной группе: {totalRevenue.toLocaleString('ru')} ₽ · Комиссия 5%: {commission!.toLocaleString('ru')} ₽
+          {/* Дата и время */}
+          <div className={styles.sectionLabel}>Дата и время</div>
+          <div className={styles.card}>
+            <div className={styles.row2}>
+              <div className={styles.row2Inner}>
+                <div className={styles.rowLabel}>Дата</div>
+                <select
+                  className={styles.selectInput}
+                  value={selectedDay ? selectedDay.toISOString() : ''}
+                  onChange={e => {
+                    const d = UPCOMING_DAYS.find(d => d.toISOString() === e.target.value) ?? null;
+                    setSelectedDay(d);
+                  }}
+                >
+                  <option value="">— выберите —</option>
+                  {UPCOMING_DAYS.map((d, i) => (
+                    <option key={i} value={d.toISOString()}>{dayOptionLabel(d)}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <div className={styles.rowLabel}>Время</div>
+                <select
+                  className={styles.selectInput}
+                  value={time}
+                  onChange={e => setTime(e.target.value)}
+                >
+                  <option value="">— выберите —</option>
+                  {START_TIMES.map(t => (
+                    <option key={t} value={t}>{t}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
           </div>
-        )}
 
-        {/* Location */}
-        <div className={styles.sectionLabel}>МЕСТО ВСТРЕЧИ</div>
-        <input
-          className={styles.textInput}
-          placeholder='Например, «Касса Шерегеш, вход А»'
-          value={location}
-          onChange={e => setLocation(e.target.value)}
-        />
+          {/* Продолжительность */}
+          <div className={styles.sectionLabel}>Продолжительность</div>
+          <div className={styles.card}>
+            <div className={styles.chips}>
+              {DURATIONS.map(d => (
+                <button
+                  key={d}
+                  className={`${styles.chip} ${duration === d ? styles.chipActive : ''}`}
+                  onClick={() => setDuration(d)}
+                >
+                  {durationLabel(d)}
+                </button>
+              ))}
+            </div>
+          </div>
 
-        {/* Booking deadline (КРИТИЧНО 3) */}
-        <div className={styles.sectionLabel}>ДЕДЛАЙН ЗАПИСИ (ЧАС ДО НАЧАЛА)</div>
-        <div className={styles.chips}>
-          {DEADLINE_HOURS.map(h => (
-            <button
-              key={h}
-              className={`${styles.chip} ${deadline === h ? styles.chipActive : ''}`}
-              onClick={() => setDeadline(h)}
-            >
-              {h} ч
-            </button>
-          ))}
+          {/* Участники */}
+          <div className={styles.sectionLabel}>Количество участников</div>
+          <div className={styles.card}>
+            <div className={styles.stepper}>
+              <span className={styles.stepperLabel}>Максимум</span>
+              <button className={styles.stepperBtn} onClick={() => setMaxParts(p => Math.max(2, p - 1))}>−</button>
+              <span className={styles.stepperVal}>{maxParts}</span>
+              <button className={styles.stepperBtn} onClick={() => setMaxParts(p => Math.min(30, p + 1))}>+</button>
+              <span className={styles.stepperHint}>чел.</span>
+            </div>
+            <div className={styles.cardDivider} />
+            <div className={styles.stepper}>
+              <span className={styles.stepperLabel}>Минимум</span>
+              <button className={styles.stepperBtn} onClick={() => setMinParts(p => Math.max(2, p - 1))}>−</button>
+              <span className={styles.stepperVal}>{minParts}</span>
+              <button className={styles.stepperBtn} onClick={() => setMinParts(p => Math.min(maxParts, p + 1))}>+</button>
+              <span className={styles.stepperHint}>чел.</span>
+            </div>
+            <div className={styles.cardHint}>Если не наберётся минимум — занятие отменится</div>
+          </div>
+
+          {/* Цена */}
+          <div className={styles.sectionLabel}>Цена за участие (₽)</div>
+          <div className={styles.card}>
+            <input
+              type="number"
+              inputMode="numeric"
+              className={`${styles.textInput} ${priceError ? styles.textInputError : ''}`}
+              placeholder={`${PRICE_MIN.toLocaleString('ru')} — ${PRICE_MAX.toLocaleString('ru')}`}
+              value={price}
+              onChange={e => setPrice(e.target.value)}
+            />
+            {priceError && <div className={styles.fieldError}>{priceError}</div>}
+            {totalRevenue && !priceError && (
+              <div className={styles.pricePreview}>
+                При полной группе: {totalRevenue.toLocaleString('ru')} ₽ · Комиссия 5%: {commission!.toLocaleString('ru')} ₽
+              </div>
+            )}
+          </div>
+
+          {/* Место встречи */}
+          <div className={styles.sectionLabel}>Место встречи</div>
+          <div className={styles.card}>
+            <input
+              className={styles.textInput}
+              placeholder='Например, «Касса Шерегеш, вход А»'
+              value={location}
+              onChange={e => setLocation(e.target.value)}
+            />
+          </div>
+
+          {/* Дедлайн записи */}
+          <div className={styles.sectionLabel}>Дедлайн записи</div>
+          <div className={styles.card}>
+            <div className={styles.chips}>
+              {DEADLINE_HOURS.map(h => (
+                <button
+                  key={h}
+                  className={`${styles.chip} ${deadline === h ? styles.chipActive : ''}`}
+                  onClick={() => setDeadline(h)}
+                >
+                  {h} ч
+                </button>
+              ))}
+            </div>
+            <div className={styles.cardHint}>
+              После этого срока запись закроется. Если не наберётся минимум — отменится автоматически.
+            </div>
+          </div>
+
+          {/* Описание */}
+          <div className={styles.sectionLabel}>
+            Описание <span className={styles.optional}>(необязательно)</span>
+          </div>
+          <div className={styles.card}>
+            <textarea
+              className={`${styles.textInput} ${styles.textArea}`}
+              placeholder="Расскажите, что будет на мастер-классе, кому подходит и что взять с собой…"
+              value={description}
+              onChange={e => setDescription(e.target.value.slice(0, MAX_DESC))}
+              rows={4}
+            />
+            <div className={`${styles.descCount} ${description.length > MAX_DESC - 30 ? styles.descCountWarn : ''}`}>
+              {description.length}/{MAX_DESC}
+            </div>
+          </div>
+
+          {/* Публикация */}
+          <button className={styles.publishBtn} onClick={handlePublish} disabled={!canPublish}>
+            Опубликовать →
+          </button>
+
         </div>
-        <div className={styles.deadlineHint}>
-          После этого срока запись закроется. Если не наберётся минимум — отменится автоматически.
-        </div>
-
-        {/* Description (МЕЛКОЕ 1: 300 символов + счётчик) */}
-        <div className={styles.sectionLabel}>ОПИСАНИЕ (НЕОБЯЗАТЕЛЬНО)</div>
-        <textarea
-          className={`${styles.textInput} ${styles.textArea}`}
-          placeholder="Расскажите, что будет на мастер-классе, кому подходит и что взять с собой…"
-          value={description}
-          onChange={e => setDescription(e.target.value.slice(0, MAX_DESC))}
-          rows={4}
-        />
-        <div className={`${styles.descCount} ${description.length > MAX_DESC - 30 ? styles.descCountWarn : ''}`}>
-          {description.length}/{MAX_DESC}
-        </div>
-
-        {/* Publish */}
-        <button className={styles.publishBtn} onClick={handlePublish} disabled={!canPublish}>
-          Опубликовать →
-        </button>
-
-        <div style={{ height: 32 }} />
       </div>
 
       {showToast && (
