@@ -82,7 +82,7 @@ export type BookingStatus = 'NONE' | 'PENDING' | 'ACCEPTED' | 'DECLINED';
 
 interface ChatScreenProps {
   onBack: () => void;
-  onProfile: () => void;
+  onProfile?: () => void;
   onBook?: () => void;
   bookingStatus?: BookingStatus;   // default: 'PENDING'
   instructorPhone?: string;
@@ -209,9 +209,11 @@ export function ChatScreen({
           <div className={styles.ctStatus}>{t('chat.online')} · Шерегеш</div>
         </div>
         <div className={styles.ctActions}>
-          <button className={styles.ctBtn} onClick={onProfile} aria-label="Профиль">
-            <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2M12 11a4 4 0 100-8 4 4 0 000 8z"/></svg>
-          </button>
+          {onProfile && (
+            <button className={styles.ctBtn} onClick={onProfile} aria-label="Профиль">
+              <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2M12 11a4 4 0 100-8 4 4 0 000 8z"/></svg>
+            </button>
+          )}
           <button
             className={styles.ctBtn}
             aria-label="Позвонить"

@@ -88,6 +88,7 @@ export function App() {
   const [chatPersonName, setChatPersonName] = useState('');
   const [chatPersonInitials, setChatPersonInitials] = useState('');
   const [chatPersonAvColor, setChatPersonAvColor] = useState('ice');
+  const [chatPersonHasProfile, setChatPersonHasProfile] = useState(false);
   const [activeInstructor, setActiveInstructor] = useState<Instructor>(INSTRUCTORS[0]);
   const [joinedMcIds, setJoinedMcIds]   = useState<Set<string>>(new Set());
   const [blockedIds, setBlockedIds]     = useState<Set<string>>(new Set());
@@ -100,6 +101,7 @@ export function App() {
     setChatPersonName(activeInstructor.name);
     setChatPersonInitials(activeInstructor.initials);
     setChatPersonAvColor(activeInstructor.avatarColor);
+    setChatPersonHasProfile(true);
     push('chat');
   }
 
@@ -172,7 +174,7 @@ export function App() {
     content = (
       <ChatScreen
         onBack={pop}
-        onProfile={() => push('instr-profile')}
+        onProfile={chatPersonHasProfile ? () => push('instr-profile') : undefined}
         onBook={() => push('book-slot')}
         bookingStatus={chatBookingStatus}
         instructorPhone={chatInstructorPhone}
@@ -338,7 +340,16 @@ export function App() {
     } else if (instrTab === 'chat') {
       tabContent = (
         <ChatListScreen
-          onChat={(_id, status, phone, name, initials, avColor) => { setChatBookingStatus(status === 'DECLINED' ? 'NONE' : status); setChatInstructorPhone(phone); setChatPersonName(name ?? ''); setChatPersonInitials(initials ?? ''); setChatPersonAvColor(avColor ?? 'ice'); push('chat'); }}
+          onChat={(id, status, phone, name, initials, avColor) => {
+            const instr = INSTRUCTORS.find(i => i.id === id);
+            if (instr) { setActiveInstructor(instr); setChatPersonHasProfile(true); } else { setChatPersonHasProfile(false); }
+            setChatBookingStatus(status === 'DECLINED' ? 'NONE' : status);
+            setChatInstructorPhone(phone);
+            setChatPersonName(name ?? '');
+            setChatPersonInitials(initials ?? '');
+            setChatPersonAvColor(avColor ?? 'ice');
+            push('chat');
+          }}
           onCommunity={() => push('community')}
         />
       );
@@ -399,9 +410,11 @@ export function App() {
         <BookingsScreen
           onChat={instructorId => {
             const instr = INSTRUCTORS.find(i => i.id === instructorId) ?? activeInstructor;
+            setActiveInstructor(instr);
             setChatPersonName(instr.name);
             setChatPersonInitials(instr.initials);
             setChatPersonAvColor(instr.avatarColor);
+            setChatPersonHasProfile(true);
             push('chat');
           }}
           onBookAgain={instructorId => {
@@ -414,7 +427,16 @@ export function App() {
     } else if (guestTab === 'chat') {
       tabContent = (
         <ChatListScreen
-          onChat={(_id, status, phone, name, initials, avColor) => { setChatBookingStatus(status); setChatInstructorPhone(phone); setChatPersonName(name ?? ''); setChatPersonInitials(initials ?? ''); setChatPersonAvColor(avColor ?? 'ice'); push('chat'); }}
+          onChat={(id, status, phone, name, initials, avColor) => {
+            const instr = INSTRUCTORS.find(i => i.id === id);
+            if (instr) { setActiveInstructor(instr); setChatPersonHasProfile(true); } else { setChatPersonHasProfile(false); }
+            setChatBookingStatus(status);
+            setChatInstructorPhone(phone);
+            setChatPersonName(name ?? '');
+            setChatPersonInitials(initials ?? '');
+            setChatPersonAvColor(avColor ?? 'ice');
+            push('chat');
+          }}
           joinedMcIds={joinedMcIds}
           onGroupChat={mcId => { setActiveMcId(mcId); push('mc-group-chat'); }}
         />
