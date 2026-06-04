@@ -114,9 +114,14 @@ interface RequestsScreenProps {
 export function RequestsScreen({ onBack: _onBack, onChat, onRequest }: RequestsScreenProps) {
   const [tab, setTab] = useState<'new' | 'mine'>('new');
   const [toast, setToast] = useState<string | null>(null);
+  const [tabAnimDir, setTabAnimDir] = useState<'left' | 'right' | null>(null);
+  const [tabAnimKey, setTabAnimKey] = useState(0);
 
   const REQ_TABS = ['new', 'mine'] as const;
-  const { onTouchStart: swipeTouchStart, onTouchEnd: swipeTouchEnd } = useTabSwipe(REQ_TABS, tab, setTab);
+  const { onTouchStart: swipeTouchStart, onTouchEnd: swipeTouchEnd } = useTabSwipe(
+    REQ_TABS, tab,
+    (t, dir) => { setTabAnimDir(dir); setTabAnimKey(k => k + 1); setTab(t); },
+  );
   const [showInvite, setShowInvite] = useState(false);
   const [invitePhone, setInvitePhone] = useState('');
   const [inviteName, setInviteName] = useState('');
@@ -186,6 +191,10 @@ export function RequestsScreen({ onBack: _onBack, onChat, onRequest }: RequestsS
 
         {/* ── NEW REQUESTS ── */}
         {tab === 'new' && (
+          <div
+            key={tabAnimKey}
+            style={{ animation: tabAnimDir ? `${tabAnimDir === 'left' ? 'tabSlideLeft' : 'tabSlideRight'} 200ms cubic-bezier(0.25,0.46,0.45,0.94) both` : undefined }}
+          >
           <>
             <div className={`${styles.infoBanner} ${styles.infoBannerIce}`}>
               ⚡ Заявки с платформы — комиссия 5% при подтверждении
@@ -255,10 +264,15 @@ export function RequestsScreen({ onBack: _onBack, onChat, onRequest }: RequestsS
               ))}
             </div>
           </>
+          </div>
         )}
 
         {/* ── MY STUDENTS ── */}
         {tab === 'mine' && (
+          <div
+            key={tabAnimKey}
+            style={{ animation: tabAnimDir ? `${tabAnimDir === 'left' ? 'tabSlideLeft' : 'tabSlideRight'} 200ms cubic-bezier(0.25,0.46,0.45,0.94) both` : undefined }}
+          >
           <>
             <div className={`${styles.infoBanner} ${styles.infoBannerMint}`}>
               ★ Свои ученики — без комиссии. Не публикуются в каталоге, отзывы видите только вы
@@ -344,6 +358,7 @@ export function RequestsScreen({ onBack: _onBack, onChat, onRequest }: RequestsS
               </div>
             ))}
           </>
+          </div>
         )}
 
       </div>

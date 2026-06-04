@@ -156,3 +156,16 @@ input, textarea, select {
   from { transform: translateX(-18%); opacity: 0.5; }
   to   { transform: translateX(0);    opacity: 1; }
 }
+
+/* ── Анимации переключения вкладок (свайп) ───────────────────────────────────
+   tabSlideLeft  → новая вкладка въезжает справа (свайп влево, следующая)
+   tabSlideRight → новая вкладка въезжает слева  (свайп вправо, предыдущая)
+   ──────────────────────────────────────────────────────────────────────────── */
+@keyframes tabSlideLeft {
+  from { transform: translateX(28px); opacity: 0.5; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+@keyframes tabSlideRight {
+  from { transform: translateX(-28px); opacity: 0.5; }
+  to   { transform: translateX(0);     opacity: 1; }
+}

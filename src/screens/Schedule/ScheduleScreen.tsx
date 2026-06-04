@@ -230,10 +230,12 @@ export function ScheduleScreen({ onLesson, onChat, onCreateMasterClass }: Schedu
   // ── Tab swipe (только между lessons и available) ──────────────────────────
   const SWIPE_TABS = ['lessons', 'available'] as const;
   const swipeActive = tab === 'template' ? 'lessons' : tab as 'lessons' | 'available';
+  const [tabAnimDir, setTabAnimDir] = useState<'left' | 'right' | null>(null);
+  const [tabAnimKey, setTabAnimKey] = useState(0);
   const { onTouchStart: swipeTouchStart, onTouchEnd: swipeTouchEnd } = useTabSwipe(
     SWIPE_TABS,
     swipeActive,
-    (t) => setTab(t),
+    (t, dir) => { setTabAnimDir(dir); setTabAnimKey(k => k + 1); setTab(t); },
   );
 
   // ── Scroll tracking ────────────────────────────────────────────────────────
@@ -452,6 +454,10 @@ export function ScheduleScreen({ onLesson, onChat, onCreateMasterClass }: Schedu
 
         {/* ── ЗАНЯТИЯ ── */}
         {tab === 'lessons' && (
+          <div
+            key={tabAnimKey}
+            style={{ animation: tabAnimDir ? `${tabAnimDir === 'left' ? 'tabSlideLeft' : 'tabSlideRight'} 200ms cubic-bezier(0.25,0.46,0.45,0.94) both` : undefined }}
+          >
           <div className={styles.tabContent}>
             {bookingGroups.length === 0 ? (
               <div className={styles.emptyState}>
@@ -491,10 +497,15 @@ export function ScheduleScreen({ onLesson, onChat, onCreateMasterClass }: Schedu
               ))
             )}
           </div>
+          </div>
         )}
 
         {/* ── СВОБОДНО ── */}
         {tab === 'available' && (
+          <div
+            key={tabAnimKey}
+            style={{ animation: tabAnimDir ? `${tabAnimDir === 'left' ? 'tabSlideLeft' : 'tabSlideRight'} 200ms cubic-bezier(0.25,0.46,0.45,0.94) both` : undefined }}
+          >
           <div className={styles.tabContent}>
             <div className={styles.availHeader}>
               <div className={styles.availHeaderTitle}>Свободные слоты — 7 дней вперёд</div>
@@ -579,6 +590,7 @@ export function ScheduleScreen({ onLesson, onChat, onCreateMasterClass }: Schedu
                 )}
               </div>
             )}
+          </div>
           </div>
         )}
 
