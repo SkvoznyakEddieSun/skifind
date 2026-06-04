@@ -255,12 +255,12 @@ export function BookSlotScreen({ onBack, onBooked, instructor }: BookSlotScreenP
             {format === 'miniGroup' && (
               <div className={styles.stepperWrap}>
                 <span className={styles.stepperLabel}>Участников в группе</span>
-                <span className={styles.stepperVal}>{groupSize}</span>
                 <button
                   className={styles.stepperBtn}
                   onClick={() => setGroupSize(n => Math.max(2, n - 1))}
                   disabled={groupSize <= 2}
                 >−</button>
+                <span className={styles.stepperVal}>{groupSize}</span>
                 <button
                   className={styles.stepperBtn}
                   onClick={() => setGroupSize(n => Math.min(maxGroupSize, n + 1))}

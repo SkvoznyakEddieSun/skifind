@@ -10,25 +10,26 @@
 
 /* ── Header ── */
 .header {
-  background: var(--accent);
+  background: var(--surface-1);
   padding: calc(var(--safe-top) + 14px) 16px 20px;
   flex-shrink: 0;
   position: relative;
+  border-bottom: 1px solid var(--border);
 }
 
 .backBtn {
   position: absolute;
   left: 14px;
   top: calc(var(--safe-top) + 14px);
-  background: rgba(255,255,255,.15);
-  border: none;
+  background: var(--surface-3);
+  border: 1px solid var(--border);
   border-radius: 50%;
   width: 36px;
   height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #fff;
+  color: var(--text);
   font-size: 24px;
   line-height: 1;
   font-weight: 300;
@@ -39,7 +40,7 @@
   text-align: center;
   font-size: 11px;
   font-weight: 600;
-  color: rgba(255,255,255,.7);
+  color: var(--text-dim);
   text-transform: uppercase;
   letter-spacing: .7px;
   margin-bottom: 6px;
@@ -49,7 +50,7 @@
   text-align: center;
   font-size: 28px;
   font-weight: 700;
-  color: #fff;
+  color: var(--text);
   letter-spacing: -0.5px;
   margin-bottom: 2px;
 }
@@ -57,7 +58,7 @@
 .headerTime {
   text-align: center;
   font-size: 15px;
-  color: rgba(255,255,255,.8);
+  color: var(--text-dim);
 }
 
 /* ── Scroll ── */

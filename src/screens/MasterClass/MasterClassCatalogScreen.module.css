@@ -10,24 +10,24 @@
 
 /* ── Header ── */
 .header {
-  background: var(--accent);
+  background: var(--surface-1);
   padding: calc(var(--safe-top) + 14px) 16px 14px;
   display: flex;
   align-items: center;
   gap: 10px;
   flex-shrink: 0;
-}
+  }
 
 .backBtn {
-  background: rgba(255,255,255,.15);
-  border: none;
+  background: var(--surface-3);
+  border: 1px solid var(--border);
   border-radius: 50%;
   width: 36px;
   height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #fff;
+  color: var(--text);
   font-size: 24px;
   line-height: 1;
   font-weight: 300;
@@ -38,7 +38,7 @@
 .headerTitle {
   font-size: 20px;
   font-weight: 700;
-  color: #fff;
+  color: var(--text);
   letter-spacing: -0.3px;
 }
 
@@ -48,7 +48,7 @@
   gap: 8px;
   padding: 12px 16px;
   border-bottom: 1px solid var(--border);
-  background: var(--bg);
+  background: var(--surface-1);
   flex-shrink: 0;
 }
 
