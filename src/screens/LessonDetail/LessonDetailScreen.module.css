@@ -19,21 +19,15 @@
 
 .backBtn {
   position: absolute;
-  left: 14px;
-  top: calc(var(--safe-top) + 14px);
-  background: var(--surface-3);
-  border: 1px solid var(--border);
-  border-radius: 50%;
-  width: 36px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  left: 16px;
+  top: calc(var(--safe-top) + 12px);
+  background: none;
+  border: none;
   color: var(--text);
-  font-size: 24px;
+  font-size: 28px;
   line-height: 1;
-  font-weight: 300;
   cursor: pointer;
+  padding: 0;
 }
 
 .headerStatus {
