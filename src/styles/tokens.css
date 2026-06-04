@@ -126,6 +126,7 @@ html, body {
   font-family: var(--ff);
   color: var(--text);
   overscroll-behavior: none;
+  overflow-x: hidden;
   font-feature-settings: "cv11", "ss01";
   transition: background-color .25s ease, color .25s ease;
 }
