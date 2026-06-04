@@ -454,13 +454,22 @@ export function ProfileScreen({ instructor, onBack, onBook, onAskQuestion, onAll
             <button className={styles.lbClose} onClick={() => setLightboxIndex(null)} aria-label="Закрыть">×</button>
             <div className={styles.lbCounter}>{lightboxIndex + 1} / {gallery.length}</div>
 
-            <div
-              className={`${styles.lbMedia} ${item.cls} ${item.isVideo ? styles.video : ''}`}
-              style={bg ? { backgroundImage: `url(${bg})`, backgroundSize: 'contain', backgroundRepeat: 'no-repeat', backgroundPosition: 'center' } : undefined}
-              onClick={e => e.stopPropagation()}
-            >
-              {!bg && <span className={styles.lbEmoji}>{item.emoji}</span>}
-            </div>
+            {bg ? (
+              <img
+                src={bg}
+                className={styles.lbImg}
+                onClick={e => e.stopPropagation()}
+                alt=""
+                draggable={false}
+              />
+            ) : (
+              <div
+                className={`${styles.lbMedia} ${item.cls} ${item.isVideo ? styles.video : ''}`}
+                onClick={e => e.stopPropagation()}
+              >
+                <span className={styles.lbEmoji}>{item.emoji}</span>
+              </div>
+            )}
 
             {gallery.length > 1 && (
               <>
