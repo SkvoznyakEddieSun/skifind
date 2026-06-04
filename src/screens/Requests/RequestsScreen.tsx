@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import styles from './RequestsScreen.module.css';
 import { applyPhoneMask } from '@/utils/phoneMask';
+import { useTabSwipe } from '@/hooks/useTabSwipe';
 import {
   getPendingRequests,
   getAcceptedLessons,
@@ -113,6 +114,9 @@ interface RequestsScreenProps {
 export function RequestsScreen({ onBack: _onBack, onChat, onRequest }: RequestsScreenProps) {
   const [tab, setTab] = useState<'new' | 'mine'>('new');
   const [toast, setToast] = useState<string | null>(null);
+
+  const REQ_TABS = ['new', 'mine'] as const;
+  const { onTouchStart: swipeTouchStart, onTouchEnd: swipeTouchEnd } = useTabSwipe(REQ_TABS, tab, setTab);
   const [showInvite, setShowInvite] = useState(false);
   const [invitePhone, setInvitePhone] = useState('');
   const [inviteName, setInviteName] = useState('');
@@ -178,7 +182,7 @@ export function RequestsScreen({ onBack: _onBack, onChat, onRequest }: RequestsS
         </button>
       </div>
 
-      <div className={styles.scroll}>
+      <div className={styles.scroll} onTouchStart={swipeTouchStart} onTouchEnd={swipeTouchEnd}>
 
         {/* ── NEW REQUESTS ── */}
         {tab === 'new' && (

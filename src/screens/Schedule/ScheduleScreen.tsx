@@ -2,6 +2,7 @@ import { useState, useMemo, useRef, useCallback } from 'react';
 import styles from './ScheduleScreen.module.css';
 import { ScrollToTopBtn } from '@/components/ScrollToTopBtn';
 import { getAcceptedLessons } from '@/store/bookings';
+import { useTabSwipe } from '@/hooks/useTabSwipe';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -226,6 +227,15 @@ export function ScheduleScreen({ onLesson, onChat, onCreateMasterClass }: Schedu
   const [templateApplied, setTemplateApplied] = useState(false);
   const [showToast, setShowToast] = useState<string | false>(false);
 
+  // ── Tab swipe (только между lessons и available) ──────────────────────────
+  const SWIPE_TABS = ['lessons', 'available'] as const;
+  const swipeActive = tab === 'template' ? 'lessons' : tab as 'lessons' | 'available';
+  const { onTouchStart: swipeTouchStart, onTouchEnd: swipeTouchEnd } = useTabSwipe(
+    SWIPE_TABS,
+    swipeActive,
+    (t) => setTab(t),
+  );
+
   // ── Scroll tracking ────────────────────────────────────────────────────────
   const scrollRef = useRef<HTMLDivElement>(null);
   const [showTop, setShowTop] = useState(false);
@@ -436,7 +446,9 @@ export function ScheduleScreen({ onLesson, onChat, onCreateMasterClass }: Schedu
         </div>
       </div>
 
-      <div ref={scrollRef} className={styles.scroll} onScroll={handleScroll}>
+      <div ref={scrollRef} className={styles.scroll} onScroll={handleScroll}
+        onTouchStart={swipeTouchStart} onTouchEnd={swipeTouchEnd}
+      >
 
         {/* ── ЗАНЯТИЯ ── */}
         {tab === 'lessons' && (
