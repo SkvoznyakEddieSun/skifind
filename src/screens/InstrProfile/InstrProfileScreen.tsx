@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import styles from './InstrProfileScreen.module.css';
 import { ShareModal } from '@/components/ShareModal/ShareModal';
+import { getAcceptedLessons } from '@/store/bookings';
 
 interface ToggleSetting {
   id: string;
@@ -16,6 +17,12 @@ interface InstrProfileScreenProps {
 }
 
 export function InstrProfileScreen({ onBalance, onEditProfile, onLogout }: InstrProfileScreenProps) {
+  // Реальные цифры заработка из store
+  const accepted = getAcceptedLessons('aleksey');
+  const totalEarnings = accepted.reduce((s, b) => s + b.price, 0);
+  const lessonCount   = accepted.length;
+  const avgCheck      = lessonCount > 0 ? Math.round(totalEarnings / lessonCount) : 0;
+
   const [isDark, setIsDark] = useState(true);
   const [showShare, setShowShare] = useState(false);
   const [settings, setSettings] = useState<ToggleSetting[]>([
@@ -70,16 +77,16 @@ export function InstrProfileScreen({ onBalance, onEditProfile, onLogout }: Instr
 
           <div className={styles.metricsGrid}>
             <div className={styles.metric}>
-              <div className={styles.metricVal}>38 500</div>
-              <div className={styles.metricLbl}>₽ апрель</div>
+              <div className={styles.metricVal}>{totalEarnings.toLocaleString('ru')}</div>
+              <div className={styles.metricLbl}>₽ всего</div>
               <div className={styles.metricDelta}>↑ 12%</div>
             </div>
             <div className={styles.metric}>
-              <div className={styles.metricVal}>11</div>
+              <div className={styles.metricVal}>{lessonCount}</div>
               <div className={styles.metricLbl}>Занятий</div>
             </div>
             <div className={styles.metric}>
-              <div className={styles.metricVal}>3 500</div>
+              <div className={styles.metricVal}>{avgCheck.toLocaleString('ru')}</div>
               <div className={styles.metricLbl}>Ср. чек ₽</div>
             </div>
           </div>

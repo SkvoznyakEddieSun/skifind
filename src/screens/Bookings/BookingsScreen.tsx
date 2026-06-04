@@ -248,7 +248,7 @@ export function BookingsScreen({ onChat, onCancel, onBookAgain }: BookingsScreen
                       <button className={`${styles.btn} ${styles.btnSecondary} ${styles.btnSm}`} style={{ flex: 1 }} onClick={() => onChat(b.id)}>
                         💬 {t('bookings.chat')}
                       </button>
-                      <button className={`${styles.btn} ${styles.btnPrimary} ${styles.btnSm}`} style={{ flex: 1 }} onClick={() => window.location.href = 'tel:+79000000000'}>
+                      <button className={`${styles.btn} ${styles.btnPrimary} ${styles.btnSm}`} style={{ flex: 1 }} onClick={() => showToast('📞 Номер инструктора отправлен в чат')}>
                         📞 {t('bookings.call')}
                       </button>
                     </>
