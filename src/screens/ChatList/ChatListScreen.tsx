@@ -8,7 +8,7 @@ interface ChatItem {
   initials: string;
   avClass: string;
   name: string;
-  role: 'ученик' | 'ученица' | 'коллега';
+  role: 'ученик' | 'ученица' | 'коллега' | 'инструктор';
   online?: boolean;
   time: string;
   muted?: boolean;
@@ -19,7 +19,9 @@ interface ChatItem {
   instructorPhone?: string;
 }
 
-const RECENT: ChatItem[] = [
+// ── Данные для ИНСТРУКТОРА (ученики + коллеги-инструкторы) ────────────────
+
+const INSTR_RECENT: ChatItem[] = [
   {
     id: 'roman',
     initials: 'РЕ', avClass: 'avCoral', name: 'Роман Ефимов', role: 'ученик',
@@ -69,7 +71,7 @@ const RECENT: ChatItem[] = [
   },
 ];
 
-const OLDER: ChatItem[] = [
+const INSTR_OLDER: ChatItem[] = [
   {
     id: 'tatyana',
     initials: 'ТН', avClass: 'avMint', name: 'Татьяна Новикова', role: 'ученица',
@@ -115,16 +117,73 @@ const OLDER: ChatItem[] = [
   },
 ];
 
+// ── Данные для УЧЕНИКА/ГОСТЯ (только инструкторы) ─────────────────────────
+
+const GUEST_RECENT: ChatItem[] = [
+  {
+    id: 'aleksey',
+    initials: 'АМ', avClass: 'avIce', name: 'Алексей Морозов', role: 'инструктор',
+    online: true, time: '11:42', unread: 1,
+    msg: 'Встречаемся у первого подъёмника в 10:00 👍',
+    bookingStatus: 'ACCEPTED',
+    instructorPhone: '+7 912 345 67 89',
+  },
+  {
+    id: 'natalya',
+    initials: 'НП', avClass: 'avMint', name: 'Наталья Петрова', role: 'инструктор',
+    time: 'вчера',
+    msg: 'Занятие в четверг подтверждено 🎿',
+    bookingStatus: 'ACCEPTED',
+    instructorPhone: '+7 903 987 65 43',
+  },
+];
+
+const GUEST_OLDER: ChatItem[] = [
+  {
+    id: 'dmitry',
+    initials: 'ДЗ', avClass: 'avPurple', name: 'Дмитрий Захаров', role: 'инструктор',
+    time: '20 апр',
+    msg: 'Да, работаю с детьми от 6 лет, пишите',
+    bookingStatus: 'NONE',
+  },
+  {
+    id: 'marina',
+    initials: 'МВ', avClass: 'avStraw', name: 'Марина Волкова', role: 'инструктор',
+    time: '14 апр',
+    msg: 'К сожалению, эта дата уже занята',
+    myMsg: false,
+    bookingStatus: 'NONE',
+  },
+  {
+    id: 'sergey',
+    initials: 'СЛ', avClass: 'avBlue', name: 'Сергей Лебедев', role: 'инструктор',
+    time: '8 апр',
+    msg: 'Хорошо, жду вас в субботу!',
+    myMsg: false,
+    bookingStatus: 'ACCEPTED',
+    instructorPhone: '+7 926 111 22 33',
+  },
+];
+
+// ── Props ──────────────────────────────────────────────────────────────────
+
 interface ChatListScreenProps {
   onBack?: () => void;
   onChat?: (id: string, status: BookingStatus, phone?: string, name?: string, initials?: string, avColor?: string, role?: string) => void;
   onCommunity?: () => void;
   joinedMcIds?: Set<string>;
   onGroupChat?: (mcId: string) => void;
+  isInstructor?: boolean;
 }
 
+// ── ChatRow ────────────────────────────────────────────────────────────────
+
 function ChatRow({ item, onClick }: { item: ChatItem; onClick?: () => void }) {
-  const isCollega = item.role === 'коллега';
+  const roleClass =
+    item.role === 'коллега'    ? styles.ciRoleColl :
+    item.role === 'инструктор' ? styles.ciRoleInstr :
+    '';
+
   return (
     <div className={styles.chatItem} onClick={onClick} style={onClick ? { cursor: 'pointer' } : undefined}>
       <div className={styles.ciAv}>
@@ -137,7 +196,7 @@ function ChatRow({ item, onClick }: { item: ChatItem; onClick?: () => void }) {
         <div className={styles.ciTop}>
           <div className={styles.ciName}>
             {item.name}
-            <span className={`${styles.ciRole} ${isCollega ? styles.ciRoleColl : ''}`}>
+            <span className={`${styles.ciRole} ${roleClass}`}>
               {item.role}
             </span>
           </div>
@@ -158,10 +217,14 @@ function ChatRow({ item, onClick }: { item: ChatItem; onClick?: () => void }) {
   );
 }
 
-export function ChatListScreen({ onBack: _onBack, onChat, onCommunity, joinedMcIds, onGroupChat }: ChatListScreenProps) {
+// ── Screen ─────────────────────────────────────────────────────────────────
+
+export function ChatListScreen({ onBack: _onBack, onChat, onCommunity, joinedMcIds, onGroupChat, isInstructor }: ChatListScreenProps) {
   const [query, setQuery] = useState('');
 
-  // Групповые чаты МК — только если есть вступления
+  const RECENT = isInstructor ? INSTR_RECENT : GUEST_RECENT;
+  const OLDER  = isInstructor ? INSTR_OLDER  : GUEST_OLDER;
+
   const joinedMcs = MASTER_CLASSES.filter(mc => joinedMcIds?.has(mc.id));
 
   function matches(item: ChatItem) {
@@ -174,12 +237,18 @@ export function ChatListScreen({ onBack: _onBack, onChat, onCommunity, joinedMcI
   const filteredOlder  = OLDER.filter(matches);
   const noResults = filteredRecent.length === 0 && filteredOlder.length === 0;
 
+  const totalUnread = [...RECENT, ...OLDER].reduce((s, i) => s + (i.unread ?? 0), 0);
+
   return (
     <div className={styles.screen}>
       {/* Topbar */}
       <div className={styles.topbar}>
         <div className={styles.tbTitle}>Сообщения</div>
-        <div className={styles.tbSub}>2 непрочитанных</div>
+        {totalUnread > 0 && (
+          <div className={styles.tbSub}>
+            {totalUnread} {totalUnread === 1 ? 'непрочитанное' : totalUnread < 5 ? 'непрочитанных' : 'непрочитанных'}
+          </div>
+        )}
       </div>
       <div className={styles.searchBar}>
         <input
@@ -205,7 +274,7 @@ export function ChatListScreen({ onBack: _onBack, onChat, onCommunity, joinedMcI
           </div>
         )}
 
-        {/* ── Групповые чаты МК ── */}
+        {/* Групповые чаты МК */}
         {joinedMcs.length > 0 && (
           <>
             <div className={styles.sectionDivider}>Групповые чаты</div>

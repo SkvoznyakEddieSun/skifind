@@ -376,6 +376,7 @@ export function App() {
             push('chat');
           }}
           onCommunity={() => push('community')}
+          isInstructor
         />
       );
     } else if (instrTab === 'calendar') {
@@ -453,14 +454,11 @@ export function App() {
       tabContent = (
         <ChatListScreen
           onChat={(id, status, phone, name, initials, avColor) => {
+            // Гостевые чаты — только инструкторы
             const instr = INSTRUCTORS.find(i => i.id === id);
-            if (instr) {
-              setActiveInstructor(instr);
-              setChatPersonHasProfile(true);
-              setChatPersonProfileType('instructor');
-            } else {
-              setChatPersonHasProfile(false);
-            }
+            if (instr) setActiveInstructor(instr);
+            setChatPersonHasProfile(true);
+            setChatPersonProfileType('instructor');
             setChatBookingStatus(status);
             setChatInstructorPhone(phone);
             setChatPersonName(name ?? '');

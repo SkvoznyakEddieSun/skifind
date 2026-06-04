@@ -201,6 +201,14 @@
   color: rgba(24,95,165,.6);
 }
 
+.ciRoleInstr {
+  color: rgba(74, 192, 160, 0.8);
+}
+
+:root[data-theme="light"] .ciRoleInstr {
+  color: rgba(30, 140, 110, 0.75);
+}
+
 .ciTime {
   font-size: 11px;
   color: var(--text-dim);
