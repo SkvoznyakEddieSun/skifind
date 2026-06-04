@@ -289,7 +289,7 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onBecomeInst
   const [type, setType]               = useState<SportType>('all');
   const [level, setLevel]             = useState<Level>('all');
   const [sort, setSort]               = useState<SortKey>('rating');
-  const [onlyFreeToday, setOnlyFreeToday] = useState(false);
+  const [onlyFreeToday] = useState(false);
   const [localFavorites, setLocalFavorites] = useState<Set<string>>(new Set());
   const favorites = favoritesProp ?? localFavorites;
   const contentRef                    = useRef<HTMLDivElement>(null);
@@ -298,8 +298,7 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onBecomeInst
     contentRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
 
-  const freeTodayCount = INSTRUCTORS.filter(i => i.hasFreeSlotsToday).length;
-  const avgRating = (INSTRUCTORS.reduce((sum, i) => sum + i.rating, 0) / INSTRUCTORS.length).toFixed(1);
+const avgRating = (INSTRUCTORS.reduce((sum, i) => sum + i.rating, 0) / INSTRUCTORS.length).toFixed(1);
 
   function toggleFav(id: string) {
     if (onToggleFavorite) {
@@ -398,20 +397,6 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onBecomeInst
       {/* ── Скроллируемый контент ── */}
       <div className={styles.content} ref={contentRef}>
         <div className={styles.filtersSection}>
-          <button
-            className={`${styles.availBtn} ${onlyFreeToday ? styles.availBtnActive : ''}`}
-            onClick={() => { setOnlyFreeToday(v => !v); scrollToTop(); }}
-          >
-            <span className={styles.availPulse} />
-            <span className={styles.availLabel}>
-              {onlyFreeToday
-                ? t('catalog.showFreeToday', { count: freeTodayCount })
-                : t('catalog.showAll')}
-            </span>
-            <span className={styles.availCount}>
-              {t('catalog.showFreeToday', { count: freeTodayCount })}
-            </span>
-          </button>
 
           <div className={styles.sortRow}>
             <div className={styles.sortLabel}>{t('catalog.sortLabel')}</div>
