@@ -265,4 +265,194 @@
 }
 
 .btnBlock:active { opacity: .8; }
+.btnBlock:disabled { opacity: .5; cursor: default; }
 .btnDanger { color: var(--red); }
+
+.btnBlockSaved {
+  color: var(--success-on-light);
+  border-color: var(--mint);
+  background: var(--mint);
+}
+
+.btnBlockSecondary {
+  display: block;
+  width: 100%;
+  padding: 13px 20px;
+  border-radius: var(--r12);
+  font-size: 14px;
+  font-weight: 500;
+  background: transparent;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  font-family: var(--ff);
+  cursor: pointer;
+  text-align: center;
+  margin-bottom: 8px;
+  transition: opacity .15s;
+}
+
+.btnBlockSecondary:active { opacity: .7; }
+
+/* ── Price rows ── */
+.priceRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 11px 0;
+}
+
+.priceRow + .priceRow {
+  border-top: 0.5px solid var(--border);
+}
+
+.priceLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+}
+
+.priceEmoji {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.priceLabel {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.priceHint {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+
+.priceRight {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.priceInput {
+  width: 72px;
+  padding: 6px 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r8);
+  font-family: var(--ff);
+  text-align: right;
+  outline: none;
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.priceInput::-webkit-inner-spin-button,
+.priceInput::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.priceInput:focus {
+  border-color: var(--accent);
+}
+
+.priceInputError {
+  border-color: var(--red) !important;
+}
+
+.priceUnit {
+  font-size: 11px;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+/* ── Day chips ── */
+.dayChips {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding: 10px 0;
+}
+
+.dayChip {
+  padding: 6px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  background: var(--bg);
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  font-family: var(--ff);
+  transition: background .15s, color .15s, border-color .15s;
+}
+
+.dayChipOn {
+  background: var(--accent);
+  color: var(--accent-text);
+  border-color: var(--accent);
+}
+
+/* ── Time row ── */
+.timeRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 0;
+}
+
+.timeRowLabel {
+  font-size: 12px;
+  color: var(--text-dim);
+  flex-shrink: 0;
+}
+
+.timeSelect {
+  flex: 1;
+  padding: 7px 10px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r8);
+  font-family: var(--ff);
+  outline: none;
+  cursor: pointer;
+  appearance: auto;
+}
+
+.timeSelect:focus {
+  border-color: var(--accent);
+}
+
+/* ── Toast ── */
+.toast {
+  position: fixed;
+  bottom: calc(var(--safe-bottom) + 80px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 9px 18px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  white-space: nowrap;
+  box-shadow: 0 4px 20px rgba(0,0,0,.15);
+  z-index: 9999;
+  pointer-events: none;
+  animation: toastIn .25s ease;
+}
+
+@keyframes toastIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(8px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}

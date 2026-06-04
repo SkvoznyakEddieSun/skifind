@@ -322,6 +322,7 @@ export function App() {
         <InstrProfileScreen
           onBalance={() => push('balance')}
           onEditProfile={() => push('register')}
+          onSchedule={() => switchInstrTab('calendar')}
           onLogout={() => setStack(['auth'])}
         />
       );

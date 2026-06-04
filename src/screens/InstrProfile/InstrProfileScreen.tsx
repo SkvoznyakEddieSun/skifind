@@ -2,6 +2,14 @@ import { useState } from 'react';
 import styles from './InstrProfileScreen.module.css';
 import { ShareModal } from '@/components/ShareModal/ShareModal';
 import { getAcceptedLessons } from '@/store/bookings';
+import {
+  INSTRUCTOR_PRICES,
+  INSTRUCTOR_SCHEDULE,
+  DAY_CHIPS,
+  TIME_OPTIONS,
+  updatePrice,
+  updateSchedule,
+} from '@/store/instructorProfile';
 
 interface ToggleSetting {
   id: string;
@@ -13,23 +21,79 @@ interface ToggleSetting {
 interface InstrProfileScreenProps {
   onBalance:     () => void;
   onEditProfile: () => void;
+  onSchedule:    () => void;
   onLogout:      () => void;
 }
 
-export function InstrProfileScreen({ onBalance, onEditProfile, onLogout }: InstrProfileScreenProps) {
-  // Реальные цифры заработка из store
-  const accepted = getAcceptedLessons('aleksey');
+export function InstrProfileScreen({ onBalance, onEditProfile, onSchedule, onLogout }: InstrProfileScreenProps) {
+  // Реальные цифры заработка
+  const accepted      = getAcceptedLessons('aleksey');
   const totalEarnings = accepted.reduce((s, b) => s + b.price, 0);
   const lessonCount   = accepted.length;
   const avgCheck      = lessonCount > 0 ? Math.round(totalEarnings / lessonCount) : 0;
 
-  const [isDark, setIsDark] = useState(true);
+  const [isDark, setIsDark]     = useState(true);
   const [showShare, setShowShare] = useState(false);
+  const [toast, setToast]       = useState<string | null>(null);
+
+  // ── Цены ──────────────────────────────────────────────────────────────
+  const [prices, setPrices] = useState(() =>
+    INSTRUCTOR_PRICES.map(r => ({ ...r, draft: String(r.price) }))
+  );
+  const [pricesSaved, setPricesSaved] = useState(false);
+
+  function handlePriceChange(format: string, val: string) {
+    setPrices(prev => prev.map(r => r.format === format ? { ...r, draft: val } : r));
+    setPricesSaved(false);
+  }
+
+  function savePrices() {
+    prices.forEach(r => {
+      const n = parseInt(r.draft, 10);
+      if (!isNaN(n) && n > 0) updatePrice(r.format as any, n);
+    });
+    setPrices(INSTRUCTOR_PRICES.map(r => ({ ...r, draft: String(r.price) })));
+    setPricesSaved(true);
+    showToast('✓ Цены сохранены');
+  }
+
+  // ── Расписание ────────────────────────────────────────────────────────
+  const [workDays,  setWorkDays]  = useState<Set<number>>(new Set(INSTRUCTOR_SCHEDULE.workDays));
+  const [startTime, setStartTime] = useState(INSTRUCTOR_SCHEDULE.startTime);
+  const [endTime,   setEndTime]   = useState(INSTRUCTOR_SCHEDULE.endTime);
+  const [breakOn,   setBreakOn]   = useState(INSTRUCTOR_SCHEDULE.breakEnabled);
+  const [breakStart, setBreakStart] = useState(INSTRUCTOR_SCHEDULE.breakStart);
+  const [breakEnd,   setBreakEnd]   = useState(INSTRUCTOR_SCHEDULE.breakEnd);
+  const [schedSaved, setSchedSaved] = useState(false);
+
+  function toggleDay(dow: number) {
+    setWorkDays(prev => {
+      const next = new Set(prev);
+      next.has(dow) ? next.delete(dow) : next.add(dow);
+      return next;
+    });
+    setSchedSaved(false);
+  }
+
+  function saveSchedule() {
+    updateSchedule({
+      workDays:     Array.from(workDays),
+      startTime,
+      endTime,
+      breakEnabled: breakOn,
+      breakStart,
+      breakEnd,
+    });
+    setSchedSaved(true);
+    showToast('✓ Расписание сохранено');
+  }
+
+  // ── Видимость ─────────────────────────────────────────────────────────
   const [settings, setSettings] = useState<ToggleSetting[]>([
-    { id: 'published', title: 'Профиль опубликован',     sub: 'Виден гостям в каталоге',                    on: true },
-    { id: 'requests',  title: 'Принимать заявки',         sub: 'Гости могут отправлять заявки',              on: true },
-    { id: 'notif',     title: 'Уведомления о заявках',    sub: 'Push-уведомления при новой заявке',          on: true },
-    { id: 'community', title: 'Видимость в Сообществе',   sub: 'Коллеги могут найти вас и написать',         on: true },
+    { id: 'published', title: 'Профиль опубликован',   sub: 'Виден гостям в каталоге',            on: true },
+    { id: 'requests',  title: 'Принимать заявки',       sub: 'Гости могут отправлять заявки',      on: true },
+    { id: 'notif',     title: 'Уведомления о заявках',  sub: 'Push при новой заявке',              on: true },
+    { id: 'community', title: 'Видимость в сообществе', sub: 'Коллеги могут найти вас',            on: true },
   ]);
 
   function toggleSetting(id: string) {
@@ -42,9 +106,21 @@ export function InstrProfileScreen({ onBalance, onEditProfile, onLogout }: Instr
     document.documentElement.setAttribute('data-theme', next ? 'dark' : 'light');
   }
 
+  function showToast(msg: string) {
+    setToast(msg);
+    setTimeout(() => setToast(null), 2500);
+  }
+
+  // Проверка: есть ли несохранённые изменения в ценах
+  const pricesDirty = prices.some(r => {
+    const n = parseInt(r.draft, 10);
+    return !isNaN(n) && n !== r.price;
+  });
+
   return (
     <div className={styles.screen}>
       {showShare && <ShareModal onClose={() => setShowShare(false)} />}
+
       {/* Topbar */}
       <div className={styles.topbar}>
         <div className={styles.tbRow}>
@@ -53,17 +129,11 @@ export function InstrProfileScreen({ onBalance, onEditProfile, onLogout }: Instr
             <div className={styles.tbName}>Алексей Морозов</div>
             <div className={styles.tbRole}>Инструктор · Сноуборд</div>
           </div>
-          <button
-            className={styles.shareBtn}
-            aria-label="Поделиться"
-            onClick={() => setShowShare(true)}
-          >
+          <button className={styles.shareBtn} aria-label="Поделиться" onClick={() => setShowShare(true)}>
             <svg viewBox="0 0 24 24">
-              <circle cx="18" cy="5" r="3"/>
-              <circle cx="6" cy="12" r="3"/>
-              <circle cx="18" cy="19" r="3"/>
+              <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
               <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
-              <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+              <line x1="15.41" y1="6.51"  x2="8.59"  y2="10.49"/>
             </svg>
           </button>
         </div>
@@ -71,10 +141,9 @@ export function InstrProfileScreen({ onBalance, onEditProfile, onLogout }: Instr
 
       <div className={styles.scroll}>
 
-        {/* ── Earnings ── */}
+        {/* ── Заработок ── */}
         <div className={styles.earningsWrap}>
           <div className={styles.secLabel}>Заработок</div>
-
           <div className={styles.metricsGrid}>
             <div className={styles.metric}>
               <div className={styles.metricVal}>{totalEarnings.toLocaleString('ru')}</div>
@@ -93,47 +162,162 @@ export function InstrProfileScreen({ onBalance, onEditProfile, onLogout }: Instr
 
           <div className={styles.secLabel}>Последние выплаты</div>
           <div className={styles.paymentList}>
-            <div className={styles.paymentRow}>
-              <div className={`${styles.av} ${styles.avSm} ${styles.avIce}`}>КВ</div>
-              <div className={styles.payInfo}>
-                <div className={styles.payName}>Кирилл Волков</div>
-                <div className={styles.payMeta}>25 апр · Инд. · 2 ч</div>
+            {accepted.slice(0, 3).map(b => (
+              <div key={b.id} className={styles.paymentRow}>
+                <div className={`${styles.av} ${styles.avSm} ${styles[`av${b.studentColor.charAt(0).toUpperCase() + b.studentColor.slice(1)}`]}`}>
+                  {b.studentInitials}
+                </div>
+                <div className={styles.payInfo}>
+                  <div className={styles.payName}>{b.studentName}</div>
+                  <div className={styles.payMeta}>{b.dayNum} {b.dayMon} · {b.formatLabel}</div>
+                </div>
+                <div className={styles.payRight}>
+                  <div className={styles.payAmount}>{b.price.toLocaleString('ru')} ₽</div>
+                  <span className={`${styles.payBadge} ${styles.payBadgePaid}`}>Оплачено</span>
+                </div>
               </div>
-              <div className={styles.payRight}>
-                <div className={styles.payAmount}>7 000 ₽</div>
-                <span className={`${styles.payBadge} ${styles.payBadgePaid}`}>Оплачено</span>
-              </div>
-            </div>
-            <div className={styles.paymentRow}>
-              <div className={`${styles.av} ${styles.avSm} ${styles.avMint}`}>ТН</div>
-              <div className={styles.payInfo}>
-                <div className={styles.payName}>Татьяна Новикова</div>
-                <div className={styles.payMeta}>22 апр · Дет. · 45 мин</div>
-              </div>
-              <div className={styles.payRight}>
-                <div className={styles.payAmount}>2 800 ₽</div>
-                <span className={`${styles.payBadge} ${styles.payBadgePaid}`}>Оплачено</span>
-              </div>
-            </div>
-            <div className={styles.paymentRow}>
-              <div className={`${styles.av} ${styles.avSm} ${styles.avPurple}`}>АБ</div>
-              <div className={styles.payInfo}>
-                <div className={styles.payName}>Анна Белова</div>
-                <div className={styles.payMeta}>29 апр · 3 ч · запланировано</div>
-              </div>
-              <div className={styles.payRight}>
-                <div className={styles.payAmount}>10 500 ₽</div>
-                <span className={`${styles.payBadge} ${styles.payBadgePending}`}>Ожидает</span>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
 
-        {/* ── Settings ── */}
+        {/* ── Цены на занятия ── */}
+        <div className={styles.settingsWrap}>
+          <div className={styles.secLabel}>Цены на занятия</div>
+          <div className={styles.settingsGroup}>
+            <div className={styles.settingsGroupBody}>
+              {prices.map(r => {
+                const n = parseInt(r.draft, 10);
+                const invalid = r.draft.trim() !== '' && (isNaN(n) || n <= 0);
+                return (
+                  <div key={r.format} className={styles.priceRow}>
+                    <div className={styles.priceLeft}>
+                      <span className={styles.priceEmoji}>{r.emoji}</span>
+                      <div>
+                        <div className={styles.priceLabel}>{r.label}</div>
+                        <div className={styles.priceHint}>{r.hint}</div>
+                      </div>
+                    </div>
+                    <div className={styles.priceRight}>
+                      <input
+                        type="number"
+                        inputMode="numeric"
+                        className={`${styles.priceInput} ${invalid ? styles.priceInputError : ''}`}
+                        value={r.draft}
+                        onChange={e => handlePriceChange(r.format, e.target.value)}
+                      />
+                      <span className={styles.priceUnit}>{r.unit}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+          <button
+            className={`${styles.btnBlock} ${(!pricesDirty && pricesSaved) ? styles.btnBlockSaved : ''}`}
+            onClick={savePrices}
+            disabled={!pricesDirty && pricesSaved}
+          >
+            {pricesSaved && !pricesDirty ? '✓ Цены сохранены' : 'Сохранить цены'}
+          </button>
+        </div>
+
+        {/* ── Расписание ── */}
+        <div className={styles.settingsWrap}>
+          <div className={styles.secLabel}>Расписание</div>
+          <div className={styles.settingsGroup}>
+            <div className={styles.settingsGroupLabel}>Рабочие дни</div>
+            <div className={styles.settingsGroupBody}>
+              <div className={styles.dayChips}>
+                {DAY_CHIPS.map(d => (
+                  <button
+                    key={d.dow}
+                    className={`${styles.dayChip} ${workDays.has(d.dow) ? styles.dayChipOn : ''}`}
+                    onClick={() => toggleDay(d.dow)}
+                  >
+                    {d.short}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className={styles.settingsGroup}>
+            <div className={styles.settingsGroupLabel}>Рабочие часы</div>
+            <div className={styles.settingsGroupBody}>
+              <div className={styles.timeRow}>
+                <span className={styles.timeRowLabel}>С</span>
+                <select
+                  className={styles.timeSelect}
+                  value={startTime}
+                  onChange={e => { setStartTime(e.target.value); setSchedSaved(false); }}
+                >
+                  {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
+                </select>
+                <span className={styles.timeRowLabel}>До</span>
+                <select
+                  className={styles.timeSelect}
+                  value={endTime}
+                  onChange={e => { setEndTime(e.target.value); setSchedSaved(false); }}
+                >
+                  {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div className={styles.settingsGroup}>
+            <div className={styles.settingsGroupBody}>
+              <div className={styles.settingRow}>
+                <div className={styles.settingLabel}>
+                  <div className={styles.settingTitle}>Перерыв на обед</div>
+                  <div className={styles.settingSub}>
+                    {breakOn ? `${breakStart} — ${breakEnd}` : 'Выключен'}
+                  </div>
+                </div>
+                <button
+                  className={`${styles.sw} ${breakOn ? styles.swOn : ''}`}
+                  onClick={() => { setBreakOn(v => !v); setSchedSaved(false); }}
+                />
+              </div>
+              {breakOn && (
+                <div className={styles.timeRow} style={{ paddingTop: 8 }}>
+                  <span className={styles.timeRowLabel}>С</span>
+                  <select
+                    className={styles.timeSelect}
+                    value={breakStart}
+                    onChange={e => { setBreakStart(e.target.value); setSchedSaved(false); }}
+                  >
+                    {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
+                  </select>
+                  <span className={styles.timeRowLabel}>До</span>
+                  <select
+                    className={styles.timeSelect}
+                    value={breakEnd}
+                    onChange={e => { setBreakEnd(e.target.value); setSchedSaved(false); }}
+                  >
+                    {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
+                  </select>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <button
+            className={`${styles.btnBlock} ${schedSaved ? styles.btnBlockSaved : ''}`}
+            onClick={saveSchedule}
+            disabled={schedSaved}
+          >
+            {schedSaved ? '✓ Расписание сохранено' : 'Сохранить расписание'}
+          </button>
+          <button className={styles.btnBlockSecondary} onClick={onSchedule}>
+            📅 Управление слотами и занятиями →
+          </button>
+        </div>
+
+        {/* ── Настройки ── */}
         <div className={styles.settingsWrap}>
           <div className={styles.secLabel}>Настройки</div>
 
-          {/* Основное */}
           <div className={styles.settingsGroup}>
             <div className={styles.settingsGroupLabel}>Основное</div>
             <div className={styles.settingsGroupBody}>
@@ -152,7 +336,6 @@ export function InstrProfileScreen({ onBalance, onEditProfile, onLogout }: Instr
             </div>
           </div>
 
-          {/* Внешний вид */}
           <div className={styles.settingsGroup}>
             <div className={styles.settingsGroupLabel}>Внешний вид</div>
             <div className={styles.settingsGroupBody}>
@@ -161,16 +344,11 @@ export function InstrProfileScreen({ onBalance, onEditProfile, onLogout }: Instr
                   <div className={styles.settingTitle}>Оформление</div>
                   <div className={styles.settingSub}>{isDark ? 'Тёмная тема ☾' : 'Светлая тема ☀️'}</div>
                 </div>
-                <button
-                  className={`${styles.sw} ${isDark ? styles.swOn : ''}`}
-                  onClick={toggleTheme}
-                  aria-label="Переключить тему"
-                />
+                <button className={`${styles.sw} ${isDark ? styles.swOn : ''}`} onClick={toggleTheme} />
               </div>
             </div>
           </div>
 
-          {/* Видимость */}
           <div className={styles.settingsGroup}>
             <div className={styles.settingsGroupLabel}>Видимость</div>
             <div className={styles.settingsGroupBody}>
@@ -183,25 +361,20 @@ export function InstrProfileScreen({ onBalance, onEditProfile, onLogout }: Instr
                   <button
                     className={`${styles.sw} ${s.on ? styles.swOn : ''}`}
                     onClick={() => toggleSetting(s.id)}
-                    aria-label={s.title}
                   />
                 </div>
               ))}
             </div>
           </div>
 
-          <button className={styles.btnBlock} onClick={onBalance}>
-            💰 Баланс и история платежей →
-          </button>
-          <button className={styles.btnBlock} onClick={onEditProfile}>
-            Редактировать профиль →
-          </button>
-          <button className={`${styles.btnBlock} ${styles.btnDanger}`} onClick={onLogout}>
-            Выйти из аккаунта
-          </button>
+          <button className={styles.btnBlock} onClick={onBalance}>💰 Баланс и история платежей →</button>
+          <button className={styles.btnBlock} onClick={onEditProfile}>Редактировать профиль →</button>
+          <button className={`${styles.btnBlock} ${styles.btnDanger}`} onClick={onLogout}>Выйти из аккаунта</button>
         </div>
 
       </div>
+
+      {toast && <div className={styles.toast}>{toast}</div>}
     </div>
   );
 }
