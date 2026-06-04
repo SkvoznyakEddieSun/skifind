@@ -245,6 +245,7 @@ export function App() {
   }
   else if (screen === 'notif-bookings') {
     content = <BookingsScreen
+      onBack={pop}
       onChat={instructorId => {
         const instr = INSTRUCTORS.find(i => i.id === instructorId) ?? activeInstructor;
         setActiveInstructor(instr);

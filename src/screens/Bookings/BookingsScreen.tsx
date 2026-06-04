@@ -80,9 +80,10 @@ interface BookingsScreenProps {
   onCancel?: (bookingId: string) => void;
   onLeaveReview?: (bookingId: string) => void;
   onBookAgain: (instructorId: string) => void;
+  onBack?: () => void;
 }
 
-export function BookingsScreen({ onChat, onCancel, onBookAgain }: BookingsScreenProps) {
+export function BookingsScreen({ onChat, onCancel, onBookAgain, onBack }: BookingsScreenProps) {
   const { t } = useTranslation();
 
   // Читаем из хранилища при каждом монтировании (свежие данные после нового бронирования)
@@ -146,6 +147,7 @@ export function BookingsScreen({ onChat, onCancel, onBookAgain }: BookingsScreen
       {/* Topbar */}
       <div className={styles.topbar}>
         <div className={styles.tbRow}>
+          {onBack && <button className={styles.tbBack} onClick={onBack}>‹</button>}
           <div style={{ flex: 1 }}>
             <div className={styles.tbTitle}>{t('bookings.title')}</div>
             <div className={styles.tbSub}>{t('bookings.sub')}</div>
