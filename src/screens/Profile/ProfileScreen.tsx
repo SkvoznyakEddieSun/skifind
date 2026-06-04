@@ -95,6 +95,8 @@ interface ProfileScreenProps {
   onAllReviews: () => void;
   isBlocked?: boolean;
   onToggleBlock?: (instructorId: string, blocked: boolean) => void;
+  isOwnProfile?: boolean;
+  onEditProfile?: () => void;
 }
 
 // Строим sub-строку ("Горные лыжи · Сноуборд · 8 лет опыта") из Instructor
@@ -108,7 +110,7 @@ function buildSub(instr: Instructor): string {
  * Принимает реальный Instructor и подставляет его данные,
  * для остальных полей (навыки, расписание, отзывы) использует моки.
  */
-export function ProfileScreen({ instructor, onBack, onBook, onAskQuestion, onAllReviews, isBlocked: isBlockedProp, onToggleBlock }: ProfileScreenProps) {
+export function ProfileScreen({ instructor, onBack, onBook, onAskQuestion, onAllReviews, isBlocked: isBlockedProp, onToggleBlock, isOwnProfile, onEditProfile }: ProfileScreenProps) {
   const { t } = useTranslation();
 
   // Если передан реальный инструктор — подставляем его данные поверх мока
@@ -207,12 +209,20 @@ export function ProfileScreen({ instructor, onBack, onBook, onAskQuestion, onAll
 
       {/* ── Actions ── */}
       <div className={styles.profActions}>
-        <button className={`${styles.btn} ${styles.btnPrimary}`} style={{ flex: 1 }} onClick={onBook}>
-          Записаться
-        </button>
-        <button className={`${styles.btn} ${styles.btnSecondary}`} style={{ flex: 1 }} onClick={onAskQuestion}>
-          Задать вопрос
-        </button>
+        {isOwnProfile ? (
+          <button className={`${styles.btn} ${styles.btnSecondary}`} style={{ flex: 1 }} onClick={onEditProfile}>
+            Редактировать профиль →
+          </button>
+        ) : (
+          <>
+            <button className={`${styles.btn} ${styles.btnPrimary}`} style={{ flex: 1 }} onClick={onBook}>
+              Записаться
+            </button>
+            <button className={`${styles.btn} ${styles.btnSecondary}`} style={{ flex: 1 }} onClick={onAskQuestion}>
+              Задать вопрос
+            </button>
+          </>
+        )}
       </div>
 
       {/* ── Scroll content ── */}
@@ -325,27 +335,29 @@ export function ProfileScreen({ instructor, onBack, onBook, onAskQuestion, onAll
           >
             {t('profile.allReviews').replace('{count}', String(p.reviewsCount))} →
           </button>
-          <div className={styles.modActions}>
-            <button
-              className={`${styles.btn} ${styles.btnSecondary} ${styles.btnSm}`}
-              style={{ flex: 1 }}
-              onClick={() => setReportOpen(true)}
-            >
-              ⚠ {t('profile.report')}
-            </button>
-            <button
-              className={`${styles.btn} ${styles.btnSecondary} ${styles.btnSm} ${styles.btnDanger}`}
-              style={{ flex: 1 }}
-              onClick={() => {
-                const next = !blocked;
-                setBlocked(next);
-                onToggleBlock?.(p.id, next);
-                showToast(next ? '🚫 Инструктор скрыт из каталога' : '✓ Инструктор снова виден в каталоге');
-              }}
-            >
-              {blocked ? '✓ Заблокирован' : `🚫 ${t('profile.block')}`}
-            </button>
-          </div>
+          {!isOwnProfile && (
+            <div className={styles.modActions}>
+              <button
+                className={`${styles.btn} ${styles.btnSecondary} ${styles.btnSm}`}
+                style={{ flex: 1 }}
+                onClick={() => setReportOpen(true)}
+              >
+                ⚠ {t('profile.report')}
+              </button>
+              <button
+                className={`${styles.btn} ${styles.btnSecondary} ${styles.btnSm} ${styles.btnDanger}`}
+                style={{ flex: 1 }}
+                onClick={() => {
+                  const next = !blocked;
+                  setBlocked(next);
+                  onToggleBlock?.(p.id, next);
+                  showToast(next ? '🚫 Инструктор скрыт из каталога' : '✓ Инструктор снова виден в каталоге');
+                }}
+              >
+                {blocked ? '✓ Заблокирован' : `🚫 ${t('profile.block')}`}
+              </button>
+            </div>
+          )}
         </div>
 
       </div>

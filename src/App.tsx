@@ -49,7 +49,7 @@ type Screen =
   | 'auth' | 'phone' | 'sms'
   | 'instr' | 'guest'
   | 'balance' | 'reviews' | 'chat' | 'community'
-  | 'notifications' | 'register' | 'instr-profile'
+  | 'notifications' | 'register' | 'instr-profile' | 'my-profile'
   | 'lesson-detail' | 'request-detail' | 'book-slot'
   | 'mc-catalog' | 'mc-detail' | 'mc-create' | 'mc-group-chat';
 
@@ -193,6 +193,19 @@ export function App() {
       />
     );
   }
+  else if (screen === 'my-profile') {
+    content = (
+      <ProfileScreen
+        instructor={INSTRUCTORS[0]}
+        onBack={pop}
+        onBook={pop}
+        onAskQuestion={pop}
+        onAllReviews={() => push('reviews')}
+        isOwnProfile
+        onEditProfile={() => push('register')}
+      />
+    );
+  }
   else if (screen === 'lesson-detail') {
     content = (
       <LessonDetailScreen
@@ -321,7 +334,7 @@ export function App() {
       tabContent = (
         <InstrProfileScreen
           onBalance={() => push('balance')}
-          onEditProfile={() => push('register')}
+          onMyProfile={() => push('my-profile')}
           onLogout={() => setStack(['auth'])}
         />
       );

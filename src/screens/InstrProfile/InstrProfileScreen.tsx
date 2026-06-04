@@ -15,12 +15,12 @@ interface ToggleSetting {
 }
 
 interface InstrProfileScreenProps {
-  onBalance:     () => void;
-  onEditProfile: () => void;
-  onLogout:      () => void;
+  onBalance:   () => void;
+  onMyProfile: () => void;
+  onLogout:    () => void;
 }
 
-export function InstrProfileScreen({ onBalance, onEditProfile, onLogout }: InstrProfileScreenProps) {
+export function InstrProfileScreen({ onBalance, onMyProfile, onLogout }: InstrProfileScreenProps) {
   const accepted      = getAcceptedLessons('aleksey');
   const totalEarnings = accepted.reduce((s, b) => s + b.price, 0);
   const lessonCount   = accepted.length;
@@ -236,8 +236,8 @@ export function InstrProfileScreen({ onBalance, onEditProfile, onLogout }: Instr
             </div>
           </div>
 
+          <button className={styles.btnBlock} onClick={onMyProfile}>Мой профиль →</button>
           <button className={styles.btnBlock} onClick={onBalance}>💰 Баланс и история платежей →</button>
-          <button className={styles.btnBlock} onClick={onEditProfile}>Редактировать профиль →</button>
           <button className={`${styles.btnBlock} ${styles.btnDanger}`} onClick={onLogout}>Выйти из аккаунта</button>
         </div>
 
