@@ -67,7 +67,10 @@ export function LessonDetailScreen({ lessonId, onBack, onChat, onCancel }: Lesso
     <div className={styles.screen}>
       {/* Header */}
       <div className={styles.header}>
-        <button className={styles.backBtn} onClick={onBack}>‹</button>
+        <div className={styles.headerTopRow}>
+          <button className={styles.backBtn} onClick={onBack}>‹</button>
+          <div className={styles.headerTitle}>Занятие</div>
+        </div>
         <div className={styles.headerStatus}>
           {confirmed ? '✓ Подтверждено' : '⏳ Ожидает подтверждения'}
         </div>

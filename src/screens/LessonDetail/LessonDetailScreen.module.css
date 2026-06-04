@@ -13,14 +13,17 @@
   background: var(--surface-1);
   padding: calc(var(--safe-top) + 14px) 16px 20px;
   flex-shrink: 0;
-  position: relative;
   border-bottom: 1px solid var(--border);
 }
 
+.headerTopRow {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 14px;
+}
+
 .backBtn {
-  position: absolute;
-  left: 16px;
-  top: calc(var(--safe-top) + 12px);
   background: none;
   border: none;
   color: var(--text);
@@ -28,6 +31,15 @@
   line-height: 1;
   cursor: pointer;
   padding: 0;
+  margin-right: 4px;
+  flex-shrink: 0;
+}
+
+.headerTitle {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.3px;
 }
 
 .headerStatus {
