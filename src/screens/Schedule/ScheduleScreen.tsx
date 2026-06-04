@@ -222,8 +222,6 @@ export function ScheduleScreen({ onLesson, onChat, onCreateMasterClass }: Schedu
   // workDays: set of js-getDay numbers (0=Sun, 1=Mon, ..., 6=Sat). Default: все дни
   const [workDays, setWorkDays] = useState<Set<number>>(new Set([0, 1, 2, 3, 4, 5, 6]));
   const [slotDuration, setSlotDuration] = useState(60);
-  const [customDuration, setCustomDuration] = useState(false);
-  const [customDurationVal, setCustomDurationVal] = useState(90);
   const [buffer, setBuffer] = useState(0);
   const [templateApplied, setTemplateApplied] = useState(false);
   const [showToast, setShowToast] = useState<string | false>(false);
@@ -258,7 +256,7 @@ export function ScheduleScreen({ onLesson, onChat, onCreateMasterClass }: Schedu
     });
   }, []);
 
-  const effectiveDuration = customDuration ? customDurationVal : slotDuration;
+  const effectiveDuration = slotDuration;
 
   function isOffDay(date: Date): boolean {
     return !workDays.has(date.getDay());
@@ -651,27 +649,7 @@ export function ScheduleScreen({ onLesson, onChat, onCreateMasterClass }: Schedu
                           {d}
                         </button>
                       ))}
-                      <button
-                        className={`${styles.durationChip} ${customDuration ? styles.durationChipActive : ''}`}
-                        onClick={() => setCustomDuration(true)}
-                      >
-                        ⚙
-                      </button>
                     </div>
-                    {customDuration && (
-                      <div className={styles.customDurRow}>
-                        <input
-                          type="number"
-                          className={styles.customDurInput}
-                          value={customDurationVal}
-                          min={30}
-                          max={240}
-                          step={15}
-                          onChange={e => setCustomDurationVal(Number(e.target.value))}
-                        />
-                        <span className={styles.customDurLabel}>мин (30–240, шаг 15)</span>
-                      </div>
-                    )}
                     <div className={styles.tmChipHint}>минут</div>
                   </div>
                 </div>
