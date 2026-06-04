@@ -209,7 +209,8 @@
   cursor: pointer;
   transition: all .25s;
   font-family: var(--ff);
-  flex-shrink: 0;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .availBtnActive {
