@@ -349,23 +349,11 @@ const avgRating = (INSTRUCTORS.reduce((sum, i) => sum + i.rating, 0) / INSTRUCTO
             <h1 className={styles.heroTitle}>
               {t('catalog.titleLine')} <span>{t('catalog.titleAccent')}</span>
             </h1>
-            <div className={styles.heroStats}>
-              <span className={styles.heroStat}>
-                {t('catalog.statInstructors', { count: INSTRUCTORS.length })}
-              </span>
-              <span className={styles.heroStatSep}>·</span>
-              <span className={styles.heroStat}>
-                {t('catalog.statRating', { rating: avgRating })}
-              </span>
-            </div>
           </div>
           <div className={styles.topActions}>
             <button className={styles.bellBtn} onClick={onNotifications} aria-label="Уведомления">
               <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
               <div className={styles.notifDot} />
-            </button>
-            <button className={styles.becomeBtn} onClick={onBecomeInstructor}>
-              {t('catalog.becomeInstructor')}
             </button>
           </div>
         </div>
