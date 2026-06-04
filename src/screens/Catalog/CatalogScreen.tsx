@@ -392,12 +392,6 @@ const avgRating = (INSTRUCTORS.reduce((sum, i) => sum + i.rating, 0) / INSTRUCTO
             ))}
           </div>
 
-      </div>{/* /header */}
-
-      {/* ── Скроллируемый контент ── */}
-      <div className={styles.content} ref={contentRef}>
-        <div className={styles.filtersSection}>
-
           <div className={styles.sortRow}>
             <div className={styles.sortLabel}>{t('catalog.sortLabel')}</div>
             <select
@@ -423,7 +417,11 @@ const avgRating = (INSTRUCTORS.reduce((sum, i) => sum + i.rating, 0) / INSTRUCTO
               </button>
             ))}
           </div>
-        </div>
+
+      </div>{/* /header */}
+
+      {/* ── Скроллируемый контент ── */}
+      <div className={styles.content} ref={contentRef}>
 
         {/* ── Баннер мастер-классов ── */}
         <div className={styles.mcBanner} onClick={onMasterClasses}>
