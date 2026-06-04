@@ -1,6 +1,7 @@
 import { useState, useMemo, useRef, useCallback } from 'react';
 import styles from './ScheduleScreen.module.css';
 import { ScrollToTopBtn } from '@/components/ScrollToTopBtn';
+import { getAcceptedLessons } from '@/store/bookings';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -367,12 +368,42 @@ export function ScheduleScreen({ onLesson, onChat, onCreateMasterClass }: Schedu
     });
   }
 
-  // ── Booking groups ─────────────────────────────────────────────────────
+  // ── Booking groups — объединяем mock + принятые из store ──────────────
+  function dateToGroup(d: Date): Booking['group'] {
+    const t0 = new Date(today); t0.setHours(0, 0, 0, 0);
+    const t1 = new Date(t0); t1.setDate(t0.getDate() + 1);
+    const t7 = new Date(t0); t7.setDate(t0.getDate() + 7);
+    const dn = new Date(d);   dn.setHours(0, 0, 0, 0);
+    if (dn.getTime() === t0.getTime()) return 'today';
+    if (dn.getTime() === t1.getTime()) return 'tomorrow';
+    if (dn <= t7) return 'week';
+    return 'later';
+  }
+
+  const storeBookings: Booking[] = getAcceptedLessons('aleksey').map(b => ({
+    id:         b.id,
+    date:       new Date(b.dateISO),
+    timeStart:  b.timeStart,
+    timeEnd:    b.timeEnd,
+    clientName: b.studentName,
+    discipline: b.discipline === 'ski' ? 'Горные лыжи' : 'Сноуборд',
+    price:      b.price,
+    format:     b.formatLabel,
+    group:      dateToGroup(new Date(b.dateISO)),
+  }));
+
+  // Исключаем дубликаты MOCK (у них те же ID что в store — l1, l2)
+  const storeIds = new Set(storeBookings.map(b => b.id));
+  const allBookings = [
+    ...storeBookings,
+    ...MOCK_BOOKINGS.filter(b => !storeIds.has(b.id)),
+  ];
+
   const bookingGroups: { key: string; label: string; items: Booking[] }[] = [
-    { key: 'today',    label: 'Сегодня',     items: MOCK_BOOKINGS.filter(b => b.group === 'today') },
-    { key: 'tomorrow', label: 'Завтра',      items: MOCK_BOOKINGS.filter(b => b.group === 'tomorrow') },
-    { key: 'week',     label: 'Эта неделя',  items: MOCK_BOOKINGS.filter(b => b.group === 'week') },
-    { key: 'later',    label: 'Позже',       items: MOCK_BOOKINGS.filter(b => b.group === 'later') },
+    { key: 'today',    label: 'Сегодня',     items: allBookings.filter(b => b.group === 'today') },
+    { key: 'tomorrow', label: 'Завтра',      items: allBookings.filter(b => b.group === 'tomorrow') },
+    { key: 'week',     label: 'Эта неделя',  items: allBookings.filter(b => b.group === 'week') },
+    { key: 'later',    label: 'Позже',       items: allBookings.filter(b => b.group === 'later') },
   ].filter(g => g.items.length > 0);
 
   // ── Render ─────────────────────────────────────────────────────────────

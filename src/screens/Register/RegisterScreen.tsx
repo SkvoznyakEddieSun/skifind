@@ -4,7 +4,8 @@ import styles from './RegisterScreen.module.css';
 type Step = 1 | 2 | 3 | 4 | 'success';
 
 interface RegisterScreenProps {
-  onBack: () => void;
+  onBack:    () => void;
+  isEditMode?: boolean; // true → «Редактировать профиль» вместо «Регистрация»
 }
 
 const STEP_LABELS: Record<number, string> = {
@@ -38,7 +39,7 @@ function AgreeItem({ children, link }: { children: React.ReactNode; link?: strin
   );
 }
 
-export function RegisterScreen({ onBack }: RegisterScreenProps) {
+export function RegisterScreen({ onBack, isEditMode = false }: RegisterScreenProps) {
   const [step, setStep] = useState<Step>(1);
   const [name, setName] = useState('');
   const [lname, setLname] = useState('');
@@ -74,7 +75,7 @@ export function RegisterScreen({ onBack }: RegisterScreenProps) {
         <button className={styles.backBtn} onClick={step === 1 ? onBack : () => setStep(s => (typeof s === 'number' ? Math.max(1, s - 1) : 4) as Step)}>
           ‹
         </button>
-        <div className={styles.regTitle}>Стать инструктором</div>
+        <div className={styles.regTitle}>{isEditMode ? 'Редактировать профиль' : 'Стать инструктором'}</div>
         <div className={styles.regSub}>
           {step === 'success' ? 'Готово!' : STEP_LABELS[stepNum]}
         </div>
@@ -291,7 +292,7 @@ export function RegisterScreen({ onBack }: RegisterScreenProps) {
                 className={`${styles.btnPrimary} ${styles.btnPrimaryGreen}`}
                 onClick={() => setStep('success')}
               >
-                Опубликовать
+                {isEditMode ? 'Сохранить' : 'Опубликовать'}
               </button>
             </div>
           </div>
@@ -301,9 +302,11 @@ export function RegisterScreen({ onBack }: RegisterScreenProps) {
         {step === 'success' && (
           <div className={styles.successScreen}>
             <div className={styles.successIcon}>✓</div>
-            <div className={styles.successTitle}>Заявка отправлена!</div>
+            <div className={styles.successTitle}>{isEditMode ? 'Профиль обновлён!' : 'Заявка отправлена!'}</div>
             <div className={styles.successSub}>
-              Проверим ваши данные в течение 24 часов и пришлём письмо на e-mail. После одобрения профиль появится в каталоге.
+              {isEditMode
+                ? 'Изменения сохранены и вступят в силу в течение нескольких минут.'
+                : 'Проверим ваши данные в течение 24 часов и пришлём письмо на e-mail. После одобрения профиль появится в каталоге.'}
             </div>
             <button className={styles.btnPrimaryBlock} onClick={onBack}>
               Перейти в кабинет

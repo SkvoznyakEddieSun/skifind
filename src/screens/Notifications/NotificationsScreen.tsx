@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import styles from './NotificationsScreen.module.css';
+import { DYNAMIC_NOTIFS } from '@/store/notifications';
 
 type Period = 'today' | 'yesterday' | 'earlier';
 type IconType = 'niMsg' | 'niBooking' | 'niMoney' | 'niWarn' | 'niReview' | 'niSystem';
@@ -37,7 +38,11 @@ interface NotificationsScreenProps {
 }
 
 export function NotificationsScreen({ onBack }: NotificationsScreenProps) {
-  const [items, setItems] = useState<Notif[]>(INITIAL);
+  // Объединяем динамические (новые заявки и т.д.) + статичные начальные
+  const [items, setItems] = useState<Notif[]>(() => [
+    ...DYNAMIC_NOTIFS.map(n => ({ ...n, icon: n.icon as Notif['icon'] })),
+    ...INITIAL,
+  ]);
 
   const unreadCount = items.filter(n => n.unread).length;
 

@@ -37,6 +37,7 @@ import { MasterClassDetailScreen }  from './screens/MasterClass/MasterClassDetai
 import { MasterClassCreateScreen }  from './screens/MasterClass/MasterClassCreateScreen';
 import { GroupChatScreen }          from './screens/GroupChat/GroupChatScreen';
 import { MASTER_CLASSES }           from './screens/MasterClass/masterClassData';
+import { getPendingRequests }       from './store/bookings';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -174,7 +175,9 @@ export function App() {
     content = <NotificationsScreen onBack={pop} />;
   }
   else if (screen === 'register') {
-    content = <RegisterScreen onBack={pop} />;
+    // isEditMode = true когда открыт из профиля инструктора (не из каталога)
+    const isEditMode = role === 'instructor';
+    content = <RegisterScreen onBack={pop} isEditMode={isEditMode} />;
   }
   else if (screen === 'instr-profile') {
     content = (
@@ -324,10 +327,17 @@ export function App() {
       );
     }
 
+    const pending = getPendingRequests('aleksey').length;
+    const instrNavLive = INSTR_NAV.map(item =>
+      item.id === 'requests'
+        ? { ...item, badge: pending > 0 ? pending : undefined }
+        : item
+    );
+
     content = (
       <div style={shellStyle}>
         {tabContent}
-        <BottomNav items={INSTR_NAV} active={instrTab} onTab={t => switchInstrTab(t as InstrTab)} />
+        <BottomNav items={instrNavLive} active={instrTab} onTab={t => switchInstrTab(t as InstrTab)} />
       </div>
     );
   }

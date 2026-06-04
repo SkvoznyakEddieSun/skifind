@@ -1,3 +1,5 @@
+import { pushNotification } from './notifications';
+
 /**
  * Единое хранилище бронирований — общий источник данных
  * для экранов гостя (BookingsScreen) и инструктора (RequestsScreen, ScheduleScreen, Dashboard).
@@ -357,6 +359,20 @@ export function addBooking(params: AddBookingParams): Booking {
   };
 
   BOOKINGS.push(booking);
+
+  // Уведомление инструктору о новой заявке
+  const now = new Date();
+  const hh  = String(now.getHours()).padStart(2, '0');
+  const mm  = String(now.getMinutes()).padStart(2, '0');
+  pushNotification({
+    period: 'today',
+    icon:   'niBooking',
+    emoji:  '✨',
+    text:   `Новая заявка на <strong>${booking.dayNum} ${booking.dayMon}</strong> — ${booking.formatLabel}`,
+    time:   `${hh}:${mm}`,
+    unread: true,
+  });
+
   return booking;
 }
 
