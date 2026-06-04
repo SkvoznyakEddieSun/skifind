@@ -258,10 +258,11 @@ export function RequestsScreen({ onBack: _onBack, onChat, onRequest }: RequestsS
 
             <div className={styles.msaWrap} onClick={() => showToast('📲 Приглашение отправлено ученику по SMS')}>
               <div className={styles.msaIcon}>+</div>
-              <div>
+              <div className={styles.msaText}>
                 <div className={styles.msaTitle}>Добавить своего ученика</div>
-                <div className={styles.msaSub}>Отправим ему смс-приглашение с ссылкой на чат</div>
+                <div className={styles.msaSub}>Отправим смс-приглашение с ссылкой на чат</div>
               </div>
+              <span className={styles.msaArrow}>›</span>
             </div>
 
             {/* Принятые с платформы */}
