@@ -6,6 +6,31 @@ type SportType = 'all' | 'ski' | 'board';
 type Level = 'all' | 'beginner' | 'advanced' | 'kids' | 'freeride';
 type SortKey = 'rating' | 'price-asc' | 'price-desc' | 'experience';
 
+export interface InstructorSkill {
+  name: string;
+  pct: number;
+  color: 'steel' | 'leaf';
+}
+
+export interface InstructorPriceRow {
+  label: string;
+  duration: string;
+  price: string;
+}
+
+export interface InstructorScheduleDay {
+  day: string;
+  status: 'free' | 'busy' | 'today';
+}
+
+export interface InstructorReview {
+  initials: string;
+  avatarColor: string;
+  name: string;
+  date: string;
+  text: string;
+}
+
 export interface Instructor {
   id: string;
   name: string;
@@ -28,6 +53,13 @@ export interface Instructor {
   busyUntil?: string;
   nextSlot?: string;
   tags: { label: string; color: 'blue' | 'mint' | 'straw' | 'purple' | 'gray' }[];
+  // Расширенные данные профиля
+  skills?: InstructorSkill[];
+  schedule?: InstructorScheduleDay[];
+  prices?: InstructorPriceRow[];
+  reviews?: InstructorReview[];
+  students?: number;
+  reviewsCount?: number;
 }
 
 export const ACTIVE_RESORTS = ['Шерегеш'] as const;
@@ -43,6 +75,34 @@ export const INSTRUCTORS: Instructor[] = [
     exp: 8, onMountain: true, hasFreeSlotsToday: true,
     gender: 'male', nextSlot: 'сегодня 14:00',
     tags: [{ label: 'Сноуборд', color: 'blue' }, { label: 'Новички', color: 'mint' }],
+    students: 127, reviewsCount: 48,
+    skills: [
+      { name: 'Новички',     pct: 100, color: 'steel' },
+      { name: 'Продвинутые', pct: 85,  color: 'steel' },
+      { name: 'Фрирайд',     pct: 72,  color: 'leaf'  },
+      { name: 'Психология',  pct: 90,  color: 'leaf'  },
+    ],
+    schedule: [
+      { day: 'Пн', status: 'free' }, { day: 'Вт', status: 'free' },
+      { day: 'Ср', status: 'free' }, { day: 'Чт', status: 'today' },
+      { day: 'Пт', status: 'free' }, { day: 'Сб', status: 'busy' },
+      { day: 'Вс', status: 'free' },
+    ],
+    prices: [
+      { label: 'Индивидуальное', duration: '1 ч',    price: '3 500 ₽'  },
+      { label: 'Полдня',         duration: '4 ч',    price: '10 000 ₽' },
+      { label: 'Мини-группа',    duration: '2 ч',    price: '5 000 ₽'  },
+    ],
+    reviews: [
+      {
+        initials: 'КВ', avatarColor: 'ice', name: 'Кирилл Волков', date: '12 января 2025',
+        text: 'Брал 3 занятия для себя и жены. Очень терпеливый, объясняет чётко. Жена теперь уверенно спускается с синих трасс.',
+      },
+      {
+        initials: 'ТН', avatarColor: 'mint', name: 'Татьяна Н.', date: '28 декабря 2024',
+        text: 'Записала сына 9 лет. За 4 занятия катается сам. Нашёл подход к ребёнку, весело и без нервов.',
+      },
+    ],
   },
   {
     id: 'natalya', name: 'Наталья Петрова', initials: 'НП', avatarColor: 'mint',
@@ -54,6 +114,34 @@ export const INSTRUCTORS: Instructor[] = [
     exp: 6, onMountain: false, hasFreeSlotsToday: false,
     gender: 'female', nextSlot: 'завтра 10:00',
     tags: [{ label: 'Горные лыжи', color: 'blue' }, { label: 'Дети', color: 'purple' }],
+    students: 83, reviewsCount: 31,
+    skills: [
+      { name: 'Дети 3–7 лет',  pct: 100, color: 'leaf'  },
+      { name: 'Дети 8–12 лет', pct: 95,  color: 'leaf'  },
+      { name: 'Новички',       pct: 90,  color: 'steel' },
+      { name: 'Мини-группы',   pct: 85,  color: 'steel' },
+    ],
+    schedule: [
+      { day: 'Пн', status: 'busy' }, { day: 'Вт', status: 'free' },
+      { day: 'Ср', status: 'free' }, { day: 'Чт', status: 'today' },
+      { day: 'Пт', status: 'free' }, { day: 'Сб', status: 'free' },
+      { day: 'Вс', status: 'busy' },
+    ],
+    prices: [
+      { label: 'Детское',                    duration: '45 мин', price: '2 800 ₽' },
+      { label: 'Индивидуальное',             duration: '1 ч',    price: '3 200 ₽' },
+      { label: 'Мини-группа (дети)',         duration: '2 ч',    price: '5 500 ₽' },
+    ],
+    reviews: [
+      {
+        initials: 'ОС', avatarColor: 'purple', name: 'Ольга Смирнова', date: '3 февраля 2025',
+        text: 'Привела дочку 5 лет. Наташа нашла подход моментально — занимались в игровой форме, никаких слёз. За три урока дочка поехала сама!',
+      },
+      {
+        initials: 'ПК', avatarColor: 'straw', name: 'Пётр К.', date: '14 января 2025',
+        text: 'Взял урок для себя как полного новичка. Терпеливый педагог, объясняет доступно. Уже на второй день уверенно съехал с зелёной.',
+      },
+    ],
   },
   {
     id: 'dmitry', name: 'Дмитрий Захаров', initials: 'ДЗ', avatarColor: 'purple',
@@ -65,6 +153,34 @@ export const INSTRUCTORS: Instructor[] = [
     exp: 10, onMountain: true, hasFreeSlotsToday: true,
     gender: 'male', busyUntil: '15:00',
     tags: [{ label: 'Сноуборд', color: 'blue' }, { label: 'Фрирайд', color: 'straw' }],
+    students: 64, reviewsCount: 22,
+    skills: [
+      { name: 'Фрирайд',            pct: 100, color: 'leaf'  },
+      { name: 'Бэккантри',          pct: 95,  color: 'leaf'  },
+      { name: 'Продвинутые',        pct: 100, color: 'steel' },
+      { name: 'Технический карвинг', pct: 90, color: 'steel' },
+    ],
+    schedule: [
+      { day: 'Пн', status: 'free' }, { day: 'Вт', status: 'free' },
+      { day: 'Ср', status: 'busy' }, { day: 'Чт', status: 'today' },
+      { day: 'Пт', status: 'free' }, { day: 'Сб', status: 'free' },
+      { day: 'Вс', status: 'busy' },
+    ],
+    prices: [
+      { label: 'Индивидуальное', duration: '1 ч',    price: '4 200 ₽'  },
+      { label: 'Полдня',         duration: '4 ч',    price: '14 000 ₽' },
+      { label: 'Мини-группа',    duration: '2 ч',    price: '8 000 ₽'  },
+    ],
+    reviews: [
+      {
+        initials: 'АН', avatarColor: 'blue', name: 'Антон Нестеров', date: '5 марта 2025',
+        text: 'Катаю 7 лет, хотел поставить фрирайд-технику. Дмитрий быстро определил слабые места и дал конкретные упражнения. Прогресс за 2 дня ощутимый.',
+      },
+      {
+        initials: 'ВП', avatarColor: 'ice', name: 'Вадим П.', date: '18 февраля 2025',
+        text: 'Приехал с опытом, но боялся целины. После занятия с Дмитрием вышел на внетрассовые склоны. Профессионал с чувством юмора.',
+      },
+    ],
   },
   {
     id: 'marina', name: 'Марина Волкова', initials: 'МВ', avatarColor: 'straw',
@@ -76,6 +192,34 @@ export const INSTRUCTORS: Instructor[] = [
     exp: 5, onMountain: false, hasFreeSlotsToday: true,
     gender: 'female', nextSlot: 'сегодня 16:00',
     tags: [{ label: 'Горные лыжи', color: 'blue' }, { label: 'Новички', color: 'mint' }, { label: 'Дети', color: 'purple' }],
+    students: 95, reviewsCount: 38,
+    skills: [
+      { name: 'Дети',                pct: 100, color: 'leaf'  },
+      { name: 'Взрослые с нуля',     pct: 95,  color: 'steel' },
+      { name: 'Новички',             pct: 90,  color: 'steel' },
+      { name: 'Мини-группы',         pct: 80,  color: 'leaf'  },
+    ],
+    schedule: [
+      { day: 'Пн', status: 'free' }, { day: 'Вт', status: 'free' },
+      { day: 'Ср', status: 'free' }, { day: 'Чт', status: 'today' },
+      { day: 'Пт', status: 'busy' }, { day: 'Сб', status: 'free' },
+      { day: 'Вс', status: 'busy' },
+    ],
+    prices: [
+      { label: 'Детское',        duration: '45 мин', price: '2 500 ₽' },
+      { label: 'Индивидуальное', duration: '1 ч',    price: '2 500 ₽' },
+      { label: 'Мини-группа',    duration: '2 ч',    price: '5 000 ₽' },
+    ],
+    reviews: [
+      {
+        initials: 'НК', avatarColor: 'mint', name: 'Наталья К.', date: '20 февраля 2025',
+        text: 'Привела дочку 7 лет. Марина — просто волшебник с детьми: спокойная, весёлая, нашла подход мгновенно. Дочка хочет ещё!',
+      },
+      {
+        initials: 'ИВ', avatarColor: 'straw', name: 'Ирина Васильева', date: '9 января 2025',
+        text: 'Боялась высоты и скорости. После первого же занятия с Мариной поехала сама. Очень поддерживающий и терпеливый инструктор.',
+      },
+    ],
   },
   {
     id: 'sergey', name: 'Сергей Лебедев', initials: 'СЛ', avatarColor: 'blue',
@@ -87,6 +231,34 @@ export const INSTRUCTORS: Instructor[] = [
     exp: 12, onMountain: true, hasFreeSlotsToday: true,
     gender: 'male', nextSlot: 'сегодня 15:30',
     tags: [{ label: 'Горные лыжи', color: 'blue' }, { label: 'Фрирайд', color: 'straw' }],
+    students: 41, reviewsCount: 15,
+    skills: [
+      { name: 'Карвинг',     pct: 100, color: 'steel' },
+      { name: 'Фрирайд',     pct: 100, color: 'leaf'  },
+      { name: 'Бэккантри',   pct: 90,  color: 'leaf'  },
+      { name: 'Продвинутые', pct: 95,  color: 'steel' },
+    ],
+    schedule: [
+      { day: 'Пн', status: 'free' }, { day: 'Вт', status: 'free' },
+      { day: 'Ср', status: 'free' }, { day: 'Чт', status: 'today' },
+      { day: 'Пт', status: 'free' }, { day: 'Сб', status: 'busy' },
+      { day: 'Вс', status: 'busy' },
+    ],
+    prices: [
+      { label: 'Индивидуальное', duration: '1 ч',    price: '5 000 ₽'  },
+      { label: 'Полдня',         duration: '4 ч',    price: '16 000 ₽' },
+      { label: 'Мини-группа',    duration: '2 ч',    price: '9 000 ₽'  },
+    ],
+    reviews: [
+      {
+        initials: 'ДМ', avatarColor: 'purple', name: 'Дмитрий М.', date: '15 марта 2025',
+        text: 'Катаю 15 лет, думал уже всё знаю. Сергей показал нюансы карвинга, о которых не подозревал. Занятие изменило ощущение от езды полностью.',
+      },
+      {
+        initials: 'АС', avatarColor: 'ice', name: 'Алёна С.', date: '2 февраля 2025',
+        text: 'ISIA сертификат — это чувствуется. Чёткая методика, конкретные упражнения. За один день прокачала технику поворотов.',
+      },
+    ],
   },
 ];
 

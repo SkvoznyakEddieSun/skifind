@@ -126,6 +126,12 @@ export function ProfileScreen({ instructor, onBack, onBook, onAskQuestion, onAll
     rating:       instructor.rating,
     onMountain:   instructor.onMountain,
     about:        instructor.bio ?? MOCK_PROFILE.about,
+    skills:       instructor.skills       ?? MOCK_PROFILE.skills,
+    schedule:     instructor.schedule     ?? MOCK_PROFILE.schedule,
+    prices:       instructor.prices       ?? MOCK_PROFILE.prices,
+    reviews:      instructor.reviews      ?? MOCK_PROFILE.reviews,
+    students:     instructor.students     ?? MOCK_PROFILE.students,
+    reviewsCount: instructor.reviewsCount ?? MOCK_PROFILE.reviewsCount,
   } : MOCK_PROFILE;
   const [expanded, setExpanded]       = useState(false);
   const [toast, setToast]             = useState<string | null>(null);
