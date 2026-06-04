@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import styles from './RequestsScreen.module.css';
 import { applyPhoneMask } from '@/utils/phoneMask';
 import { useTabSwipe } from '@/hooks/useTabSwipe';
@@ -125,6 +125,30 @@ export function RequestsScreen({ onBack: _onBack, onChat, onRequest }: RequestsS
   const [showInvite, setShowInvite] = useState(false);
   const [invitePhone, setInvitePhone] = useState('');
   const [inviteName, setInviteName] = useState('');
+  const [inviteDragY, setInviteDragY] = useState(0);
+  const [inviteDragging, setInviteDragging] = useState(false);
+  const inviteStartY = useRef(0);
+
+  function closeInvite() {
+    setShowInvite(false);
+    setInvitePhone('');
+    setInviteName('');
+    setInviteDragY(0);
+  }
+
+  function onInviteTouchStart(e: React.TouchEvent) {
+    inviteStartY.current = e.touches[0].clientY;
+    setInviteDragging(true);
+  }
+  function onInviteTouchMove(e: React.TouchEvent) {
+    const d = e.touches[0].clientY - inviteStartY.current;
+    if (d > 0) setInviteDragY(d);
+  }
+  function onInviteTouchEnd() {
+    setInviteDragging(false);
+    if (inviteDragY >= 100) closeInvite();
+    else setInviteDragY(0);
+  }
 
   // Читаем из хранилища; локальный state для реакции на изменения
   const [pending,  setPending]  = useState<Booking[]>(() => getPendingRequests('aleksey'));
@@ -367,8 +391,22 @@ export function RequestsScreen({ onBack: _onBack, onChat, onRequest }: RequestsS
 
       {/* ── Invite bottom sheet ── */}
       {showInvite && (
-        <div className={styles.inviteOverlay} onClick={() => setShowInvite(false)}>
-          <div className={styles.inviteBox} onClick={e => e.stopPropagation()}>
+        <div
+          className={styles.inviteOverlay}
+          style={{ opacity: Math.max(0, 1 - inviteDragY / 300) }}
+          onClick={e => { if (e.target === e.currentTarget) closeInvite(); }}
+        >
+          <div
+            className={styles.inviteBox}
+            style={{
+              transform: `translateY(${inviteDragY}px)`,
+              transition: inviteDragging ? 'none' : 'transform .3s ease',
+            }}
+            onTouchStart={onInviteTouchStart}
+            onTouchMove={onInviteTouchMove}
+            onTouchEnd={onInviteTouchEnd}
+          >
+            <div className={styles.inviteHandle} />
             <div className={styles.inviteTitle}>Добавить ученика</div>
             <div className={styles.inviteField}>
               <label className={styles.inviteLabel}>Имя</label>
@@ -378,7 +416,6 @@ export function RequestsScreen({ onBack: _onBack, onChat, onRequest }: RequestsS
                 placeholder="Например, Иван"
                 value={inviteName}
                 onChange={e => setInviteName(e.target.value)}
-                autoFocus
               />
             </div>
             <div className={styles.inviteField}>
@@ -396,22 +433,17 @@ export function RequestsScreen({ onBack: _onBack, onChat, onRequest }: RequestsS
             <div className={styles.inviteHint}>
               Ученик получит SMS со ссылкой на чат с вами. Занятия с ним проходят без комиссии платформы.
             </div>
-            <div className={styles.inviteActions}>
-              <button
-                className={styles.inviteBtnSecondary}
-                onClick={() => { setShowInvite(false); setInvitePhone(''); setInviteName(''); }}
-              >Отмена</button>
-              <button
-                className={styles.inviteBtnPrimary}
-                disabled={!invitePhone.trim()}
-                onClick={() => {
-                  setShowInvite(false);
-                  setInvitePhone('');
-                  setInviteName('');
-                  showToast('📲 Приглашение отправлено по SMS');
-                }}
-              >Отправить</button>
-            </div>
+            <button
+              className={styles.inviteBtnPrimary}
+              disabled={!invitePhone.trim()}
+              onClick={() => {
+                closeInvite();
+                showToast('📲 Приглашение отправлено по SMS');
+              }}
+            >Отправить</button>
+            <button className={styles.inviteBtnSecondary} onClick={closeInvite}>
+              Отмена
+            </button>
           </div>
         </div>
       )}
