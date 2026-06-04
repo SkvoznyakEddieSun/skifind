@@ -803,8 +803,16 @@ export function ScheduleScreen({ onLesson, onChat, onCreateMasterClass }: Schedu
 
                 <div className={styles.advDivider} />
                 <button className={styles.copyDayBtn} onClick={() => {
-                  const dayName = DAY_FULL[advancedDayIdx === 6 ? 0 : advancedDayIdx + 1];
-                  fireToast(`✓ Настройки ${dayName.toLowerCase()} скопированы на остальные дни`);
+                  const sourceDayName = DAY_FULL[advancedDayIdx === 6 ? 0 : advancedDayIdx + 1];
+                  setAdvancedDays(prev => {
+                    const sourceBlocks = prev[advancedDayIdx].blocks;
+                    return prev.map((day, idx) =>
+                      idx === advancedDayIdx
+                        ? day
+                        : { blocks: sourceBlocks.map(b => ({ ...b, id: `${b.id}-copy-${idx}` })) }
+                    );
+                  });
+                  fireToast(`✓ Настройки ${sourceDayName.toLowerCase()} скопированы на остальные дни`);
                 }}>
                   Скопировать на другие дни
                 </button>
