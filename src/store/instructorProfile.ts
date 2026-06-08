@@ -10,9 +10,23 @@ import { INSTRUCTORS } from '@/screens/Catalog/CatalogScreen';
 // Живая ссылка на pricing первого инструктора (Алексей Морозов).
 // Мутации здесь отражаются и в каталоге, и в форме записи.
 
-export const INSTR_PRICING           = INSTRUCTORS[0].pricing;
-export const INSTR_WORKS_WITH_KIDS:  boolean = !!INSTRUCTORS[0].worksWithKids;
-export const INSTR_ALLOWS_SHORT_SLOTS: boolean = !!INSTRUCTORS[0].allowsShortSlots;
+export const INSTR_PRICING = INSTRUCTORS[0].pricing;
+
+/**
+ * Мутируемые флаги профиля инструктора.
+ * Инициализируются из данных, обновляются из RegisterScreen.
+ * InstrProfileScreen читает их через useState при маунте.
+ */
+export const INSTR_FLAGS = {
+  // true — совпадает с defaultOn в RegisterScreen (Дети выбраны по умолчанию)
+  worksWithKids:    true,
+  allowsShortSlots: !!INSTRUCTORS[0].allowsShortSlots,
+};
+
+/** @deprecated use INSTR_FLAGS.worksWithKids */
+export const INSTR_WORKS_WITH_KIDS:    boolean = INSTR_FLAGS.worksWithKids;
+/** @deprecated use INSTR_FLAGS.allowsShortSlots */
+export const INSTR_ALLOWS_SHORT_SLOTS: boolean = INSTR_FLAGS.allowsShortSlots;
 
 /**
  * Обновить цену.

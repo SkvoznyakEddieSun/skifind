@@ -4,8 +4,7 @@ import { ShareModal } from '@/components/ShareModal/ShareModal';
 import { getAcceptedLessons } from '@/store/bookings';
 import {
   INSTR_PRICING,
-  INSTR_WORKS_WITH_KIDS,
-  INSTR_ALLOWS_SHORT_SLOTS,
+  INSTR_FLAGS,
   updateInstrPrice,
 } from '@/store/instructorProfile';
 import { Icon } from '@/components/Icon/Icon';
@@ -56,8 +55,9 @@ export function InstrProfileScreen({ onBalance, onMyProfile, onLogout }: InstrPr
   const [isDark, setIsDark]         = useState(true);
   const [showShare, setShowShare]   = useState(false);
   const [toast, setToast]           = useState<string | null>(null);
-  const worksWithKids                           = INSTR_WORKS_WITH_KIDS;
-  const [allowsShortSlots, setAllowsShortSlots] = useState(INSTR_ALLOWS_SHORT_SLOTS);
+  // Читаем из стора при маунте — подхватывает изменения из RegisterScreen
+  const [worksWithKids]                         = useState(() => INSTR_FLAGS.worksWithKids);
+  const [allowsShortSlots, setAllowsShortSlots] = useState(() => INSTR_FLAGS.allowsShortSlots);
 
   // ── Цены ──────────────────────────────────────────────────────────────
   const [draft, setDraft] = useState<Record<string, string>>(initDraft);
@@ -269,7 +269,10 @@ export function InstrProfileScreen({ onBalance, onMyProfile, onLogout }: InstrPr
                   </div>
                   <button
                     className={`${styles.sw} ${allowsShortSlots ? styles.swOn : ''}`}
-                    onClick={() => setAllowsShortSlots(v => !v)}
+                    onClick={() => setAllowsShortSlots(v => {
+                      INSTR_FLAGS.allowsShortSlots = !v;
+                      return !v;
+                    })}
                   />
                 </div>
                 {allowsShortSlots && (

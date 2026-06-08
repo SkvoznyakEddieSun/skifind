@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import styles from './RegisterScreen.module.css';
 import { applyPhoneMask } from '@/utils/phoneMask';
+import { INSTR_FLAGS } from '@/store/instructorProfile';
 
 type Step = 1 | 2 | 3 | 'success';
 
@@ -15,12 +16,12 @@ const STEP_LABELS: Record<number, string> = {
   3: 'Шаг 3 из 3 · Проверка',
 };
 
-function CheckItem({ label, defaultOn }: { label: string; defaultOn?: boolean }) {
+function CheckItem({ label, defaultOn, onChange }: { label: string; defaultOn?: boolean; onChange?: (v: boolean) => void }) {
   const [on, setOn] = useState(!!defaultOn);
   return (
     <button
       className={`${styles.checkItem} ${on ? styles.checkItemOn : ''}`}
-      onClick={() => setOn(v => !v)}
+      onClick={() => { const next = !on; setOn(next); onChange?.(next); }}
     >
       {label}
     </button>
@@ -156,7 +157,7 @@ export function RegisterScreen({ onBack, isEditMode = false }: RegisterScreenPro
               <label>С кем работаете</label>
               <div className={styles.checkGrid}>
                 <CheckItem label="Взрослые" defaultOn />
-                <CheckItem label="Дети" defaultOn />
+                <CheckItem label="Дети" defaultOn={INSTR_FLAGS.worksWithKids} onChange={v => { INSTR_FLAGS.worksWithKids = v; }} />
                 <CheckItem label="Группы" />
               </div>
             </div>
