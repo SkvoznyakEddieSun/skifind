@@ -56,9 +56,10 @@ export function InstrProfileScreen({ onBalance, onMyProfile, onLogout }: InstrPr
   const lessonCount   = accepted.length;
   const avgCheck      = lessonCount > 0 ? Math.round(totalEarnings / lessonCount) : 0;
 
-  const [isDark, setIsDark]       = useState(true);
-  const [showShare, setShowShare] = useState(false);
-  const [toast, setToast]         = useState<string | null>(null);
+  const [isDark, setIsDark]         = useState(true);
+  const [showShare, setShowShare]   = useState(false);
+  const [toast, setToast]           = useState<string | null>(null);
+  const [worksWithKids, setWorksWithKids] = useState(INSTR_WORKS_WITH_KIDS);
 
   // ── Цены ──────────────────────────────────────────────────────────────
   const [draft, setDraft] = useState<Record<string, string>>(initDraft);
@@ -245,8 +246,23 @@ export function InstrProfileScreen({ onBalance, onMyProfile, onLogout }: InstrPr
             </div>
           </div>
 
-          {/* Детское — только если worksWithKids */}
-          {INSTR_WORKS_WITH_KIDS && (
+          {/* Детское — тоггл + цены */}
+          <div className={styles.settingsGroup}>
+            <div className={styles.settingsGroupBody}>
+              <div className={styles.settingRow}>
+                <div className={styles.settingLabel}>
+                  <div className={styles.settingTitle}>🧒 Работаю с детьми</div>
+                  <div className={styles.settingSub}>Детские занятия · до 8 лет</div>
+                </div>
+                <button
+                  className={`${styles.sw} ${worksWithKids ? styles.swOn : ''}`}
+                  onClick={() => setWorksWithKids(v => !v)}
+                />
+              </div>
+            </div>
+          </div>
+
+          {worksWithKids && (
             <div className={styles.settingsGroup}>
               <div className={styles.settingsGroupLabel}>🧒 Детское · до 8 лет</div>
               <div className={styles.settingsGroupBody}>
