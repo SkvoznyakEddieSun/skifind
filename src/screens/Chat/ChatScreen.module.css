@@ -236,7 +236,7 @@
 
 /* Card bubble */
 .cardBubble {
-  max-width: 80%;
+  width: 272px;
   background: var(--surface-1);
   border: 1px solid var(--border);
   border-radius: 18px;
