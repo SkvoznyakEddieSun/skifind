@@ -609,6 +609,10 @@
   outline: none;
 }
 
+.timeInput::-webkit-calendar-picker-indicator {
+  display: none;
+}
+
 /* Disabled: grey text + slightly darker bg, not clickable */
 .timeInputDisabled {
   background: var(--surface-2);
