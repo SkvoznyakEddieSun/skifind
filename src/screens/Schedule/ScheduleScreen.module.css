@@ -441,7 +441,7 @@
 }
 
 .settingsCardBody {
-  padding: 12px 14px 20px;
+  padding: 2px 14px 12px;
 }
 
 /* ── Day row (per-day toggle + label + time selects) ── */
@@ -584,7 +584,6 @@
   font-size: 11px;
   color: var(--text-dim);
   margin-top: 6px;
-  text-align: center;
 }
 
 /* ── Time input ── */
@@ -630,7 +629,6 @@
   gap: 6px;
   margin-bottom: 4px;
   flex-wrap: wrap;
-  justify-content: center;
 }
 
 .durationChip {
