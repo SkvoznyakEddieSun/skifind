@@ -3,47 +3,21 @@
  * Module-level mutable state (как остальные store).
  */
 
+import { INSTRUCTORS } from '@/screens/Catalog/CatalogScreen';
+
 // ── Цены ──────────────────────────────────────────────────────────────────
+//
+// Живая ссылка на pricing первого инструктора (Алексей Морозов).
+// Мутации здесь отражаются и в каталоге, и в форме записи.
 
-export interface PriceRow {
-  format:  'individual' | 'miniGroup' | 'kids';
-  label:   string;
-  emoji:   string;
-  price:   number;   // ₽
-  unit:    string;   // "₽ / час" и т.д.
-  hint:    string;
-}
+export const INSTR_PRICING = INSTRUCTORS[0].pricing;
+export const INSTR_WORKS_WITH_KIDS: boolean = !!INSTRUCTORS[0].worksWithKids;
 
-export const INSTRUCTOR_PRICES: PriceRow[] = [
-  {
-    format: 'individual',
-    label:  'Индивидуальное',
-    emoji:  '🎿',
-    price:  3500,
-    unit:   '₽ / час',
-    hint:   'Один ученик, ваш темп',
-  },
-  {
-    format: 'miniGroup',
-    label:  'Мини-группа',
-    emoji:  '👥',
-    price:  7000,
-    unit:   '₽ / группа',
-    hint:   'До 5 человек',
-  },
-  {
-    format: 'kids',
-    label:  'Детское',
-    emoji:  '🧒',
-    price:  2800,
-    unit:   '₽ / занятие',
-    hint:   '45–60 мин, до 8 лет',
-  },
-];
-
-export function updatePrice(format: PriceRow['format'], price: number): void {
-  const row = INSTRUCTOR_PRICES.find(r => r.format === format);
-  if (row && price > 0) row.price = price;
+/** Обновить цену: path = "individual.h1", "miniGroup.extraPersonPrice", … */
+export function updateInstrPrice(path: string, value: number): void {
+  const [format, key] = path.split('.') as [string, string];
+  const section = (INSTR_PRICING as unknown as Record<string, Record<string, number>>)[format];
+  if (section && key in section) section[key] = value;
 }
 
 // ── Расписание ─────────────────────────────────────────────────────────────

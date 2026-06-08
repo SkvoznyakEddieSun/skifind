@@ -3,10 +3,39 @@ import styles from './InstrProfileScreen.module.css';
 import { ShareModal } from '@/components/ShareModal/ShareModal';
 import { getAcceptedLessons } from '@/store/bookings';
 import {
-  INSTRUCTOR_PRICES,
-  updatePrice,
+  INSTR_PRICING,
+  INSTR_WORKS_WITH_KIDS,
+  updateInstrPrice,
 } from '@/store/instructorProfile';
 import { Icon } from '@/components/Icon/Icon';
+
+// ── Конфиг длительностей ────────────────────────────────────────────────────
+const DURATIONS = [
+  { key: 'h1', label: '1 час'   },
+  { key: 'h2', label: '2 часа'  },
+  { key: 'h3', label: '3 часа'  },
+  { key: 'h4', label: '4 часа'  },
+] as const;
+
+type DurKey = typeof DURATIONS[number]['key'];
+
+/** Сбросить черновик из текущего стора */
+function initDraft(): Record<string, string> {
+  const d: Record<string, string> = {};
+  for (const dk of ['h1','h2','h3','h4'] as DurKey[]) {
+    d[`individual.${dk}`] = String(INSTR_PRICING.individual[dk]);
+    d[`miniGroup.${dk}`]  = String(INSTR_PRICING.miniGroup[dk]);
+    if (INSTR_WORKS_WITH_KIDS && INSTR_PRICING.kids) {
+      d[`kids.${dk}`] = String(INSTR_PRICING.kids.individual[dk]);
+    }
+  }
+  d['miniGroup.extraPersonPrice'] = String(INSTR_PRICING.miniGroup.extraPersonPrice);
+  d['miniGroup.maxParticipants']  = String(INSTR_PRICING.miniGroup.maxParticipants);
+  if (INSTR_WORKS_WITH_KIDS && INSTR_PRICING.kids?.shortSlot != null) {
+    d['kids.shortSlot'] = String(INSTR_PRICING.kids.shortSlot);
+  }
+  return d;
+}
 
 interface ToggleSetting {
   id: string;
@@ -32,25 +61,31 @@ export function InstrProfileScreen({ onBalance, onMyProfile, onLogout }: InstrPr
   const [toast, setToast]         = useState<string | null>(null);
 
   // ── Цены ──────────────────────────────────────────────────────────────
-  const [prices, setPrices] = useState(() =>
-    INSTRUCTOR_PRICES.map(r => ({ ...r, draft: String(r.price) }))
-  );
+  const [draft, setDraft] = useState<Record<string, string>>(initDraft);
   const [pricesSaved, setPricesSaved] = useState(false);
 
-  function handlePriceChange(format: string, val: string) {
-    setPrices(prev => prev.map(r => r.format === format ? { ...r, draft: val } : r));
+  function handlePriceChange(path: string, val: string) {
+    setDraft(prev => ({ ...prev, [path]: val }));
     setPricesSaved(false);
   }
 
   function savePrices() {
-    prices.forEach(r => {
-      const n = parseInt(r.draft, 10);
-      if (!isNaN(n) && n > 0) updatePrice(r.format as any, n);
-    });
-    setPrices(INSTRUCTOR_PRICES.map(r => ({ ...r, draft: String(r.price) })));
+    for (const [path, val] of Object.entries(draft)) {
+      const n = parseInt(val, 10);
+      if (!isNaN(n) && n > 0) updateInstrPrice(path, n);
+    }
+    setDraft(initDraft());
     setPricesSaved(true);
     showToast('✓ Цены сохранены');
   }
+
+  const pricesDirty = Object.entries(draft).some(([, val]) => {
+    const n = parseInt(val, 10);
+    return isNaN(n) || n <= 0;
+  }) || (() => {
+    const orig = initDraft();
+    return Object.entries(draft).some(([k, v]) => v !== orig[k]);
+  })();
 
   // ── Видимость ─────────────────────────────────────────────────────────
   const [settings, setSettings] = useState<ToggleSetting[]>([
@@ -75,10 +110,6 @@ export function InstrProfileScreen({ onBalance, onMyProfile, onLogout }: InstrPr
     setTimeout(() => setToast(null), 2500);
   }
 
-  const pricesDirty = prices.some(r => {
-    const n = parseInt(r.draft, 10);
-    return !isNaN(n) && n !== r.price;
-  });
 
   return (
     <div className={styles.screen}>
@@ -146,35 +177,112 @@ export function InstrProfileScreen({ onBalance, onMyProfile, onLogout }: InstrPr
         {/* ── Цены на занятия ── */}
         <div className={styles.settingsWrap}>
           <div className={styles.secLabel}>Цены на занятия</div>
+
+          {/* Индивидуальное */}
           <div className={styles.settingsGroup}>
+            <div className={styles.settingsGroupLabel}>🎿 Индивидуальное · один ученик</div>
             <div className={styles.settingsGroupBody}>
-              {prices.map(r => {
-                const n = parseInt(r.draft, 10);
-                const invalid = r.draft.trim() !== '' && (isNaN(n) || n <= 0);
+              {DURATIONS.map(d => {
+                const path = `individual.${d.key}`;
+                const val = draft[path] ?? '';
+                const n = parseInt(val, 10);
+                const invalid = val.trim() !== '' && (isNaN(n) || n <= 0);
                 return (
-                  <div key={r.format} className={styles.priceRow}>
-                    <div className={styles.priceLeft}>
-                      <span className={styles.priceEmoji}>{r.emoji}</span>
-                      <div>
-                        <div className={styles.priceLabel}>{r.label}</div>
-                        <div className={styles.priceHint}>{r.hint}</div>
-                      </div>
-                    </div>
+                  <div key={d.key} className={styles.priceRow}>
+                    <div className={styles.priceLabel}>{d.label}</div>
                     <div className={styles.priceRight}>
-                      <input
-                        type="number"
-                        inputMode="numeric"
+                      <input type="number" inputMode="numeric"
                         className={`${styles.priceInput} ${invalid ? styles.priceInputError : ''}`}
-                        value={r.draft}
-                        onChange={e => handlePriceChange(r.format, e.target.value)}
-                      />
-                      <span className={styles.priceUnit}>{r.unit}</span>
+                        value={val} onChange={e => handlePriceChange(path, e.target.value)} />
+                      <span className={styles.priceUnit}>₽</span>
                     </div>
                   </div>
                 );
               })}
             </div>
           </div>
+
+          {/* Мини-группа */}
+          <div className={styles.settingsGroup}>
+            <div className={styles.settingsGroupLabel}>👥 Мини-группа · база за 2 чел.</div>
+            <div className={styles.settingsGroupBody}>
+              {DURATIONS.map(d => {
+                const path = `miniGroup.${d.key}`;
+                const val = draft[path] ?? '';
+                const n = parseInt(val, 10);
+                const invalid = val.trim() !== '' && (isNaN(n) || n <= 0);
+                return (
+                  <div key={d.key} className={styles.priceRow}>
+                    <div className={styles.priceLabel}>{d.label}</div>
+                    <div className={styles.priceRight}>
+                      <input type="number" inputMode="numeric"
+                        className={`${styles.priceInput} ${invalid ? styles.priceInputError : ''}`}
+                        value={val} onChange={e => handlePriceChange(path, e.target.value)} />
+                      <span className={styles.priceUnit}>₽</span>
+                    </div>
+                  </div>
+                );
+              })}
+              <div className={styles.priceRow}>
+                <div className={styles.priceLabel}>Доп. участник</div>
+                <div className={styles.priceRight}>
+                  <input type="number" inputMode="numeric" className={styles.priceInput}
+                    value={draft['miniGroup.extraPersonPrice'] ?? ''}
+                    onChange={e => handlePriceChange('miniGroup.extraPersonPrice', e.target.value)} />
+                  <span className={styles.priceUnit}>₽/чел.</span>
+                </div>
+              </div>
+              <div className={styles.priceRow}>
+                <div className={styles.priceLabel}>Макс. участников</div>
+                <div className={styles.priceRight}>
+                  <input type="number" inputMode="numeric"
+                    className={`${styles.priceInput} ${styles.priceInputSm}`}
+                    value={draft['miniGroup.maxParticipants'] ?? ''}
+                    onChange={e => handlePriceChange('miniGroup.maxParticipants', e.target.value)} />
+                  <span className={styles.priceUnit}>чел.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Детское — только если worksWithKids */}
+          {INSTR_WORKS_WITH_KIDS && (
+            <div className={styles.settingsGroup}>
+              <div className={styles.settingsGroupLabel}>🧒 Детское · до 8 лет</div>
+              <div className={styles.settingsGroupBody}>
+                {draft['kids.shortSlot'] !== undefined && (
+                  <div className={styles.priceRow}>
+                    <div className={styles.priceLabel}>45 мин</div>
+                    <div className={styles.priceRight}>
+                      <input type="number" inputMode="numeric" className={styles.priceInput}
+                        value={draft['kids.shortSlot'] ?? ''}
+                        onChange={e => handlePriceChange('kids.shortSlot', e.target.value)} />
+                      <span className={styles.priceUnit}>₽</span>
+                    </div>
+                  </div>
+                )}
+                {DURATIONS.map(d => {
+                  const path = `kids.${d.key}`;
+                  if (!(path in draft)) return null;
+                  const val = draft[path] ?? '';
+                  const n = parseInt(val, 10);
+                  const invalid = val.trim() !== '' && (isNaN(n) || n <= 0);
+                  return (
+                    <div key={d.key} className={styles.priceRow}>
+                      <div className={styles.priceLabel}>{d.label}</div>
+                      <div className={styles.priceRight}>
+                        <input type="number" inputMode="numeric"
+                          className={`${styles.priceInput} ${invalid ? styles.priceInputError : ''}`}
+                          value={val} onChange={e => handlePriceChange(path, e.target.value)} />
+                        <span className={styles.priceUnit}>₽</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           <button
             className={`${styles.btnBlock} ${(!pricesDirty && pricesSaved) ? styles.btnBlockSaved : ''}`}
             onClick={savePrices}
