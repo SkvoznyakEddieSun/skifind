@@ -213,6 +213,7 @@
   border-color: var(--accent);
   font-size: 18px;
   font-weight: 700;
+  padding: 0 0 1px 1px; /* optical nudge: +1px right, +1px up */
 }
 
 /* ── Empty state ── */
