@@ -19,7 +19,9 @@
       "Bash(git checkout *)",
       "Bash(git merge *)",
       "Bash(git stash *)",
-      "Bash(git commit *)"
+      "Bash(git commit *)",
+      "Bash(curl -s -X POST \"https://api.netlify.com/api/v1/sites\")",
+      "Bash(npx netlify *)"
     ]
   }
 }
