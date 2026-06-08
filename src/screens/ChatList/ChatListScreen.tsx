@@ -22,7 +22,7 @@ interface ChatItem {
 
 // ── Данные для ИНСТРУКТОРА (ученики + коллеги-инструкторы) ────────────────
 
-const INSTR_RECENT: ChatItem[] = [
+let INSTR_RECENT: ChatItem[] = [
   {
     id: 'roman',
     initials: 'РЕ', avClass: 'avCoral', name: 'Роман Ефимов', role: 'ученик',
@@ -71,6 +71,17 @@ const INSTR_RECENT: ChatItem[] = [
     instructorPhone: '+7 916 234 56 78',
   },
 ];
+
+/** Добавить новый чат с учеником в начало списка при принятии заявки */
+export function addInstrRecentChat(item: ChatItem): void {
+  // Не дублировать, если уже есть
+  if (INSTR_RECENT.some(c => c.id === item.id)) {
+    // Обновить статус если есть
+    INSTR_RECENT = INSTR_RECENT.map(c => c.id === item.id ? { ...c, bookingStatus: item.bookingStatus } : c);
+    return;
+  }
+  INSTR_RECENT = [item, ...INSTR_RECENT];
+}
 
 const INSTR_OLDER: ChatItem[] = [
   {

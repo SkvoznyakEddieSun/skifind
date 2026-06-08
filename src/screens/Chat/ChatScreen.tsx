@@ -90,6 +90,7 @@ interface ChatScreenProps {
   personName?: string;
   personInitials?: string;
   personAvColor?: string;          // 'ice' | 'mint' | 'blue' | 'straw' | 'purple' | 'coral'
+  isInstructor?: boolean;          // true → no preview wall/limits (instructor-side view)
 }
 
 // ── Component ──────────────────────────────────────────────────────────────
@@ -111,6 +112,7 @@ export function ChatScreen({
   personName = 'Собеседник',
   personInitials = '?',
   personAvColor = 'ice',
+  isInstructor = false,
 }: ChatScreenProps) {
   const { t } = useTranslation();
   const [items, setItems] = useState<ChatItem[]>(INITIAL);
@@ -130,7 +132,8 @@ export function ChatScreen({
 
   const isAccepted = bookingStatus === 'ACCEPTED';
   const isDeclined = bookingStatus === 'DECLINED';
-  const previewExhausted = !isAccepted && outMsgCount >= PREVIEW_LIMIT;
+  // Preview restrictions apply only to guest side; instructors always have full access
+  const previewExhausted = !isInstructor && !isAccepted && outMsgCount >= PREVIEW_LIMIT;
   const remaining = Math.max(0, PREVIEW_LIMIT - outMsgCount);
 
   function fireToast(msg: string) {

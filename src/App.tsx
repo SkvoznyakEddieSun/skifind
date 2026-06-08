@@ -37,8 +37,9 @@ import { MasterClassDetailScreen }  from './screens/MasterClass/MasterClassDetai
 import { MasterClassCreateScreen }  from './screens/MasterClass/MasterClassCreateScreen';
 import { GroupChatScreen }          from './screens/GroupChat/GroupChatScreen';
 import { MASTER_CLASSES }           from './screens/MasterClass/masterClassData';
-import { getPendingRequests }       from './store/bookings';
+import { getPendingRequests, getBookingById } from './store/bookings';
 import { StudentProfileScreen }     from './screens/StudentProfile/StudentProfileScreen';
+import { getStudentProfileByName }  from './screens/StudentProfile/studentData';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -93,6 +94,7 @@ export function App() {
   const [chatPersonAvColor, setChatPersonAvColor] = useState('ice');
   const [chatPersonHasProfile, setChatPersonHasProfile] = useState(false);
   const [chatPersonProfileType, setChatPersonProfileType] = useState<'instructor' | 'student'>('instructor');
+  const [chatIsInstructor, setChatIsInstructor] = useState(false);
   const [activeStudentId, setActiveStudentId] = useState('');
   const [activeInstructor, setActiveInstructor] = useState<Instructor>(INSTRUCTORS[0]);
   const [joinedMcIds, setJoinedMcIds]   = useState<Set<string>>(new Set());
@@ -107,6 +109,24 @@ export function App() {
     setChatPersonInitials(activeInstructor.initials);
     setChatPersonAvColor(activeInstructor.avatarColor);
     setChatPersonHasProfile(true);
+    push('chat');
+  }
+
+  /** Open instructor-side chat with a student by booking id. */
+  function openStudentChat(bookingId: string) {
+    const b = getBookingById(bookingId);
+    const profile = b ? getStudentProfileByName(b.studentName) : undefined;
+    if (b && !profile) {
+      console.error(`Профиль студента не найден: ${b.studentName}`);
+    }
+    setChatPersonName(b?.studentName ?? 'Ученик');
+    setChatPersonInitials(b?.studentInitials ?? '?');
+    setChatPersonAvColor(b?.studentColor ?? 'ice');
+    setChatPersonHasProfile(true);
+    setChatPersonProfileType('student');
+    setActiveStudentId(profile?.id ?? '');
+    setChatBookingStatus(b?.status === 'accepted' ? 'ACCEPTED' : 'PENDING');
+    setChatIsInstructor(true);
     push('chat');
   }
 
@@ -195,6 +215,7 @@ export function App() {
         personName={chatPersonName || undefined}
         personInitials={chatPersonInitials || undefined}
         personAvColor={chatPersonAvColor || undefined}
+        isInstructor={chatIsInstructor}
       />
     );
   }
@@ -226,6 +247,7 @@ export function App() {
             setChatBookingStatus(status === 'DECLINED' ? 'NONE' : status);
             setChatInstructorPhone(phone);
             setChatPersonName(name ?? ''); setChatPersonInitials(initials ?? ''); setChatPersonAvColor(avColor ?? 'ice');
+            setChatIsInstructor(true);
             push('chat');
           }}
           isInstructor
@@ -238,6 +260,7 @@ export function App() {
             setChatPersonHasProfile(true); setChatPersonProfileType('instructor');
             setChatBookingStatus(status); setChatInstructorPhone(phone);
             setChatPersonName(name ?? ''); setChatPersonInitials(initials ?? ''); setChatPersonAvColor(avColor ?? 'ice');
+            setChatIsInstructor(false);
             push('chat');
           }}
           joinedMcIds={joinedMcIds}
@@ -257,7 +280,7 @@ export function App() {
       <div style={shellStyle}>
         <RequestsScreen
           onBack={pop}
-          onChat={() => push('chat')}
+          onChat={openStudentChat}
           onRequest={id => { setActiveRequestId(id); push('request-detail'); }}
         />
         <BottomNav items={instrNavLive} active={instrTab} onTab={t => switchInstrTab(t as InstrTab)} />
@@ -274,6 +297,7 @@ export function App() {
             setActiveInstructor(instr);
             setChatPersonName(instr.name); setChatPersonInitials(instr.initials); setChatPersonAvColor(instr.avatarColor);
             setChatPersonHasProfile(true);
+            setChatIsInstructor(false);
             push('chat');
           }}
           onBookAgain={instructorId => {
@@ -439,7 +463,7 @@ export function App() {
       tabContent = (
         <RequestsScreen
           onBack={() => switchInstrTab('dashboard')}
-          onChat={() => push('chat')}
+          onChat={openStudentChat}
           onRequest={id => { setActiveRequestId(id); push('request-detail'); }}
         />
       );
@@ -465,6 +489,7 @@ export function App() {
             setChatPersonName(name ?? '');
             setChatPersonInitials(initials ?? '');
             setChatPersonAvColor(avColor ?? 'ice');
+            setChatIsInstructor(true);
             push('chat');
           }}
           onCommunity={() => push('community')}
@@ -472,7 +497,7 @@ export function App() {
         />
       );
     } else if (instrTab === 'calendar') {
-      tabContent = <ScheduleScreen onLesson={id => { setActiveLessonId(id ?? ''); push('lesson-detail'); }} onChat={() => push('chat')} onCreateMasterClass={() => push('mc-create')} />;
+      tabContent = <ScheduleScreen onLesson={id => { setActiveLessonId(id ?? ''); push('lesson-detail'); }} onChat={() => { setChatIsInstructor(true); push('chat'); }} onCreateMasterClass={() => push('mc-create')} />;
     } else {
       tabContent = (
         <InstrProfileScreen
@@ -526,6 +551,7 @@ export function App() {
             setChatPersonInitials(instr.initials);
             setChatPersonAvColor(instr.avatarColor);
             setChatPersonHasProfile(true);
+            setChatIsInstructor(false);
             push('chat');
           }}
           onBookAgain={instructorId => {
@@ -549,6 +575,7 @@ export function App() {
             setChatPersonName(name ?? '');
             setChatPersonInitials(initials ?? '');
             setChatPersonAvColor(avColor ?? 'ice');
+            setChatIsInstructor(false);
             push('chat');
           }}
           joinedMcIds={joinedMcIds}

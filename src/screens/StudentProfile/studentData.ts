@@ -335,6 +335,10 @@ export function getStudentProfile(id: string): StudentProfile | undefined {
   return PROFILES.find(p => p.id === id);
 }
 
+export function getStudentProfileByName(name: string): StudentProfile | undefined {
+  return PROFILES.find(p => p.name === name);
+}
+
 export function getAllStudents(): StudentProfile[] {
   return PROFILES;
 }

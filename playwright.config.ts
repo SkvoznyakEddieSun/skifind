@@ -1,4 +1,4 @@
-import { defineConfig } from '@playwright/test';
+import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
   testDir: './e2e',
@@ -9,6 +9,7 @@ export default defineConfig({
     video: 'on',
     screenshot: 'on',
     deviceScaleFactor: 2,
+    channel: 'chrome', // use system Chrome instead of downloading Playwright Chromium
   },
   webServer: {
     command: 'npm run preview',

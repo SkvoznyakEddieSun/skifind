@@ -10,6 +10,7 @@ import {
   getCommission,
 } from '@/store/bookings';
 import type { Booking } from '@/store/bookings';
+import { addInstrRecentChat } from '@/screens/ChatList/ChatListScreen';
 
 // ── Pre-existing "own" students (без комиссии, добавлены до платформы) ──────
 
@@ -160,9 +161,28 @@ export function RequestsScreen({ onBack, onChat, onRequest }: RequestsScreenProp
   }
 
   function handleAccept(id: string) {
+    const booking = pending.find(b => b.id === id);
     acceptBooking(id);
     setPending(getPendingRequests('aleksey'));
     setAccepted(getAcceptedLessons('aleksey'));
+    if (booking) {
+      const colorMap: Record<string, string> = {
+        ice: 'avIce', mint: 'avMint', straw: 'avStraw',
+        purple: 'avPurple', coral: 'avCoral', blue: 'avBlue',
+      };
+      addInstrRecentChat({
+        id:            booking.id,
+        initials:      booking.studentInitials,
+        avClass:       colorMap[booking.studentColor] ?? 'avIce',
+        name:          booking.studentName,
+        role:          'ученик',
+        online:        true,
+        time:          'сейчас',
+        msg:           'Заявка принята ✓',
+        myMsg:         true,
+        bookingStatus: 'ACCEPTED',
+      });
+    }
     showToast('✓ Заявка принята — ученик добавлен в список');
   }
 
