@@ -62,7 +62,7 @@ export function InstrProfileScreen({ onBalance, onMyProfile, onLogout }: InstrPr
   // ── Цены ──────────────────────────────────────────────────────────────
   const [draft, setDraft] = useState<Record<string, string>>(initDraft);
   const [pricesSaved, setPricesSaved] = useState(false);
-  const [openSections, setOpenSections] = useState({ individual: true, miniGroup: true, kids: true });
+  const [openSections, setOpenSections] = useState({ individual: false, miniGroup: false, kids: false });
   function toggleSection(s: keyof typeof openSections) {
     setOpenSections(prev => ({ ...prev, [s]: !prev[s] }));
   }

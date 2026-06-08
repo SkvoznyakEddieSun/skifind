@@ -208,14 +208,15 @@
 .chevron {
   font-size: 18px;
   color: var(--text-dim);
-  transform: rotate(90deg);
   transition: transform .2s ease;
   line-height: 1;
   font-weight: 300;
+  display: inline-block;
 }
 
+/* › → ∨ когда открыто */
 .chevronOpen {
-  transform: rotate(-90deg);
+  transform: rotate(90deg);
 }
 
 /* Static info row */
