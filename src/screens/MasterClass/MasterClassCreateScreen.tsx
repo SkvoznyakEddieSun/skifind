@@ -22,7 +22,7 @@ const LEVEL_COLORS: Record<McLevel, McLevelColor> = {
   all:      'purple',
 };
 
-const DURATIONS       = [60, 90, 120, 180] as const;
+const DURATIONS       = [60, 120, 180, 240] as const;
 const DEADLINE_HOURS  = [2, 6, 12, 24, 48] as const;
 const MAX_DESC        = 300;
 const PRICE_MIN       = 300;
@@ -85,7 +85,7 @@ export function MasterClassCreateScreen({ onBack, onPublished }: MasterClassCrea
   const [level,       setLevel]       = useState<McLevel>('beginner');
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
   const [time,        setTime]        = useState('');
-  const [duration,    setDuration]    = useState<number>(90);
+  const [duration,    setDuration]    = useState<number>(60);
   const [maxParts,    setMaxParts]    = useState(8);
   const [minParts,    setMinParts]    = useState(2);
   const [price,       setPrice]       = useState('');
