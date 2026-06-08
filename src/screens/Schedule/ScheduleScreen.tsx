@@ -574,8 +574,7 @@ export function ScheduleScreen({ onLesson, onChat, onCreateMasterClass }: Schedu
               <div className={styles.settingsCardBody}>
                 <div className={styles.tmSwRow}>
                   <div className={styles.tmSwInfo}>
-                    <div className={styles.tmSwTitle}>Перерыв на обед</div>
-                    <div className={styles.tmSwSub}>
+                    <div className={styles.tmSwSub} style={{ fontSize: 13, color: 'var(--text-dim)' }}>
                       {lunchEnabled ? `${lunchStart} — ${lunchEnd}` : 'Выключен'}
                     </div>
                   </div>
