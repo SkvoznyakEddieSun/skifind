@@ -28,13 +28,10 @@ export interface GroupHourlyPricing extends HourlyPricing {
 }
 
 export interface InstructorPricing {
-  individual: HourlyPricing;
-  miniGroup:  GroupHourlyPricing;
-  kids?: {
-    individual: HourlyPricing;
-    miniGroup:  GroupHourlyPricing;
-    shortSlot?: number;
-  };
+  individual:     HourlyPricing;
+  miniGroup:      GroupHourlyPricing;
+  /** Цена за 45-мин слот (только если allowsShortSlots: true) */
+  shortSlotPrice?: number;
 }
 
 export interface InstructorSkill {
@@ -159,13 +156,9 @@ export const INSTRUCTORS: Instructor[] = [
       sat: { start: '10:00', end: '15:00' },
     },
     pricing: {
-      individual: { h1: 3200, h2: 6000,  h3: 8500,  h4: 10500 },
-      miniGroup:  { h1: 5500, h2: 9000,  h3: 12500, h4: 15500, extraPersonPrice: 1800, maxParticipants: 6 },
-      kids: {
-        individual: { h1: 2800, h2: 5200, h3: 7500,  h4: 9500  },
-        miniGroup:  { h1: 4500, h2: 7500, h3: 10500, h4: 13000, extraPersonPrice: 1500, maxParticipants: 6 },
-        shortSlot: 1800,
-      },
+      individual:     { h1: 3200, h2: 6000,  h3: 8500,  h4: 10500 },
+      miniGroup:      { h1: 5500, h2: 9000,  h3: 12500, h4: 15500, extraPersonPrice: 1800, maxParticipants: 6 },
+      shortSlotPrice: 1800,
     },
     worksWithKids: true,
     bio: '6 лет работаю с детьми от 3 до 12 лет. Нашла подход к самым непоседливым — занятия в игровой форме, без страха, с результатом.',
@@ -265,13 +258,9 @@ export const INSTRUCTORS: Instructor[] = [
       sat: { start: '10:00', end: '15:00' },
     },
     pricing: {
-      individual: { h1: 2500, h2: 4800, h3: 6800,  h4: 8500  },
-      miniGroup:  { h1: 4500, h2: 7500, h3: 10000, h4: 12500, extraPersonPrice: 1500, maxParticipants: 6 },
-      kids: {
-        individual: { h1: 2500, h2: 4500, h3: 6300,  h4: 7800  },
-        miniGroup:  { h1: 3800, h2: 6500, h3: 9000,  h4: 11000, extraPersonPrice: 1200, maxParticipants: 6 },
-        shortSlot: 1600,
-      },
+      individual:     { h1: 2500, h2: 4800, h3: 6800,  h4: 8500  },
+      miniGroup:      { h1: 4500, h2: 7500, h3: 10000, h4: 12500, extraPersonPrice: 1500, maxParticipants: 6 },
+      shortSlotPrice: 1600,
     },
     worksWithKids: true,
     bio: 'Работаю с новичками и детьми 5 лет. Умею мотивировать и поддерживать уверенность — даже самые осторожные гости начинают кататься самостоятельно.',

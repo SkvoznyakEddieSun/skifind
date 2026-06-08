@@ -5,6 +5,7 @@ import { getAcceptedLessons } from '@/store/bookings';
 import {
   INSTR_PRICING,
   INSTR_WORKS_WITH_KIDS,
+  INSTR_ALLOWS_SHORT_SLOTS,
   updateInstrPrice,
 } from '@/store/instructorProfile';
 import { Icon } from '@/components/Icon/Icon';
@@ -25,15 +26,11 @@ function initDraft(): Record<string, string> {
   for (const dk of ['h1','h2','h3','h4'] as DurKey[]) {
     d[`individual.${dk}`] = String(INSTR_PRICING.individual[dk]);
     d[`miniGroup.${dk}`]  = String(INSTR_PRICING.miniGroup[dk]);
-    if (INSTR_WORKS_WITH_KIDS && INSTR_PRICING.kids) {
-      d[`kids.${dk}`] = String(INSTR_PRICING.kids.individual[dk]);
-    }
   }
   d['miniGroup.extraPersonPrice'] = String(INSTR_PRICING.miniGroup.extraPersonPrice);
   d['miniGroup.maxParticipants']  = String(INSTR_PRICING.miniGroup.maxParticipants);
-  if (INSTR_WORKS_WITH_KIDS && INSTR_PRICING.kids?.shortSlot != null) {
-    d['kids.shortSlot'] = String(INSTR_PRICING.kids.shortSlot);
-  }
+  d['shortSlotPrice'] = INSTR_PRICING.shortSlotPrice != null
+    ? String(INSTR_PRICING.shortSlotPrice) : '';
   return d;
 }
 
@@ -59,7 +56,8 @@ export function InstrProfileScreen({ onBalance, onMyProfile, onLogout }: InstrPr
   const [isDark, setIsDark]         = useState(true);
   const [showShare, setShowShare]   = useState(false);
   const [toast, setToast]           = useState<string | null>(null);
-  const [worksWithKids, setWorksWithKids] = useState(INSTR_WORKS_WITH_KIDS);
+  const worksWithKids                           = INSTR_WORKS_WITH_KIDS;
+  const [allowsShortSlots, setAllowsShortSlots] = useState(INSTR_ALLOWS_SHORT_SLOTS);
 
   // ── Цены ──────────────────────────────────────────────────────────────
   const [draft, setDraft] = useState<Record<string, string>>(initDraft);
@@ -260,61 +258,34 @@ export function InstrProfileScreen({ onBalance, onMyProfile, onLogout }: InstrPr
             )}
           </div>
 
-          {/* Детское — тоггл + цены */}
-          <div className={styles.settingsGroup}>
-            <div className={styles.settingsGroupBody}>
-              <div className={styles.settingRow}>
-                <div className={styles.settingLabel}>
-                  <div className={styles.settingTitle}>🧒 Детский тариф</div>
-                  <div className={styles.settingSub}>Детские занятия · до 8 лет</div>
-                </div>
-                <button
-                  className={`${styles.sw} ${worksWithKids ? styles.swOn : ''}`}
-                  onClick={() => setWorksWithKids(v => !v)}
-                />
-              </div>
-            </div>
-          </div>
-
+          {/* Короткие слоты — только если worksWithKids */}
           {worksWithKids && (
             <div className={styles.settingsGroup}>
-              <button className={styles.collapsibleHeader} onClick={() => toggleSection('kids')}>
-                <span>🧒 Детское · до 8 лет</span>
-                <span className={`${styles.chevron} ${openSections.kids ? styles.chevronOpen : ''}`}>›</span>
-              </button>
-              {openSections.kids && (
               <div className={styles.settingsGroupBody}>
-                {draft['kids.shortSlot'] !== undefined && (
+                <div className={styles.settingRow}>
+                  <div className={styles.settingLabel}>
+                    <div className={styles.settingTitle}>Короткие слоты 45 мин</div>
+                    <div className={styles.settingSub}>Доступны при записи в детский формат</div>
+                  </div>
+                  <button
+                    className={`${styles.sw} ${allowsShortSlots ? styles.swOn : ''}`}
+                    onClick={() => setAllowsShortSlots(v => !v)}
+                  />
+                </div>
+                {allowsShortSlots && (
                   <div className={styles.priceRow}>
-                    <div className={styles.priceLabel}>45 мин</div>
+                    <div className={styles.priceLabel}>45 минут</div>
                     <div className={styles.priceRight}>
-                      <input type="number" inputMode="numeric" className={styles.priceInput}
-                        value={draft['kids.shortSlot'] ?? ''}
-                        onChange={e => handlePriceChange('kids.shortSlot', e.target.value)} />
+                      <input
+                        type="number" inputMode="numeric" className={styles.priceInput}
+                        value={draft['shortSlotPrice'] ?? ''}
+                        onChange={e => handlePriceChange('shortSlotPrice', e.target.value)}
+                      />
                       <span className={styles.priceUnit}>₽</span>
                     </div>
                   </div>
                 )}
-                {DURATIONS.map(d => {
-                  const path = `kids.${d.key}`;
-                  if (!(path in draft)) return null;
-                  const val = draft[path] ?? '';
-                  const n = parseInt(val, 10);
-                  const invalid = val.trim() !== '' && (isNaN(n) || n <= 0);
-                  return (
-                    <div key={d.key} className={styles.priceRow}>
-                      <div className={styles.priceLabel}>{d.label}</div>
-                      <div className={styles.priceRight}>
-                        <input type="number" inputMode="numeric"
-                          className={`${styles.priceInput} ${invalid ? styles.priceInputError : ''}`}
-                          value={val} onChange={e => handlePriceChange(path, e.target.value)} />
-                        <span className={styles.priceUnit}>₽</span>
-                      </div>
-                    </div>
-                  );
-                })}
               </div>
-              )}
             </div>
           )}
 

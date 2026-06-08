@@ -109,12 +109,11 @@ export function BookSlotScreen({ onBack, onBooked, instructor }: BookSlotScreenP
   function getPrice(): number {
     if (!format || !duration) return 0;
     if (duration === 45) {
-      return instructor.pricing.kids?.shortSlot ?? 0;
+      return instructor.pricing.shortSlotPrice ?? 0;
     }
     const hKey = `h${duration / 60}` as 'h1' | 'h2' | 'h3' | 'h4';
-    if (format === 'individual') return instructor.pricing.individual[hKey];
-    if (format === 'kids') {
-      return instructor.pricing.kids?.individual[hKey] ?? instructor.pricing.individual[hKey];
+    if (format === 'individual' || format === 'kids') {
+      return instructor.pricing.individual[hKey];
     }
     // miniGroup
     const base = instructor.pricing.miniGroup[hKey];

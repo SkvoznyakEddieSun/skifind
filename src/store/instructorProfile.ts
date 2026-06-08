@@ -10,11 +10,20 @@ import { INSTRUCTORS } from '@/screens/Catalog/CatalogScreen';
 // Живая ссылка на pricing первого инструктора (Алексей Морозов).
 // Мутации здесь отражаются и в каталоге, и в форме записи.
 
-export const INSTR_PRICING = INSTRUCTORS[0].pricing;
-export const INSTR_WORKS_WITH_KIDS: boolean = !!INSTRUCTORS[0].worksWithKids;
+export const INSTR_PRICING           = INSTRUCTORS[0].pricing;
+export const INSTR_WORKS_WITH_KIDS:  boolean = !!INSTRUCTORS[0].worksWithKids;
+export const INSTR_ALLOWS_SHORT_SLOTS: boolean = !!INSTRUCTORS[0].allowsShortSlots;
 
-/** Обновить цену: path = "individual.h1", "miniGroup.extraPersonPrice", … */
+/**
+ * Обновить цену.
+ * path без точки → top-level поле INSTR_PRICING (напр. "shortSlotPrice").
+ * path с точкой  → вложенное поле (напр. "individual.h1", "miniGroup.extraPersonPrice").
+ */
 export function updateInstrPrice(path: string, value: number): void {
+  if (!path.includes('.')) {
+    (INSTR_PRICING as unknown as Record<string, number>)[path] = value;
+    return;
+  }
   const [format, key] = path.split('.') as [string, string];
   const section = (INSTR_PRICING as unknown as Record<string, Record<string, number>>)[format];
   if (section && key in section) section[key] = value;
