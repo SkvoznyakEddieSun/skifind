@@ -91,6 +91,8 @@ interface ChatScreenProps {
   personInitials?: string;
   personAvColor?: string;          // 'ice' | 'mint' | 'blue' | 'straw' | 'purple' | 'coral'
   isInstructor?: boolean;          // true → no preview wall/limits (instructor-side view)
+  onAcceptBooking?: () => void;    // инструктор принимает заявку из чата
+  onDeclineBooking?: () => void;   // инструктор отклоняет заявку из чата
 }
 
 // ── Component ──────────────────────────────────────────────────────────────
@@ -113,6 +115,8 @@ export function ChatScreen({
   personInitials = '?',
   personAvColor = 'ice',
   isInstructor = false,
+  onAcceptBooking,
+  onDeclineBooking,
 }: ChatScreenProps) {
   const { t } = useTranslation();
   const [items, setItems] = useState<ChatItem[]>(INITIAL);
@@ -308,10 +312,35 @@ export function ChatScreen({
                           </div>
                         </div>
                         {isInstructor ? (
-                          // Инструктор видит статус своего предложения, без кнопок
-                          <div className={`${styles.cbActions} ${styles.cbAcceptedLabel}`}>
-                            {cardAccepted ? `✓ ${t('chat.accepted')}` : '⏳ Ожидает подтверждения'}
-                          </div>
+                          cardAccepted ? (
+                            <div className={`${styles.cbActions} ${styles.cbAcceptedLabel}`}>
+                              ✓ {t('chat.accepted')}
+                            </div>
+                          ) : (
+                            // Инструктор может принять или отклонить прямо из чата
+                            <div className={styles.cbActions}>
+                              <button
+                                className={`${styles.cbBtn} ${styles.cbAccept}`}
+                                onClick={() => {
+                                  setCardAccepted(true);
+                                  onAcceptBooking?.();
+                                  fireToast('✓ Заявка принята');
+                                }}
+                              >
+                                ✓ Принять
+                              </button>
+                              <button
+                                className={`${styles.cbBtn} ${styles.cbDecline}`}
+                                onClick={() => {
+                                  onDeclineBooking?.();
+                                  fireToast('Заявка отклонена');
+                                  onBack();
+                                }}
+                              >
+                                Отказать
+                              </button>
+                            </div>
+                          )
                         ) : (
                           <>
                             {!cardAccepted && (

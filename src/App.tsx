@@ -37,7 +37,7 @@ import { MasterClassDetailScreen }  from './screens/MasterClass/MasterClassDetai
 import { MasterClassCreateScreen }  from './screens/MasterClass/MasterClassCreateScreen';
 import { GroupChatScreen }          from './screens/GroupChat/GroupChatScreen';
 import { MASTER_CLASSES }           from './screens/MasterClass/masterClassData';
-import { getPendingRequests, getBookingById } from './store/bookings';
+import { getPendingRequests, getBookingById, acceptBooking, declineBooking } from './store/bookings';
 import { StudentProfileScreen }     from './screens/StudentProfile/StudentProfileScreen';
 import { getStudentProfileByName }  from './screens/StudentProfile/studentData';
 
@@ -95,6 +95,7 @@ export function App() {
   const [chatPersonHasProfile, setChatPersonHasProfile] = useState(false);
   const [chatPersonProfileType, setChatPersonProfileType] = useState<'instructor' | 'student'>('instructor');
   const [chatIsInstructor, setChatIsInstructor] = useState(false);
+  const [activeChatBookingId, setActiveChatBookingId] = useState('');
   const [activeStudentId, setActiveStudentId] = useState('');
   const [activeInstructor, setActiveInstructor] = useState<Instructor>(INSTRUCTORS[0]);
   const [joinedMcIds, setJoinedMcIds]   = useState<Set<string>>(new Set());
@@ -127,6 +128,7 @@ export function App() {
     setActiveStudentId(profile?.id ?? '');
     setChatBookingStatus(b?.status === 'accepted' ? 'ACCEPTED' : 'PENDING');
     setChatIsInstructor(true);
+    setActiveChatBookingId(bookingId);
     push('chat');
   }
 
@@ -216,6 +218,14 @@ export function App() {
         personInitials={chatPersonInitials || undefined}
         personAvColor={chatPersonAvColor || undefined}
         isInstructor={chatIsInstructor}
+        onAcceptBooking={chatIsInstructor && activeChatBookingId ? () => {
+          acceptBooking(activeChatBookingId);
+          setChatBookingStatus('ACCEPTED');
+        } : undefined}
+        onDeclineBooking={chatIsInstructor && activeChatBookingId ? () => {
+          declineBooking(activeChatBookingId);
+          setChatBookingStatus('DECLINED');
+        } : undefined}
       />
     );
   }
