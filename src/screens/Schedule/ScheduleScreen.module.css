@@ -201,7 +201,7 @@
   font-size: 24px;
   font-weight: 300;
   line-height: 0;
-  padding: 1px 0 0 0; /* optical nudge: +1px down */
+  padding: 2px 0 0 0; /* optical nudge: +2px down */
   cursor: pointer;
   display: flex;
   align-items: center;
