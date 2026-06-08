@@ -454,6 +454,12 @@
   margin-top: 2px;
 }
 
+/* ── Disabled step wrapper ── */
+.stepDisabled {
+  opacity: .38;
+  pointer-events: none;
+}
+
 /* ── Step header ── */
 .stepHeader {
   display: flex;

@@ -98,11 +98,6 @@ export function BookSlotScreen({ onBack, onBooked, instructor }: BookSlotScreenP
 
   // ── Derived ──────────────────────────────────────────────────────────────
 
-  const durationOpts = DURATION_OPTS.filter(d => {
-    if (d.value === 45) return format === 'kids' && instructor.allowsShortSlots;
-    return true;
-  });
-
   const selectedDay         = dayIdx !== null ? DAYS[dayIdx] : null;
   const selectedDayKey      = selectedDay ? WEEKDAY_KEY[selectedDay.getDay()] : null;
   const selectedDaySchedule = selectedDayKey ? instructor.weekSchedule[selectedDayKey] : undefined;
@@ -229,90 +224,87 @@ export function BookSlotScreen({ onBack, onBooked, instructor }: BookSlotScreenP
         </div>
 
         {/* ── STEP 2 — Duration ── */}
-        {format !== null && (
-          <>
-            <div className={styles.divider} />
-            <div className={styles.stepHeader}>
-              <div className={`${styles.stepNum} ${duration ? styles.stepDone : ''}`}>2</div>
-              <div className={styles.sectionLabel}>Длительность</div>
-            </div>
-            <div className={styles.durationGrid}>
-              {durationOpts.map(opt => (
-                <button
-                  key={opt.value}
-                  className={`${styles.durationBtn} ${duration === opt.value ? styles.durationBtnActive : ''}`}
-                  onClick={() => handleDurationChange(opt.value)}
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
-          </>
-        )}
+        <div className={styles.divider} />
+        <div className={styles.stepHeader}>
+          <div className={`${styles.stepNum} ${duration ? styles.stepDone : ''}`}>2</div>
+          <div className={styles.sectionLabel}>Длительность</div>
+        </div>
+        <div className={`${styles.durationGrid} ${!format ? styles.stepDisabled : ''}`}>
+          {DURATION_OPTS.filter(d => {
+            if (d.value === 45) return format === 'kids' && instructor.allowsShortSlots;
+            return true;
+          }).map(opt => (
+            <button
+              key={opt.value}
+              disabled={!format}
+              className={`${styles.durationBtn} ${duration === opt.value ? styles.durationBtnActive : ''}`}
+              onClick={() => handleDurationChange(opt.value)}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
 
         {/* ── STEP 3 — Day ── */}
-        {duration !== null && (
-          <>
-            <div className={styles.divider} />
-            <div className={styles.stepHeader}>
-              <div className={`${styles.stepNum} ${dayIdx !== null ? styles.stepDone : ''}`}>3</div>
-              <div className={styles.sectionLabel}>Выберите день</div>
-            </div>
-            <div className={styles.dayStrip}>
-              {DAYS.map((d, i) => {
-                const key         = WEEKDAY_KEY[d.getDay()];
-                const hasSchedule = !!instructor.weekSchedule[key];
-                const isSelected  = i === dayIdx;
-                return (
-                  <button
-                    key={i}
-                    disabled={!hasSchedule}
-                    className={`${styles.dayChip} ${isSelected ? styles.dayChipActive : ''} ${!hasSchedule ? styles.dayChipEmpty : ''}`}
-                    onClick={() => handleDayChange(i)}
-                  >
-                    <span className={styles.dayChipDate}>{DAY_SHORT[d.getDay()]} {d.getDate()}</span>
-                    <span className={styles.dayChipSub}>{hasSchedule ? 'есть' : '—'}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </>
-        )}
+        <div className={styles.divider} />
+        <div className={styles.stepHeader}>
+          <div className={`${styles.stepNum} ${dayIdx !== null ? styles.stepDone : ''}`}>3</div>
+          <div className={styles.sectionLabel}>Выберите день</div>
+        </div>
+        <div className={`${styles.dayStrip} ${!duration ? styles.stepDisabled : ''}`}>
+          {DAYS.map((d, i) => {
+            const key         = WEEKDAY_KEY[d.getDay()];
+            const hasSchedule = !!instructor.weekSchedule[key];
+            const isSelected  = i === dayIdx;
+            const isDisabled  = !duration || !hasSchedule;
+            return (
+              <button
+                key={i}
+                disabled={isDisabled}
+                className={`${styles.dayChip} ${isSelected ? styles.dayChipActive : ''} ${!hasSchedule ? styles.dayChipEmpty : ''}`}
+                onClick={() => handleDayChange(i)}
+              >
+                <span className={styles.dayChipDate}>{DAY_SHORT[d.getDay()]} {d.getDate()}</span>
+                <span className={styles.dayChipSub}>{hasSchedule ? 'есть' : '—'}</span>
+              </button>
+            );
+          })}
+        </div>
 
         {/* ── STEP 4 — Time ── */}
-        {dayIdx !== null && (
-          <>
-            <div className={styles.divider} />
-            <div className={styles.stepHeader}>
-              <div className={`${styles.stepNum} ${timeStart ? styles.stepDone : ''}`}>4</div>
-              <div className={styles.sectionLabel}>
-                Время начала — {DAY_SHORT[DAYS[dayIdx].getDay()]} {DAYS[dayIdx].getDate()} {MONTH_RU[DAYS[dayIdx].getMonth()]}
-              </div>
-            </div>
-            {slots.length === 0 ? (
-              <div className={styles.noSlots}>Нет свободных слотов — выберите другой день</div>
-            ) : (
-              <div className={styles.timeList}>
-                {slots.map(t => {
-                  const isSelected = timeStart === t;
-                  return (
-                    <button
-                      key={t}
-                      className={`${styles.timeBtn} ${isSelected ? styles.timeBtnActive : ''}`}
-                      onClick={() => setTimeStart(isSelected ? null : t)}
-                    >
-                      <span className={styles.timeBtnTime}>{t} — {addMinutes(t, duration!)}</span>
-                      <span className={styles.timeBtnDur}>{duration === 45 ? '45 мин' : `${duration! / 60} ч`}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </>
+        <div className={styles.divider} />
+        <div className={styles.stepHeader}>
+          <div className={`${styles.stepNum} ${timeStart ? styles.stepDone : ''}`}>4</div>
+          <div className={styles.sectionLabel}>
+            {dayIdx !== null
+              ? `Время начала — ${DAY_SHORT[DAYS[dayIdx].getDay()]} ${DAYS[dayIdx].getDate()} ${MONTH_RU[DAYS[dayIdx].getMonth()]}`
+              : 'Время начала'}
+          </div>
+        </div>
+        {!duration || dayIdx === null ? (
+          <div className={styles.noSlots}>Выберите длительность и день</div>
+        ) : slots.length === 0 ? (
+          <div className={styles.noSlots}>Нет свободных слотов — выберите другой день</div>
+        ) : (
+          <div className={styles.timeList}>
+            {slots.map(t => {
+              const isSelected = timeStart === t;
+              return (
+                <button
+                  key={t}
+                  className={`${styles.timeBtn} ${isSelected ? styles.timeBtnActive : ''}`}
+                  onClick={() => setTimeStart(isSelected ? null : t)}
+                >
+                  <span className={styles.timeBtnTime}>{t} — {addMinutes(t, duration!)}</span>
+                  <span className={styles.timeBtnDur}>{duration === 45 ? '45 мин' : `${duration! / 60} ч`}</span>
+                </button>
+              );
+            })}
+          </div>
         )}
 
-        {/* ── STEP 5 — Group size (miniGroup only, after time selected) ── */}
-        {format === 'miniGroup' && timeStart !== null && (
+        {/* ── STEP 5 — Group size (miniGroup only) ── */}
+        {format === 'miniGroup' && (
           <>
             <div className={styles.divider} />
             <div className={styles.stepHeader}>
@@ -336,20 +328,16 @@ export function BookSlotScreen({ onBack, onBooked, instructor }: BookSlotScreenP
           </>
         )}
 
-        {/* ── Message — shown after format selected ── */}
-        {format !== null && (
-          <>
-            <div className={styles.divider} />
-            <div className={styles.sectionLabel}>Сообщение инструктору (необязательно)</div>
-            <textarea
-              className={styles.messageInput}
-              placeholder={format === 'kids' ? 'Укажите возраст ребёнка и опыт катания' : 'Любые пожелания или вопросы...'}
-              value={message}
-              onChange={e => setMessage(e.target.value)}
-              rows={3}
-            />
-          </>
-        )}
+        {/* ── Message ── */}
+        <div className={styles.divider} />
+        <div className={styles.sectionLabel}>Сообщение инструктору (необязательно)</div>
+        <textarea
+          className={styles.messageInput}
+          placeholder={format === 'kids' ? 'Укажите возраст ребёнка и опыт катания' : 'Любые пожелания или вопросы...'}
+          value={message}
+          onChange={e => setMessage(e.target.value)}
+          rows={3}
+        />
 
         {/* Bottom padding for summary bar */}
         <div style={{ height: 180 }} />
