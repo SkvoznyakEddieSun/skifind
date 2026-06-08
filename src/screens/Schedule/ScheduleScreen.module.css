@@ -585,10 +585,10 @@
   margin-top: 6px;
 }
 
-/* ── Time select ── */
-.timeSelect {
+/* ── Time input ── */
+.timeInput {
   flex: 1;
-  padding: 7px 6px;
+  padding: 7px 4px;
   border: 1px solid var(--border);
   border-radius: var(--r8);
   font-size: 13px;
@@ -597,17 +597,17 @@
   color: var(--text);
   font-family: var(--ff);
   text-align: center;
-  appearance: auto;
   cursor: pointer;
   min-width: 0;
+  width: 0; /* flex will size it */
 }
 
-.timeSelect:focus {
+.timeInput:focus {
   border-color: var(--accent);
   outline: none;
 }
 
-.timeSelectDisabled {
+.timeInputDisabled {
   opacity: .35;
   cursor: not-allowed;
   pointer-events: none;

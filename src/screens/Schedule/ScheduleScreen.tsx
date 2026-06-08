@@ -69,20 +69,31 @@ function minutesToTime(m: number): string {
   return `${String(h).padStart(2,'0')}:${String(min).padStart(2,'0')}`;
 }
 
-/** Дропдаун с шагом 30 мин, 06:00–22:00 */
-function generateTimeOptions(): string[] {
-  const opts: string[] = [];
-  for (let h = 6; h <= 22; h++) {
-    opts.push(`${String(h).padStart(2,'0')}:00`);
-    if (h < 22) opts.push(`${String(h).padStart(2,'0')}:30`);
-  }
-  return opts;
-}
-
-const TIME_OPTIONS = generateTimeOptions();
-
 // Длительность слота фиксирована 60 мин — ученик выбирает продолжительность при записи
 const SLOT_DURATION = 60;
+
+/** Свободное окно целиком (не нарезанное по часам) */
+interface FreeWindow {
+  start: string;
+  end: string;
+  minutes: number;
+}
+
+/** Возвращает непрерывные свободные промежутки дня (с учётом обеда) */
+function generateFreeWindows(cfg: DayConfig): FreeWindow[] {
+  const intervals: { start: string; end: string }[] = cfg.breakEnabled && cfg.breakStart && cfg.breakEnd
+    ? [{ start: cfg.startTime, end: cfg.breakStart }, { start: cfg.breakEnd, end: cfg.endTime }]
+    : [{ start: cfg.startTime, end: cfg.endTime }];
+  return intervals
+    .map(iv => ({ start: iv.start, end: iv.end, minutes: timeToMinutes(iv.end) - timeToMinutes(iv.start) }))
+    .filter(w => w.minutes > 0);
+}
+
+function formatDuration(minutes: number): string {
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return m > 0 ? `${h} ч ${m} мин` : `${h} ч`;
+}
 
 function generatePreviewSlots(cfg: DayConfig, slotDuration: number, buffer: number): GeneratedSlot[] {
   const slots: GeneratedSlot[] = [];
@@ -155,7 +166,7 @@ interface ScheduleScreenProps {
 
 // ── Components ─────────────────────────────────────────────────────────────
 
-function TimeSelect({
+function TimeInput({
   value, onChange, label, disabled,
 }: {
   value: string;
@@ -164,15 +175,14 @@ function TimeSelect({
   disabled?: boolean;
 }) {
   return (
-    <select
-      className={`${styles.timeSelect} ${disabled ? styles.timeSelectDisabled : ''}`}
+    <input
+      type="time"
+      className={`${styles.timeInput} ${disabled ? styles.timeInputDisabled : ''}`}
       value={value}
       onChange={e => onChange(e.target.value)}
       aria-label={label}
       disabled={disabled}
-    >
-      {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
-    </select>
+    />
   );
 }
 
@@ -261,11 +271,11 @@ export function ScheduleScreen({ onLesson, onChat, onCreateMasterClass }: Schedu
     return null;
   }, [daySchedules]);
 
-  const previewSlots = useMemo(() => {
+  const previewWindows = useMemo(() => {
     if (!nextWorkDay) return [];
-    return generatePreviewSlots(makeDayConfig(nextWorkDay.ds), SLOT_DURATION, buffer);
+    return generateFreeWindows(makeDayConfig(nextWorkDay.ds));
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [nextWorkDay, lunchEnabled, lunchStart, lunchEnd, buffer]);
+  }, [nextWorkDay, lunchEnabled, lunchStart, lunchEnd]);
 
   // ── Слоты для вкладки «Свободно» ──────────────────────────────────────
   const selectedDate    = days14[selectedDayIdx];
@@ -550,14 +560,14 @@ export function ScheduleScreen({ onLesson, onChat, onCreateMasterClass }: Schedu
                     {ds.label}
                   </span>
                   <div className={styles.dayTimes}>
-                    <TimeSelect
+                    <TimeInput
                       value={ds.startTime}
                       onChange={v => updateDaySchedule(idx, { startTime: v })}
                       label={`${ds.label} начало`}
                       disabled={!ds.enabled}
                     />
                     <span className={styles.dayTimeSep}>—</span>
-                    <TimeSelect
+                    <TimeInput
                       value={ds.endTime}
                       onChange={v => updateDaySchedule(idx, { endTime: v })}
                       label={`${ds.label} конец`}
@@ -587,9 +597,9 @@ export function ScheduleScreen({ onLesson, onChat, onCreateMasterClass }: Schedu
                 {lunchEnabled && (
                   <div className={styles.tmTimeRow} style={{ paddingTop: 8 }}>
                     <span className={styles.tmTimeLabel}>С</span>
-                    <TimeSelect value={lunchStart} onChange={setLunchStart} label="Начало перерыва" />
+                    <TimeInput value={lunchStart} onChange={setLunchStart} label="Начало перерыва" />
                     <span className={styles.tmTimeLabel}>До</span>
-                    <TimeSelect value={lunchEnd}   onChange={setLunchEnd}   label="Конец перерыва" />
+                    <TimeInput value={lunchEnd}   onChange={setLunchEnd}   label="Конец перерыва" />
                   </div>
                 )}
               </div>
@@ -624,20 +634,18 @@ export function ScheduleScreen({ onLesson, onChat, onCreateMasterClass }: Schedu
               </div>
               {!nextWorkDay ? (
                 <div className={styles.previewOff}>Включите хотя бы один рабочий день</div>
-              ) : previewSlots.filter(s => !s.tooShort).length === 0 ? (
-                <div className={styles.previewOff}>Нет слотов — проверьте настройки</div>
+              ) : previewWindows.length === 0 ? (
+                <div className={styles.previewOff}>Нет свободного времени — проверьте настройки</div>
               ) : (
                 <>
-                  {previewSlots.map((s, i) => (
-                    <div key={i} className={`${styles.previewSlot} ${s.tooShort ? styles.previewSlotShort : ''}`}>
-                      {s.start} — {s.end}
-                      <span className={styles.previewSlotLabel}>
-                        {s.tooShort ? ' слишком короткий' : ' свободно'}
-                      </span>
+                  {previewWindows.map((w, i) => (
+                    <div key={i} className={styles.previewSlot}>
+                      {w.start} — {w.end}
+                      <span className={styles.previewSlotLabel}> свободно</span>
                     </div>
                   ))}
                   <div className={styles.previewSummary}>
-                    {previewSlots.filter(s => !s.tooShort).length} слотов в этот день
+                    {formatDuration(previewWindows.reduce((s, w) => s + w.minutes, 0))} доступно
                   </div>
                 </>
               )}
