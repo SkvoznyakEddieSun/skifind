@@ -367,7 +367,7 @@ export function addBooking(params: AddBookingParams): Booking {
   pushNotification({
     period: 'today',
     icon:   'niBooking',
-    emoji:  '✨',
+    emoji:  'sparkles',
     text:   `Новая заявка на <strong>${booking.dayNum} ${booking.dayMon}</strong> — ${booking.formatLabel}`,
     time:   `${hh}:${mm}`,
     unread: true,
