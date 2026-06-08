@@ -119,7 +119,8 @@ export function ChatScreen({
   const [inputVal, setInputVal] = useState('');
   const [bookingVisible, setBookingVisible] = useState(true);
   const [typing, setTyping] = useState(false);
-  const [cardAccepted, setCardAccepted] = useState(false);
+  // Если бронирование уже принято — карточка предложения сразу в состоянии «Принято»
+  const [cardAccepted, setCardAccepted] = useState(() => bookingStatus === 'ACCEPTED');
   const [phoneBlocked, setPhoneBlocked] = useState(false);
   const [showToast, setShowToast] = useState<string | null>(null);
   const messagesRef = useRef<HTMLDivElement>(null);
