@@ -260,22 +260,13 @@ export function ScheduleScreen({ onLesson, onChat, onCreateMasterClass }: Schedu
     return !(getDaySchedule(date)?.enabled ?? false);
   }
 
-  // ── Следующий рабочий день (для превью) ───────────────────────────────
-  const nextWorkDay = useMemo(() => {
-    for (let i = 1; i <= 7; i++) {
-      const d = new Date(today);
-      d.setDate(today.getDate() + i);
-      const ds = daySchedules.find(s => s.dow === d.getDay());
-      if (ds?.enabled) return { date: d, ds };
-    }
-    return null;
-  }, [daySchedules]);
-
-  const previewWindows = useMemo(() => {
-    if (!nextWorkDay) return [];
-    return generateFreeWindows(makeDayConfig(nextWorkDay.ds));
+  // ── Превью всех рабочих дней недели ──────────────────────────────────
+  const previewDays = useMemo(() => daySchedules.map(ds => {
+    const windows = ds.enabled ? generateFreeWindows(makeDayConfig(ds)) : [];
+    const totalMinutes = windows.reduce((s, w) => s + w.minutes, 0);
+    return { label: ds.label, enabled: ds.enabled, windows, totalMinutes };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [nextWorkDay, lunchEnabled, lunchStart, lunchEnd]);
+  }), [daySchedules, lunchEnabled, lunchStart, lunchEnd]);
 
   // ── Слоты для вкладки «Свободно» ──────────────────────────────────────
   const selectedDate    = days14[selectedDayIdx];
@@ -614,28 +605,36 @@ export function ScheduleScreen({ onLesson, onChat, onCreateMasterClass }: Schedu
               </div>
             </div>
 
-            {/* Превью на следующий рабочий день */}
+            {/* Превью всех рабочих дней */}
             <div className={styles.previewBlock}>
-              <div className={styles.previewTitle}>
-                📅 Превью:{' '}
-                {nextWorkDay
-                  ? `${DAY_SHORT[nextWorkDay.date.getDay()]} ${nextWorkDay.date.getDate()} ${MONTH_RU[nextWorkDay.date.getMonth()]}`
-                  : 'нет рабочих дней'}
-              </div>
-              {!nextWorkDay ? (
+              <div className={styles.previewTitle}>📅 Превью расписания</div>
+              {previewDays.every(d => !d.enabled) ? (
                 <div className={styles.previewOff}>Включите хотя бы один рабочий день</div>
-              ) : previewWindows.length === 0 ? (
-                <div className={styles.previewOff}>Нет свободного времени — проверьте настройки</div>
               ) : (
                 <>
-                  {previewWindows.map((w, i) => (
-                    <div key={i} className={styles.previewSlot}>
-                      {w.start} — {w.end}
-                      <span className={styles.previewSlotLabel}> свободно</span>
+                  {previewDays.map(d => (
+                    <div key={d.label} className={styles.previewDayRow}>
+                      <span className={`${styles.previewDayLabel} ${!d.enabled ? styles.previewDayLabelOff : ''}`}>
+                        {d.label}
+                      </span>
+                      {d.enabled ? (
+                        <div className={styles.previewDayWindows}>
+                          {d.windows.map((w, i) => (
+                            <span key={i} className={styles.previewDayWindow}>
+                              {w.start}–{w.end}
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        <span className={styles.previewDayOff}>выходной</span>
+                      )}
+                      {d.enabled && (
+                        <span className={styles.previewDayHours}>{formatDuration(d.totalMinutes)}</span>
+                      )}
                     </div>
                   ))}
                   <div className={styles.previewSummary}>
-                    {formatDuration(previewWindows.reduce((s, w) => s + w.minutes, 0))} доступно
+                    Итого: {formatDuration(previewDays.reduce((s, d) => s + d.totalMinutes, 0))} в неделю
                   </div>
                 </>
               )}
