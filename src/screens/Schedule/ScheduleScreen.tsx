@@ -223,7 +223,8 @@ export function ScheduleScreen({ onLesson, onChat, onCreateMasterClass }: Schedu
   const [dayCfg, setDayCfg] = useState<DayConfig>({ ...DEFAULT_CFG });
   // workDays: set of js-getDay numbers (0=Sun, 1=Mon, ..., 6=Sat). Default: все дни
   const [workDays, setWorkDays] = useState<Set<number>>(new Set([0, 1, 2, 3, 4, 5, 6]));
-  const [slotDuration, setSlotDuration] = useState(60);
+  // Длительность слота фиксирована — ученик выбирает продолжительность при записи
+  const slotDuration = 60;
   const [buffer, setBuffer] = useState(0);
   const [templateApplied, setTemplateApplied] = useState(false);
   const [showToast, setShowToast] = useState<string | false>(false);
@@ -270,7 +271,7 @@ export function ScheduleScreen({ onLesson, onChat, onCreateMasterClass }: Schedu
     });
   }, []);
 
-  const effectiveDuration = slotDuration;
+  const effectiveDuration = slotDuration; // 60 мин — минимальный слот, ученик выберет длину
 
   function isOffDay(date: Date): boolean {
     return !workDays.has(date.getDay());
@@ -658,25 +659,6 @@ export function ScheduleScreen({ onLesson, onChat, onCreateMasterClass }: Schedu
                     <div className={styles.tmChipHint}>
                       {workDays.size === 7 ? 'Каждый день' : workDays.size === 0 ? 'Выберите дни' : `${workDays.size} дн. в неделю`}
                     </div>
-                  </div>
-                </div>
-
-                {/* ── Длительность занятия ── */}
-                <div className={styles.tmSecLabel}>Длительность занятия</div>
-                <div className={styles.tmCard}>
-                  <div className={styles.tmCardBody}>
-                    <div className={styles.chipRow}>
-                      {[45, 60, 90, 120].map(d => (
-                        <button
-                          key={d}
-                          className={`${styles.durationChip} ${slotDuration === d ? styles.durationChipActive : ''}`}
-                          onClick={() => setSlotDuration(d)}
-                        >
-                          {d}
-                        </button>
-                      ))}
-                    </div>
-                    <div className={styles.tmChipHint}>минут</div>
                   </div>
                 </div>
 
