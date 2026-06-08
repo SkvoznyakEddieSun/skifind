@@ -572,11 +572,6 @@
   padding: 8px 0;
 }
 
-/* Inputs inside lunch row — fixed compact width, no flex-grow */
-.tmTimeRow .timeInput {
-  flex: 0 0 90px;
-  width: 90px;
-}
 
 .tmTimeLabel {
   font-size: 12px;

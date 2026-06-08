@@ -581,27 +581,17 @@ export function ScheduleScreen({ onLesson, onChat, onCreateMasterClass }: Schedu
             {/* Перерыв на обед */}
             <div className={styles.settingsSecLabel}>Перерыв на обед</div>
             <div className={styles.settingsCard}>
-              <div className={styles.settingsCardBody}>
-                <div className={styles.tmSwRow}>
-                  <div className={styles.tmSwInfo}>
-                    <div className={styles.tmSwSub} style={{ fontSize: 13, color: 'var(--text-dim)' }}>
-                      {lunchEnabled ? '' : 'Выключен'}
-                    </div>
-                  </div>
-                  <button
-                    className={`${styles.tmSw} ${lunchEnabled ? styles.tmSwOn : ''}`}
-                    onClick={() => setLunchEnabled(v => !v)}
-                    aria-label={lunchEnabled ? 'Выключить перерыв' : 'Включить перерыв'}
-                  />
+              <div className={styles.dayRow}>
+                <button
+                  className={`${styles.daySw} ${lunchEnabled ? styles.daySwOn : ''}`}
+                  onClick={() => setLunchEnabled(v => !v)}
+                  aria-label={lunchEnabled ? 'Выключить перерыв' : 'Включить перерыв'}
+                />
+                <div className={styles.dayTimes}>
+                  <TimeInput value={lunchStart} onChange={setLunchStart} label="Начало перерыва" disabled={!lunchEnabled} />
+                  <span className={styles.dayTimeSep}>—</span>
+                  <TimeInput value={lunchEnd}   onChange={setLunchEnd}   label="Конец перерыва"  disabled={!lunchEnabled} />
                 </div>
-                {lunchEnabled && (
-                  <div className={styles.tmTimeRow} style={{ paddingTop: 8 }}>
-                    <span className={styles.tmTimeLabel}>С</span>
-                    <TimeInput value={lunchStart} onChange={setLunchStart} label="Начало перерыва" />
-                    <span className={styles.tmTimeLabel}>До</span>
-                    <TimeInput value={lunchEnd}   onChange={setLunchEnd}   label="Конец перерыва" />
-                  </div>
-                )}
               </div>
             </div>
 
