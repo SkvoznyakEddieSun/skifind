@@ -585,7 +585,7 @@ export function ScheduleScreen({ onLesson, onChat, onCreateMasterClass }: Schedu
                 <div className={styles.tmSwRow}>
                   <div className={styles.tmSwInfo}>
                     <div className={styles.tmSwSub} style={{ fontSize: 13, color: 'var(--text-dim)' }}>
-                      {lunchEnabled ? `${lunchStart} — ${lunchEnd}` : 'Выключен'}
+                      {lunchEnabled ? '' : 'Выключен'}
                     </div>
                   </div>
                   <button
