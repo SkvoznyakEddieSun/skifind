@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback } from 'react';
 import styles from './CatalogScreen.module.css';
 import { useTranslation } from '@/i18n/useTranslation';
+import { Icon } from '@/components/Icon/Icon';
 
 type SportType = 'all' | 'ski' | 'board';
 type Level = 'all' | 'beginner' | 'advanced' | 'kids' | 'freeride';
@@ -418,7 +419,7 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onMasterClas
           {/* ── Баннер мастер-классов ── */}
           <div className={styles.mcBanner} onClick={onMasterClasses}>
             <div className={styles.mcBannerLeft}>
-              <div className={styles.mcBannerIcon}>🎿</div>
+              <div className={styles.mcBannerIcon}><Icon name="ski" size={28} /></div>
               <div>
                 <div className={styles.mcBannerTitle}>Мастер-классы</div>
                 <div className={styles.mcBannerSub}>Групповые занятия · от 2 800 ₽ · 3 ближайших</div>
@@ -455,7 +456,7 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onMasterClas
                 </div>
                 <div className={styles.icInfo}>
                   <div className={styles.icName}>{instr.name}</div>
-                  <div className={styles.icResort}>📍 {instr.resort}</div>
+                  <div className={styles.icResort}><Icon name="map-pin" size={11} /> {instr.resort}</div>
                   <div className={styles.icTags}>
                     {instr.tags.map(tag => (
                       <span key={tag.label} className={`${styles.tag} ${styles[`tag-${tag.color}`]}`}>
@@ -468,7 +469,7 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onMasterClas
                   )}
                 </div>
                 <div className={styles.icRating}>
-                  <span className={styles.icStar}>★</span>
+                  <Icon name="star" size={12} />
                   {instr.rating.toFixed(1)}
                 </div>
               </div>

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import styles from './ChatListScreen.module.css';
 import type { BookingStatus } from '../Chat/ChatScreen';
 import { MASTER_CLASSES } from '../MasterClass/masterClassData';
+import { Icon } from '@/components/Icon/Icon';
 
 interface ChatItem {
   id: string;
@@ -289,7 +290,7 @@ export function ChatListScreen({ onBack, onChat, onCommunity, joinedMcIds, onGro
                 style={{ cursor: 'pointer' }}
               >
                 <div className={styles.ciAv}>
-                  <div className={`${styles.av} ${styles.avGroup}`}>🎿</div>
+                  <div className={`${styles.av} ${styles.avGroup}`}><Icon name="ski" size={18} /></div>
                 </div>
                 <div className={styles.ciInfo}>
                   <div className={styles.ciTop}>

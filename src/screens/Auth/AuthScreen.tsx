@@ -1,5 +1,6 @@
 import styles from './AuthScreen.module.css';
 import { useTranslation } from '@/i18n/useTranslation';
+import { Icon } from '@/components/Icon/Icon';
 
 interface AuthScreenProps {
   onSelectRole: (role: 'guest' | 'instructor') => void;
@@ -28,7 +29,7 @@ export function AuthScreen({ onSelectRole, onLoginByPhone }: AuthScreenProps) {
           className={styles.roleCard}
           onClick={() => onSelectRole('guest')}
         >
-          <div className={styles.roleIcon} aria-hidden>🏔️</div>
+          <div className={styles.roleIcon} aria-hidden><Icon name="mountain" size={32} /></div>
           <div className={styles.roleInfo}>
             <div className={styles.roleTitle}>{t('auth.iAmStudent')}</div>
             <div className={styles.roleSub}>{t('auth.studentDescription')}</div>
@@ -41,7 +42,7 @@ export function AuthScreen({ onSelectRole, onLoginByPhone }: AuthScreenProps) {
           className={styles.roleCard}
           onClick={() => onSelectRole('instructor')}
         >
-          <div className={styles.roleIcon} aria-hidden>🎿</div>
+          <div className={styles.roleIcon} aria-hidden><Icon name="ski" size={32} /></div>
           <div className={styles.roleInfo}>
             <div className={styles.roleTitle}>{t('auth.iAmInstructor')}</div>
             <div className={styles.roleSub}>{t('auth.instructorDescription')}</div>

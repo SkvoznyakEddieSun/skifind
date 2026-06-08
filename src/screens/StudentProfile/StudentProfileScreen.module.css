@@ -8,32 +8,36 @@
 
 /* ── Header ──────────────────────────────────────────────────────────────── */
 
-.header {
+.topbar {
+  background: var(--surface-1);
+  padding: calc(var(--safe-top) + 14px) 22px 14px;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.tbRow {
   display: flex;
   align-items: center;
   gap: 10px;
-  background: var(--surface-1);
-  border-bottom: 0.5px solid var(--border);
-  padding: calc(env(safe-area-inset-top) + 14px) 16px 14px;
-  flex-shrink: 0;
 }
 
-.backBtn {
+.tbBack {
+  color: var(--accent);
+  font-size: 24px;
+  line-height: 1;
+  padding: 0 4px 0 0;
   background: none;
   border: none;
-  font-size: 28px;
-  color: var(--text);
+  font-weight: 300;
   cursor: pointer;
-  padding: 0;
-  line-height: 1;
   flex-shrink: 0;
-  margin-right: 4px;
 }
 
-.headerTitle {
-  font-size: 17px;
+.tbTitle {
+  font-size: 18px;
   font-weight: 600;
   color: var(--text);
+  letter-spacing: -0.3px;
 }
 
 /* ── Scroll ───────────────────────────────────────────────────────────────── */

@@ -1,5 +1,6 @@
 import styles from './LessonDetailScreen.module.css';
 import { getBookingById } from '@/store/bookings';
+import { Icon } from '@/components/Icon/Icon';
 
 const DISCIPLINE_LABEL: Record<string, string> = {
   ski:   'Горные лыжи',
@@ -66,10 +67,12 @@ export function LessonDetailScreen({ lessonId, onBack, onChat, onCancel }: Lesso
   return (
     <div className={styles.screen}>
       {/* Header */}
-      <div className={styles.header}>
-        <div className={styles.headerTopRow}>
-          <button className={styles.backBtn} onClick={onBack}>‹</button>
-          <div className={styles.headerTitle}>Занятие</div>
+      <div className={styles.topbar}>
+        <div className={styles.tbRow}>
+          <button className={styles.tbBack} onClick={onBack}>‹</button>
+          <div style={{ flex: 1 }}>
+            <div className={styles.tbTitle}>Занятие</div>
+          </div>
         </div>
         <div className={styles.headerStatus}>
           {confirmed ? '✓ Подтверждено' : '⏳ Ожидает подтверждения'}
@@ -148,7 +151,7 @@ export function LessonDetailScreen({ lessonId, onBack, onChat, onCancel }: Lesso
 
           {/* Actions */}
           <div className={styles.actions}>
-            <button className={styles.btnPrimary} onClick={onChat}>💬 Написать</button>
+            <button className={styles.btnPrimary} onClick={onChat}><Icon name="chat" size={14} /> Написать</button>
             <button className={styles.btnDanger} onClick={onCancel}>Отменить</button>
           </div>
 

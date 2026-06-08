@@ -29,9 +29,13 @@ export function StudentProfileScreen({ studentId, onBack, onChat }: StudentProfi
   if (!profile) {
     return (
       <div className={styles.screen}>
-        <div className={styles.header}>
-          <button className={styles.backBtn} onClick={onBack}>‹</button>
-          <div className={styles.headerTitle}>Профиль</div>
+        <div className={styles.topbar}>
+          <div className={styles.tbRow}>
+            <button className={styles.tbBack} onClick={onBack}>‹</button>
+            <div style={{ flex: 1 }}>
+              <div className={styles.tbTitle}>Профиль</div>
+            </div>
+          </div>
         </div>
         <div className={styles.empty}>Профиль не найден</div>
       </div>
@@ -49,9 +53,13 @@ export function StudentProfileScreen({ studentId, onBack, onChat }: StudentProfi
   return (
     <div className={styles.screen}>
       {/* Header */}
-      <div className={styles.header}>
-        <button className={styles.backBtn} onClick={onBack}>‹</button>
-        <div className={styles.headerTitle}>Профиль ученика</div>
+      <div className={styles.topbar}>
+        <div className={styles.tbRow}>
+          <button className={styles.tbBack} onClick={onBack}>‹</button>
+          <div style={{ flex: 1 }}>
+            <div className={styles.tbTitle}>Профиль ученика</div>
+          </div>
+        </div>
       </div>
 
       <div className={styles.scroll}>

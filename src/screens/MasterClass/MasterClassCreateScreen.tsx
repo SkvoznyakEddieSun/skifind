@@ -158,9 +158,13 @@ export function MasterClassCreateScreen({ onBack, onPublished }: MasterClassCrea
   return (
     <div className={styles.screen}>
       {/* Header */}
-      <div className={styles.header}>
-        <button className={styles.backBtn} onClick={onBack}>‹</button>
-        <div className={styles.headerTitle}>Новый мастер-класс</div>
+      <div className={styles.topbar}>
+        <div className={styles.tbRow}>
+          <button className={styles.tbBack} onClick={onBack}>‹</button>
+          <div style={{ flex: 1 }}>
+            <div className={styles.tbTitle}>Новый мастер-класс</div>
+          </div>
+        </div>
       </div>
 
       <div className={styles.scroll}>

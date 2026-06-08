@@ -10,33 +10,34 @@
 }
 
 /* ── Header ── */
-.header {
+.topbar {
   background: var(--surface-1);
-  padding: calc(var(--safe-top) + 14px) 16px 14px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
+  padding: calc(var(--safe-top) + 14px) 22px 14px;
   flex-shrink: 0;
   border-bottom: 1px solid var(--border);
 }
 
-
-
-.backBtn {
-  background: none;
-  border: none;
-  font-size: 28px;
-  color: var(--text);
-  cursor: pointer;
-  padding: 0;
-  line-height: 1;
-  flex-shrink: 0;
-  margin-right: 4px;
+.tbRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-.headerTitle {
+.tbBack {
+  color: var(--accent);
+  font-size: 24px;
+  line-height: 1;
+  padding: 0 4px 0 0;
+  background: none;
+  border: none;
+  font-weight: 300;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.tbTitle {
   font-size: 18px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--text);
   letter-spacing: -0.3px;
   white-space: nowrap;
@@ -124,9 +125,9 @@
   flex-shrink: 0;
 }
 
-.level-mint   { background: var(--mint);                             color: var(--mint-text); }
-.level-straw  { background: var(--straw-soft, rgba(200,160,60,.18)); color: var(--straw, #9a6f00); }
-.level-purple { background: #ede9fe;                                 color: #6b21a8; }
+.level-mint   { background: #22c55e; color: #fff; }
+.level-straw  { background: #3b82f6; color: #fff; }
+.level-purple { background: #a855f7; color: #fff; }
 
 /* ── Divider ── */
 .divider {
@@ -238,7 +239,7 @@
 /* ── Book block ── */
 .bookBlock {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
   padding: 14px 16px;
 }
@@ -258,16 +259,17 @@
 
 .bookBtn {
   flex: 1;
-  padding: 14px;
+  padding: 12px 14px;
   border-radius: var(--r12);
   background: var(--pine, #3d8b40);
   color: #fff;
   border: none;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 700;
   font-family: var(--ff);
   cursor: pointer;
   text-align: center;
+  white-space: nowrap;
   transition: opacity .15s;
 }
 
@@ -336,7 +338,7 @@
 
 /* ── Дедлайн записи (МЕЛКОЕ 2) ── */
 .deadlineWarn {
-  margin-top: 4px;
+  padding: 0 16px 12px;
   font-size: 11px;
   font-weight: 600;
   color: #d97706;

@@ -2,6 +2,7 @@ import { useState, useRef, useCallback } from 'react';
 import styles from './MasterClassCatalogScreen.module.css';
 import { MASTER_CLASSES, type McSport } from './masterClassData';
 import { ScrollToTopBtn } from '@/components/ScrollToTopBtn';
+import { Icon } from '@/components/Icon/Icon';
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -61,9 +62,13 @@ export function MasterClassCatalogScreen({
   return (
     <div className={styles.screen}>
       {/* Header */}
-      <div className={styles.header}>
-        <button className={styles.backBtn} onClick={onBack}>‹</button>
-        <div className={styles.headerTitle}>Мастер-классы</div>
+      <div className={styles.topbar}>
+        <div className={styles.tbRow}>
+          <button className={styles.tbBack} onClick={onBack}>‹</button>
+          <div style={{ flex: 1 }}>
+            <div className={styles.tbTitle}>Мастер-классы</div>
+          </div>
+        </div>
       </div>
 
       {/* Sport filter */}
@@ -129,9 +134,9 @@ export function MasterClassCatalogScreen({
 
                 {/* Meta row */}
                 <div className={styles.cardMeta}>
-                  <span>📅 {mc.weekday} {mc.date}</span>
-                  <span>🕐 {mc.time}</span>
-                  <span>📍 {mc.location.split(',')[0]}</span>
+                  <span><Icon name="calendar" size={12} /> {mc.weekday} {mc.date}</span>
+                  <span><Icon name="clock" size={12} /> {mc.time}</span>
+                  <span><Icon name="map-pin" size={12} /> {mc.location.split(',')[0]}</span>
                 </div>
 
                 {/* Participants bar */}

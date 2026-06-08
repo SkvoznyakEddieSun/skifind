@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import styles from './GroupChatScreen.module.css';
+import { Icon } from '@/components/Icon/Icon';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -136,7 +137,7 @@ export function GroupChatScreen({
       {/* Header */}
       <div className={styles.header}>
         <button className={styles.backBtn} onClick={onBack}>‹</button>
-        <div className={styles.groupAv}>🏔️</div>
+        <div className={styles.groupAv}><Icon name="mountain" size={20} /></div>
         <div className={styles.headerInfo}>
           <div className={styles.headerTitle}>{mcTitle}</div>
           <div className={styles.headerSub}>{participantCount} участников</div>
@@ -154,7 +155,7 @@ export function GroupChatScreen({
 
       {/* Pinned bar */}
       <div className={styles.pinnedBar}>
-        <span className={styles.pinnedIcon}>📌</span>
+        <Icon name="map-pin" size={13} />
         <span className={styles.pinnedText}>{date} · {location}</span>
       </div>
 

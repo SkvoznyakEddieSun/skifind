@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import styles from './MasterClassDetailScreen.module.css';
 import { MASTER_CLASSES } from './masterClassData';
+import { Icon } from '@/components/Icon/Icon';
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -46,12 +47,16 @@ export function MasterClassDetailScreen({
   if (!mc) {
     return (
       <div className={styles.screen}>
-        <div className={styles.header}>
-          <button className={styles.backBtn} onClick={onBack}>‹</button>
-          <div className={styles.headerTitle}>Мастер-класс</div>
+        <div className={styles.topbar}>
+          <div className={styles.tbRow}>
+            <button className={styles.tbBack} onClick={onBack}>‹</button>
+            <div style={{ flex: 1 }}>
+              <div className={styles.tbTitle}>Мастер-класс</div>
+            </div>
+          </div>
         </div>
         <div className={styles.emptyState}>
-          <div className={styles.emptyIcon}>🔍</div>
+          <div className={styles.emptyIcon}><Icon name="search" size={28} /></div>
           <div className={styles.emptyTitle}>Мастер-класс не найден</div>
           <div className={styles.emptySub}>
             Возможно, он был удалён или ссылка устарела.
@@ -100,9 +105,13 @@ export function MasterClassDetailScreen({
   return (
     <div className={styles.screen}>
       {/* Header */}
-      <div className={styles.header}>
-        <button className={styles.backBtn} onClick={onBack}>‹</button>
-        <div className={styles.headerTitle} title={mc.title}>{mc.title}</div>
+      <div className={styles.topbar}>
+        <div className={styles.tbRow}>
+          <button className={styles.tbBack} onClick={onBack}>‹</button>
+          <div style={{ flex: 1 }}>
+            <div className={styles.tbTitle} title={mc.title}>{mc.title}</div>
+          </div>
+        </div>
       </div>
 
       <div className={styles.scroll}>
@@ -139,28 +148,28 @@ export function MasterClassDetailScreen({
         {/* Info grid 2×2 */}
         <div className={styles.infoGrid}>
           <div className={styles.infoItem}>
-            <div className={styles.infoIcon}>📅</div>
+            <div className={styles.infoIcon}><Icon name="calendar" /></div>
             <div>
               <div className={styles.infoLabel}>Дата</div>
               <div className={styles.infoValue}>{mc.weekday}, {mc.date}</div>
             </div>
           </div>
           <div className={styles.infoItem}>
-            <div className={styles.infoIcon}>🕐</div>
+            <div className={styles.infoIcon}><Icon name="clock" /></div>
             <div>
               <div className={styles.infoLabel}>Время</div>
               <div className={styles.infoValue}>{mc.time}</div>
             </div>
           </div>
           <div className={styles.infoItem}>
-            <div className={styles.infoIcon}>📍</div>
+            <div className={styles.infoIcon}><Icon name="map-pin" /></div>
             <div>
               <div className={styles.infoLabel}>Место</div>
               <div className={styles.infoValue}>{mc.location}</div>
             </div>
           </div>
           <div className={styles.infoItem}>
-            <div className={styles.infoIcon}>👥</div>
+            <div className={styles.infoIcon}><Icon name="users" /></div>
             <div>
               <div className={styles.infoLabel}>Участники</div>
               <div className={styles.infoValue}>{mc.currentParticipants} из {mc.maxParticipants}</div>
@@ -170,10 +179,10 @@ export function MasterClassDetailScreen({
 
         {/* КРИТИЧНО 3: минимум участников */}
         <div className={styles.minPartsWarning}>
-          <span className={styles.minPartsIcon}>⚠</span>
+          <Icon name="alert-triangle" size={14} />
           <span>
-            Минимум: {minPartsLabel(mc.minParticipants)}.{' '}
-            Если не наберётся — занятие будет отменено за {mc.bookingDeadlineHours} ч до начала, без штрафов.
+            Минимум: {minPartsLabel(mc.minParticipants)}.<br />
+            Если не наберётся — занятие будет отменено за {mc.bookingDeadlineHours}ч до начала.
           </span>
         </div>
 
@@ -216,12 +225,6 @@ export function MasterClassDetailScreen({
           <div className={styles.bookPriceWrap}>
             <div className={styles.bookPrice}>{mc.price.toLocaleString('ru')} ₽</div>
             <div className={styles.bookPriceSub}>за участие</div>
-            {/* МЕЛКОЕ 2: deadline warning */}
-            {showDeadlineWarn && !joined && (
-              <div className={styles.deadlineWarn}>
-                ⏰ Запись закроется через {Math.ceil(hoursUntilDeadline)} ч
-              </div>
-            )}
           </div>
 
           {/* КРИТИЧНО 2: состояние "уже записан" */}
@@ -242,10 +245,17 @@ export function MasterClassDetailScreen({
             </button>
           ) : (
             <button className={styles.bookBtn} onClick={handleJoin}>
-              Записаться на мастер-класс
+              Записаться
             </button>
           )}
         </div>
+
+        {/* МЕЛКОЕ 2: deadline warning */}
+        {showDeadlineWarn && !joined && (
+          <div className={styles.deadlineWarn}>
+            <Icon name="bell" size={12} /> Запись закроется через {Math.ceil(hoursUntilDeadline)} ч
+          </div>
+        )}
 
         <div style={{ height: 32 }} />
       </div>

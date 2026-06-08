@@ -10,32 +10,34 @@
 }
 
 /* ── Header ── */
-.header {
+.topbar {
   background: var(--surface-1);
-  padding: calc(var(--safe-top) + 14px) 16px 14px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
+  padding: calc(var(--safe-top) + 14px) 22px 14px;
   flex-shrink: 0;
   border-bottom: 1px solid var(--border);
 }
 
-
-.backBtn {
-  background: none;
-  border: none;
-  font-size: 28px;
-  color: var(--text);
-  cursor: pointer;
-  padding: 0;
-  line-height: 1;
-  flex-shrink: 0;
-  margin-right: 4px;
+.tbRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-.headerTitle {
-  font-size: 20px;
-  font-weight: 700;
+.tbBack {
+  color: var(--accent);
+  font-size: 24px;
+  line-height: 1;
+  padding: 0 4px 0 0;
+  background: none;
+  border: none;
+  font-weight: 300;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.tbTitle {
+  font-size: 18px;
+  font-weight: 600;
   color: var(--text);
   letter-spacing: -0.3px;
 }

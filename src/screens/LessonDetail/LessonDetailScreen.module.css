@@ -9,33 +9,33 @@
 }
 
 /* ── Header ── */
-.header {
+.topbar {
   background: var(--surface-1);
-  padding: calc(var(--safe-top) + 14px) 16px 20px;
+  padding: calc(var(--safe-top) + 14px) 22px 14px;
   flex-shrink: 0;
   border-bottom: 1px solid var(--border);
 }
 
-.headerTopRow {
+.tbRow {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 10px;
   margin-bottom: 14px;
 }
 
-.backBtn {
+.tbBack {
+  color: var(--accent);
+  font-size: 24px;
+  line-height: 1;
+  padding: 0 4px 0 0;
   background: none;
   border: none;
-  color: var(--text);
-  font-size: 28px;
-  line-height: 1;
+  font-weight: 300;
   cursor: pointer;
-  padding: 0;
-  margin-right: 4px;
   flex-shrink: 0;
 }
 
-.headerTitle {
+.tbTitle {
   font-size: 18px;
   font-weight: 600;
   color: var(--text);

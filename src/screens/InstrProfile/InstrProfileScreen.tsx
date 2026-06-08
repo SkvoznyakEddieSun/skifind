@@ -6,6 +6,7 @@ import {
   INSTRUCTOR_PRICES,
   updatePrice,
 } from '@/store/instructorProfile';
+import { Icon } from '@/components/Icon/Icon';
 
 interface ToggleSetting {
   id: string;
@@ -237,7 +238,7 @@ export function InstrProfileScreen({ onBalance, onMyProfile, onLogout }: InstrPr
           </div>
 
           <button className={styles.btnBlock} onClick={onMyProfile}>Мой профиль →</button>
-          <button className={styles.btnBlock} onClick={onBalance}>💰 Баланс и история платежей →</button>
+          <button className={styles.btnBlock} onClick={onBalance}><Icon name="dollar-sign" size={14} /> Баланс и история платежей →</button>
           <button className={`${styles.btnBlock} ${styles.btnDanger}`} onClick={onLogout}>Выйти из аккаунта</button>
         </div>
 

@@ -2,12 +2,13 @@
  * Хранилище уведомлений.
  * Пополняется динамически (например, при новой заявке от гостя).
  */
+import type { IconName } from '@/components/Icon/Icon';
 
 export interface AppNotif {
   id:     number;
   period: 'today' | 'yesterday' | 'earlier';
   icon:   'niMsg' | 'niBooking' | 'niMoney' | 'niWarn' | 'niReview' | 'niSystem';
-  emoji:  string;
+  emoji:  IconName;
   text:   string;
   time:   string;
   unread: boolean;

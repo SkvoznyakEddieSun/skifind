@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import styles from './GuestProfileScreen.module.css';
 import type { Instructor } from '@/screens/Catalog/CatalogScreen';
+import { Icon } from '@/components/Icon/Icon';
 
 interface GuestProfileScreenProps {
   onBack: () => void;
@@ -86,7 +87,7 @@ export function GuestProfileScreen({
           <div className={styles.group}>
             <div className={styles.groupLabel}>Основное</div>
             <button className={styles.row} onClick={onBookings}>
-              <div className={styles.rowIcon}>📅</div>
+              <div className={styles.rowIcon}><Icon name="calendar" /></div>
               <div className={styles.rowBody}>
                 <div className={styles.rowTitle}>Мои занятия</div>
                 <div className={styles.rowSub}>Запланированные и прошедшие</div>
@@ -94,7 +95,7 @@ export function GuestProfileScreen({
               <span className={styles.rowChevron}>›</span>
             </button>
             <button className={styles.row} onClick={() => setOverlay('favorites')}>
-              <div className={styles.rowIcon}>♡</div>
+              <div className={styles.rowIcon}><Icon name="heart" /></div>
               <div className={styles.rowBody}>
                 <div className={styles.rowTitle}>Избранные</div>
                 <div className={styles.rowSub}>
@@ -104,7 +105,7 @@ export function GuestProfileScreen({
               <span className={styles.rowChevron}>›</span>
             </button>
             <button className={styles.row} onClick={() => setOverlay('hidden')}>
-              <div className={styles.rowIcon}>🙈</div>
+              <div className={styles.rowIcon}><Icon name="eye-off" /></div>
               <div className={styles.rowBody}>
                 <div className={styles.rowTitle}>Скрытые</div>
                 <div className={styles.rowSub}>
@@ -159,7 +160,7 @@ export function GuestProfileScreen({
           {/* Прочее */}
           <div className={styles.group} style={{ marginBottom: 14 }}>
             <button className={styles.row} onClick={onBecomeInstructor}>
-              <div className={styles.rowIcon}>🎿</div>
+              <div className={styles.rowIcon}><Icon name="ski" /></div>
               <div className={styles.rowBody}>
                 <div className={`${styles.rowTitle} ${styles.rowTitleAccent}`}>Стать инструктором</div>
                 <div className={styles.rowSub}>Зарабатывайте на своих навыках</div>
@@ -167,14 +168,14 @@ export function GuestProfileScreen({
               <span className={styles.rowChevronAccent}>›</span>
             </button>
             <button className={styles.row} onClick={() => showToast('SkiFind v1.0 · Агрегатор инструкторов Шерегеша')}>
-              <div className={styles.rowIcon}>ℹ</div>
+              <div className={styles.rowIcon}><Icon name="info" /></div>
               <div className={styles.rowBody}>
                 <div className={styles.rowTitle}>О SkiFind</div>
               </div>
               <span className={styles.rowChevron}>›</span>
             </button>
             <button className={styles.row} onClick={() => showToast('Поддержка: support@skifind.ru')}>
-              <div className={styles.rowIcon}>💬</div>
+              <div className={styles.rowIcon}><Icon name="chat" /></div>
               <div className={styles.rowBody}>
                 <div className={styles.rowTitle}>Поддержка</div>
               </div>
@@ -222,7 +223,7 @@ export function GuestProfileScreen({
                         className={styles.overlayBtnDanger}
                         onClick={() => onUnfavorite?.(instr.id)}
                       >
-                        ♡
+                        <Icon name="heart" size={16} />
                       </button>
                     </div>
                   </div>

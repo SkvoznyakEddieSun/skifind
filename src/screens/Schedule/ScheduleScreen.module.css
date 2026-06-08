@@ -198,7 +198,9 @@
   border-radius: 50%;
   border: 1px solid var(--border);
   background: var(--surface-2);
-  font-size: 16px;
+  font-size: 24px;
+  font-weight: 300;
+  line-height: 1;
   cursor: pointer;
   display: flex;
   align-items: center;

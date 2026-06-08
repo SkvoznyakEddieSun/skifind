@@ -3,6 +3,7 @@ import styles from './ScheduleScreen.module.css';
 import { ScrollToTopBtn } from '@/components/ScrollToTopBtn';
 import { getAcceptedLessons } from '@/store/bookings';
 import { useTabSwipe } from '@/hooks/useTabSwipe';
+import { Icon } from '@/components/Icon/Icon';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -461,7 +462,7 @@ export function ScheduleScreen({ onLesson, onChat, onCreateMasterClass }: Schedu
           <div className={styles.tabContent}>
             {bookingGroups.length === 0 ? (
               <div className={styles.emptyState}>
-                <div className={styles.emptyIcon}>📅</div>
+                <div className={styles.emptyIcon}><Icon name="calendar" size={32} /></div>
                 <div className={styles.emptyTitle}>Пока нет подтверждённых занятий</div>
                 <div className={styles.emptySub}>Заполните «Шаблон» — гости начнут видеть свободное время</div>
                 <button className={styles.emptyBtn} onClick={() => setTab('template')}>
@@ -488,8 +489,8 @@ export function ScheduleScreen({ onLesson, onChat, onCreateMasterClass }: Schedu
                         </div>
                       </div>
                       <div className={styles.bookingActions}>
-                        <button className={styles.bookingActBtn} onClick={onChat}>💬</button>
-                        <button className={`${styles.bookingActBtn} ${styles.bookingActBtnPrimary}`} onClick={() => onLesson(b.id)}>→</button>
+                        <button className={styles.bookingActBtn} onClick={onChat}><Icon name="chat" size={16} /></button>
+                        <button className={`${styles.bookingActBtn} ${styles.bookingActBtnPrimary}`} onClick={() => onLesson(b.id)}>›</button>
                       </div>
                     </div>
                   ))}

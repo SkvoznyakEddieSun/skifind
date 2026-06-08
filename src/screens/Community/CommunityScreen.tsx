@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import styles from './CommunityScreen.module.css';
+import { Icon } from '@/components/Icon/Icon';
 
 interface Sender {
   id: string;
@@ -107,7 +108,7 @@ export function CommunityScreen({ onBack }: CommunityScreenProps) {
       {/* Top bar */}
       <div className={styles.chatTop}>
         <button className={styles.tbBack} onClick={onBack}>‹</button>
-        <div className={styles.groupAv}>🏔</div>
+        <div className={styles.groupAv}><Icon name="mountain" size={20} /></div>
         <div className={styles.ctInfo}>
           <div className={styles.ctName}>Сообщество SkiFind</div>
           <div className={styles.ctStatus}>{ONLINE_MEMBERS.length} онлайн · 248 участников</div>
@@ -120,7 +121,7 @@ export function CommunityScreen({ onBack }: CommunityScreenProps) {
       {/* Pinned */}
       {pinnedVisible && (
         <div className={styles.pinnedBanner}>
-          <span className={styles.pinnedIcon}>📌</span>
+          <Icon name="map-pin" size={13} />
           <span className={styles.pinnedText}>Правила чата: уважайте друг друга, только профессиональные темы</span>
           <button className={styles.pinnedClose} onClick={() => setPinnedVisible(false)}>✕</button>
         </div>

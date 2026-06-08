@@ -15,19 +15,19 @@
   flex-shrink: 0;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 10px;
 }
 
 .tbBack {
+  color: var(--accent);
+  font-size: 24px;
+  line-height: 1;
+  padding: 0 4px 0 0;
   background: none;
   border: none;
-  font-size: 28px;
-  color: var(--text);
+  font-weight: 300;
   cursor: pointer;
-  padding: 0;
-  line-height: 1;
   flex-shrink: 0;
-  margin-right: 4px;
 }
 
 .tbTitleGroup {

@@ -203,9 +203,13 @@ export function BookSlotScreen({ onBack, onBooked, instructor }: BookSlotScreenP
   return (
     <div className={styles.screen}>
       {/* Header */}
-      <div className={styles.header}>
-        <button className={styles.backBtn} onClick={onBack}>‹</button>
-        <div className={styles.headerTitle}>Записаться</div>
+      <div className={styles.topbar}>
+        <div className={styles.tbRow}>
+          <button className={styles.tbBack} onClick={onBack}>‹</button>
+          <div style={{ flex: 1 }}>
+            <div className={styles.tbTitle}>Записаться</div>
+          </div>
+        </div>
       </div>
 
       <div className={styles.scroll}>

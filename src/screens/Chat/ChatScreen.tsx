@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import styles from './ChatScreen.module.css';
 import { useTranslation } from '@/i18n/useTranslation';
+import { Icon } from '@/components/Icon/Icon';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -229,7 +230,7 @@ export function ChatScreen({
       {bookingVisible && !isDeclined && (
         <div className={styles.bookingStrip}>
           <div className={styles.bsLeft}>
-            <div className={styles.bsIcon}>📅</div>
+            <div className={styles.bsIcon}><Icon name="calendar" /></div>
             <div>
               <div className={styles.bsTitle}>{t('chat.bookingRequest')}</div>
               <div className={styles.bsSub}>28 апр · 10:00 · 2 ч · 7 000 ₽</div>
@@ -280,7 +281,7 @@ export function ChatScreen({
                     <div>
                       <div className={styles.cardBubble}>
                         <div className={styles.cbHead}>
-                          <div className={styles.cbHeadT}>📋 {t('chat.lessonProposal')}</div>
+                          <div className={styles.cbHeadT}><Icon name="file-text" size={13} /> {t('chat.lessonProposal')}</div>
                         </div>
                         <div className={styles.cbBody}>
                           <div className={styles.cbRow}><span>{t('chat.date')}</span><span>{msg.card.date}</span></div>
@@ -341,7 +342,7 @@ export function ChatScreen({
             {/* Preview wall */}
             {previewExhausted && (
               <div className={styles.previewWall}>
-                <div className={styles.previewWallIcon}>🔒</div>
+                <div className={styles.previewWallIcon}><Icon name="lock" size={32} /></div>
                 <div className={styles.previewWallTitle}>Предпросмотр завершён</div>
                 <div className={styles.previewWallSub}>
                   Запишитесь на занятие, чтобы продолжить общение с инструктором
@@ -377,7 +378,7 @@ export function ChatScreen({
           {/* ── Input ── */}
           {previewExhausted ? (
             <div className={styles.lockedBar}>
-              <div className={styles.lockedBarText}>🔒 Запишитесь, чтобы продолжить переписку</div>
+              <div className={styles.lockedBarText}><Icon name="lock" size={14} /> Запишитесь, чтобы продолжить переписку</div>
               {onBook && (
                 <button className={styles.lockedBarBtn} onClick={onBook}>Записаться</button>
               )}

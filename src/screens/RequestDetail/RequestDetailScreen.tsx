@@ -76,13 +76,15 @@ export function RequestDetailScreen({ requestId, onBack, onChat, onAccepted }: R
   return (
     <div className={styles.screen}>
       {/* Header */}
-      <div className={styles.header}>
-        <button className={styles.backBtn} onClick={onBack}>‹</button>
-        <div className={styles.headerInfo}>
-          <div className={styles.headerTitle}>Заявка от {data.studentName}</div>
-          <div className={styles.headerSub}>{data.time}</div>
+      <div className={styles.topbar}>
+        <div className={styles.tbRow}>
+          <button className={styles.tbBack} onClick={onBack}>‹</button>
+          <div style={{ flex: 1 }}>
+            <div className={styles.tbTitle}>Заявка от {data.studentName}</div>
+            <div className={styles.tbSub}>{data.time}</div>
+          </div>
+          {status === 'pending' && <span className={styles.newBadge}>Новая</span>}
         </div>
-        {status === 'pending' && <span className={styles.newBadge}>Новая</span>}
       </div>
 
       <div className={styles.scroll}>

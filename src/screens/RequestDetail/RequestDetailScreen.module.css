@@ -9,18 +9,21 @@
 }
 
 /* ── Header ── */
-.header {
+.topbar {
   background: var(--surface-1);
-  padding: calc(var(--safe-top) + 14px) 16px 14px;
+  padding: calc(var(--safe-top) + 14px) 22px 14px;
   flex-shrink: 0;
   border-bottom: 1px solid var(--border);
+}
+
+.tbRow {
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
-.backBtn {
-  color: var(--text);
+.tbBack {
+  color: var(--accent);
   font-size: 24px;
   line-height: 1;
   padding: 0 4px 0 0;
@@ -31,19 +34,17 @@
   flex-shrink: 0;
 }
 
-.headerInfo { flex: 1; }
-
-.headerTitle {
-  font-size: 17px;
-  font-weight: 700;
+.tbTitle {
+  font-size: 18px;
+  font-weight: 600;
   color: var(--text);
   letter-spacing: -0.3px;
 }
 
-.headerSub {
+.tbSub {
   font-size: 11px;
   color: var(--text-dim);
-  margin-top: 1px;
+  margin-top: 2px;
 }
 
 .newBadge {
@@ -53,6 +54,7 @@
   font-weight: 700;
   padding: 3px 9px;
   border-radius: 10px;
+  flex-shrink: 0;
 }
 
 /* ── Scroll ── */

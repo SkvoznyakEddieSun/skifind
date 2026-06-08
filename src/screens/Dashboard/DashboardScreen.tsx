@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import styles from './DashboardScreen.module.css';
 import { useTranslation } from '@/i18n/useTranslation';
 import { getAcceptedLessons, getPendingRequests } from '@/store/bookings';
+import { Icon } from '@/components/Icon/Icon';
 
 interface UpcomingLesson {
   id: string;
@@ -110,7 +111,7 @@ export function DashboardScreen({
 
         {/* Mountain toggle */}
         <div className={`${styles.mountainNew} ${onMountain ? styles.mountainActive : ''}`}>
-          <div className={styles.mnIcon}>{onMountain ? '🏔️' : '⛰'}</div>
+          <div className={styles.mnIcon}><Icon name="mountain" size={22} /></div>
           <div className={styles.mnText}>
             <div className={styles.mnTitle}>
               {onMountain ? t('dashboard.mountainOn') : t('dashboard.mountainOff')}
@@ -145,7 +146,7 @@ export function DashboardScreen({
           <div className={`${styles.mcard} ${styles.mcardAccent}`} onClick={onRequests}>
             <div className={styles.mcArrow}>↗</div>
             <div className={styles.mcTop}>
-              <div className={styles.mcIcon}>✨</div>
+              <div className={styles.mcIcon}><Icon name="sparkles" /></div>
               <div className={styles.mcLabel}>{t('dashboard.requests')}</div>
             </div>
             <div>
@@ -157,7 +158,7 @@ export function DashboardScreen({
           <div className={styles.mcard} onClick={onCalendar}>
             <div className={styles.mcArrow}>↗</div>
             <div className={styles.mcTop}>
-              <div className={styles.mcIcon}>📅</div>
+              <div className={styles.mcIcon}><Icon name="calendar" /></div>
               <div className={styles.mcLabel}>{t('dashboard.lessons')}</div>
             </div>
             <div>
@@ -169,7 +170,7 @@ export function DashboardScreen({
           <div className={styles.mcard} onClick={onBalance}>
             <div className={styles.mcArrow}>↗</div>
             <div className={styles.mcTop}>
-              <div className={styles.mcIcon}>⚡</div>
+              <div className={styles.mcIcon}><Icon name="bolt" /></div>
               <div className={styles.mcLabel}>{t('dashboard.balance')}</div>
             </div>
             <div>
@@ -181,7 +182,7 @@ export function DashboardScreen({
           <div className={styles.mcard} onClick={onReviews}>
             <div className={styles.mcArrow}>↗</div>
             <div className={styles.mcTop}>
-              <div className={styles.mcIcon}>⭐</div>
+              <div className={styles.mcIcon}><Icon name="star" /></div>
               <div className={styles.mcLabel}>{t('dashboard.rating')}</div>
             </div>
             <div>
@@ -216,7 +217,7 @@ export function DashboardScreen({
         {/* Master class CTA */}
         <div className={styles.mcCta} onClick={onCreateMasterClass}>
           <div className={styles.mcCtaLeft}>
-            <div className={styles.mcCtaIcon}>🎿</div>
+            <div className={styles.mcCtaIcon}><Icon name="ski" size={28} /></div>
             <div>
               <div className={styles.mcCtaTitle}>Создать мастер-класс</div>
               <div className={styles.mcCtaSub}>Групповое занятие · до 30 участников</div>

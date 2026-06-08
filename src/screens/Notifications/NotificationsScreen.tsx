@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import styles from './NotificationsScreen.module.css';
 import { DYNAMIC_NOTIFS } from '@/store/notifications';
+import { Icon } from '@/components/Icon/Icon';
+import type { IconName } from '@/components/Icon/Icon';
 
 type Period = 'today' | 'yesterday' | 'earlier';
 type IconType = 'niMsg' | 'niBooking' | 'niMoney' | 'niWarn' | 'niReview' | 'niSystem';
@@ -9,7 +11,7 @@ interface Notif {
   id: number;
   period: Period;
   icon: IconType;
-  emoji: string;
+  emoji: IconName;
   text: string;
   time: string;
   unread: boolean;
@@ -18,27 +20,27 @@ interface Notif {
 
 // ── Уведомления инструктора ──────────────────────────────────────────────────
 const INSTR_NOTIFS: Notif[] = [
-  { id: 1,  period: 'today',     icon: 'niBooking', emoji: '✨', text: 'Новая заявка от <strong>Романа Ефимова</strong> на 28 апреля',         time: '11:42',       unread: true,  link: 'requests'  },
-  { id: 2,  period: 'today',     icon: 'niMsg',     emoji: '💬', text: '<strong>Кирилл Волков</strong>: «До встречи в понедельник!»',          time: '09:15',       unread: true,  link: 'chat-list' },
-  { id: 3,  period: 'today',     icon: 'niMoney',   emoji: '⚡', text: 'Списано <strong>350 ₽</strong> комиссии за занятие с Кириллом',       time: '08:30',       unread: true,  link: 'balance'   },
-  { id: 4,  period: 'yesterday', icon: 'niBooking', emoji: '✨', text: 'Новая заявка от <strong>Анны Беловой</strong> на 30 апреля',           time: 'вчера 19:05', unread: false, link: 'requests'  },
-  { id: 5,  period: 'yesterday', icon: 'niReview',  emoji: '⭐', text: '<strong>Татьяна Новикова</strong> оставила отзыв 5★ на ваше занятие', time: 'вчера 16:00', unread: false, link: 'reviews'   },
-  { id: 6,  period: 'yesterday', icon: 'niWarn',    emoji: '⚠',  text: 'Баланс приближается к нулю — пополните для приёма новых заявок',     time: 'вчера 12:30', unread: false, link: 'balance'   },
-  { id: 7,  period: 'earlier',   icon: 'niMoney',   emoji: '+',  text: 'Пополнение баланса на <strong>2 000 ₽</strong> успешно прошло',       time: '20 апр',      unread: false, link: 'balance'   },
-  { id: 8,  period: 'earlier',   icon: 'niBooking', emoji: '✓',  text: 'Занятие с <strong>Михаилом Орловым</strong> подтверждено на 5 апр',   time: '18 апр',      unread: false, link: 'requests'  },
-  { id: 9,  period: 'earlier',   icon: 'niSystem',  emoji: 'ℹ',  text: 'Ваш профиль успешно одобрен модераторами',                           time: '15 апр',      unread: false, link: 'my-profile'},
+  { id: 1,  period: 'today',     icon: 'niBooking', emoji: 'sparkles',       text: 'Новая заявка от <strong>Романа Ефимова</strong> на 28 апреля',         time: '11:42',       unread: true,  link: 'requests'  },
+  { id: 2,  period: 'today',     icon: 'niMsg',     emoji: 'chat',           text: '<strong>Кирилл Волков</strong>: «До встречи в понедельник!»',          time: '09:15',       unread: true,  link: 'chat-list' },
+  { id: 3,  period: 'today',     icon: 'niMoney',   emoji: 'bolt',           text: 'Списано <strong>350 ₽</strong> комиссии за занятие с Кириллом',       time: '08:30',       unread: true,  link: 'balance'   },
+  { id: 4,  period: 'yesterday', icon: 'niBooking', emoji: 'sparkles',       text: 'Новая заявка от <strong>Анны Беловой</strong> на 30 апреля',           time: 'вчера 19:05', unread: false, link: 'requests'  },
+  { id: 5,  period: 'yesterday', icon: 'niReview',  emoji: 'star',           text: '<strong>Татьяна Новикова</strong> оставила отзыв 5★ на ваше занятие', time: 'вчера 16:00', unread: false, link: 'reviews'   },
+  { id: 6,  period: 'yesterday', icon: 'niWarn',    emoji: 'alert-triangle', text: 'Баланс приближается к нулю — пополните для приёма новых заявок',     time: 'вчера 12:30', unread: false, link: 'balance'   },
+  { id: 7,  period: 'earlier',   icon: 'niMoney',   emoji: 'plus',           text: 'Пополнение баланса на <strong>2 000 ₽</strong> успешно прошло',       time: '20 апр',      unread: false, link: 'balance'   },
+  { id: 8,  period: 'earlier',   icon: 'niBooking', emoji: 'check',          text: 'Занятие с <strong>Михаилом Орловым</strong> подтверждено на 5 апр',   time: '18 апр',      unread: false, link: 'requests'  },
+  { id: 9,  period: 'earlier',   icon: 'niSystem',  emoji: 'info',           text: 'Ваш профиль успешно одобрен модераторами',                           time: '15 апр',      unread: false, link: 'my-profile'},
 ];
 
 // ── Уведомления ученика ──────────────────────────────────────────────────────
 const GUEST_NOTIFS: Notif[] = [
-  { id: 1,  period: 'today',     icon: 'niBooking', emoji: '✅', text: '<strong>Алексей Морозов</strong> подтвердил вашу запись на 28 апреля', time: '11:42',       unread: true,  link: 'bookings'   },
-  { id: 2,  period: 'today',     icon: 'niMsg',     emoji: '💬', text: '<strong>Наталья Петрова</strong>: «Встречаемся у подъёмника №3»',     time: '09:15',       unread: true,  link: 'chat-list'  },
-  { id: 3,  period: 'today',     icon: 'niSystem',  emoji: '⏰', text: 'Напоминание: занятие с <strong>Алексеем</strong> через 2 часа',       time: '08:00',       unread: true,  link: 'bookings'   },
-  { id: 4,  period: 'yesterday', icon: 'niBooking', emoji: '✨', text: 'Запись на мастер-класс <strong>«Фрирайд для продвинутых»</strong> подтверждена', time: 'вчера 18:30', unread: false, link: 'mc-catalog' },
-  { id: 5,  period: 'yesterday', icon: 'niMoney',   emoji: '💳', text: 'Оплата <strong>3 500 ₽</strong> за занятие с Алексеем прошла успешно', time: 'вчера 11:00', unread: false, link: 'bookings'   },
-  { id: 6,  period: 'earlier',   icon: 'niReview',  emoji: '⭐', text: 'Оставьте отзыв о занятии с <strong>Натальей Петровой</strong>',       time: '20 апр',      unread: false, link: 'bookings'   },
-  { id: 7,  period: 'earlier',   icon: 'niWarn',    emoji: '⚠',  text: '<strong>Дмитрий Захаров</strong> отменил занятие на 15 апреля',       time: '14 апр',      unread: false, link: 'bookings'   },
-  { id: 8,  period: 'earlier',   icon: 'niSystem',  emoji: '🎿', text: 'Новый мастер-класс «Карвинг от нуля» — запись открыта',              time: '10 апр',      unread: false, link: 'mc-catalog' },
+  { id: 1,  period: 'today',     icon: 'niBooking', emoji: 'check-circle',   text: '<strong>Алексей Морозов</strong> подтвердил вашу запись на 28 апреля', time: '11:42',       unread: true,  link: 'bookings'   },
+  { id: 2,  period: 'today',     icon: 'niMsg',     emoji: 'chat',           text: '<strong>Наталья Петрова</strong>: «Встречаемся у подъёмника №3»',     time: '09:15',       unread: true,  link: 'chat-list'  },
+  { id: 3,  period: 'today',     icon: 'niSystem',  emoji: 'bell',           text: 'Напоминание: занятие с <strong>Алексеем</strong> через 2 часа',       time: '08:00',       unread: true,  link: 'bookings'   },
+  { id: 4,  period: 'yesterday', icon: 'niBooking', emoji: 'sparkles',       text: 'Запись на мастер-класс <strong>«Фрирайд для продвинутых»</strong> подтверждена', time: 'вчера 18:30', unread: false, link: 'mc-catalog' },
+  { id: 5,  period: 'yesterday', icon: 'niMoney',   emoji: 'credit-card',    text: 'Оплата <strong>3 500 ₽</strong> за занятие с Алексеем прошла успешно', time: 'вчера 11:00', unread: false, link: 'bookings'   },
+  { id: 6,  period: 'earlier',   icon: 'niReview',  emoji: 'star',           text: 'Оставьте отзыв о занятии с <strong>Натальей Петровой</strong>',       time: '20 апр',      unread: false, link: 'bookings'   },
+  { id: 7,  period: 'earlier',   icon: 'niWarn',    emoji: 'alert-triangle', text: '<strong>Дмитрий Захаров</strong> отменил занятие на 15 апреля',       time: '14 апр',      unread: false, link: 'bookings'   },
+  { id: 8,  period: 'earlier',   icon: 'niSystem',  emoji: 'ski',            text: 'Новый мастер-класс «Карвинг от нуля» — запись открыта',              time: '10 апр',      unread: false, link: 'mc-catalog' },
 ];
 
 const PERIOD_LABELS: Record<Period, string> = {
@@ -106,7 +108,7 @@ export function NotificationsScreen({ onBack, onNavigate, role = 'instructor' }:
       <div className={styles.scroll}>
         {items.length === 0 ? (
           <div className={styles.empty}>
-            <div className={styles.emptyIcon}>🔔</div>
+            <div className={styles.emptyIcon}><Icon name="bell" size={28} /></div>
             <div className={styles.emptyText}>Уведомлений пока нет</div>
           </div>
         ) : (
@@ -123,7 +125,7 @@ export function NotificationsScreen({ onBack, onNavigate, role = 'instructor' }:
                     onClick={() => handleTap(n)}
                   >
                     <div className={`${styles.notifIcon} ${styles[n.icon]}`}>
-                      {n.emoji}
+                      <Icon name={n.emoji} size={18} />
                     </div>
                     <div className={styles.notifBody}>
                       <div
