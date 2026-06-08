@@ -278,10 +278,21 @@ export function ChatScreen({
 
               const msg = item as Message;
 
+              // INITIAL хранит перспективу гостя: 'in' = инструктор, 'out' = ученик.
+              // Для инструктора переворачиваем: его сообщения → вправо, ученика → влево.
+              const dir: 'in' | 'out' = isInstructor
+                ? (msg.from === 'in' ? 'out' : 'in')
+                : msg.from;
+
               if (msg.type === 'card' && msg.card) {
+                // Карточка отправлена инструктором (from:'in' в гостевой перспективе).
+                // У инструктора — справа (outgoing), у гостя — слева с аватаром АМ.
+                const cardDir = isInstructor ? 'out' : 'in';
                 return (
-                  <div key={msg.id} className={styles.mrow}>
-                    <div className={`${styles.av} ${styles.avSm} ${styles['av-ice']}`}>АМ</div>
+                  <div key={msg.id} className={`${styles.mrow} ${cardDir === 'out' ? styles.mrowOut : ''}`}>
+                    {cardDir === 'in' && (
+                      <div className={`${styles.av} ${styles.avSm} ${styles['av-ice']}`}>АМ</div>
+                    )}
                     <div>
                       <div className={styles.cardBubble}>
                         <div className={styles.cbHead}>
@@ -296,20 +307,29 @@ export function ChatScreen({
                             <span className={styles.cbPrice}>{msg.card.price}</span>
                           </div>
                         </div>
-                        {!cardAccepted && (
-                          <div className={styles.cbActions}>
-                            <button className={`${styles.cbBtn} ${styles.cbAccept}`} onClick={() => setCardAccepted(true)}>
-                              ✓ {t('chat.accept')}
-                            </button>
-                            <button className={`${styles.cbBtn} ${styles.cbDecline}`} onClick={() => fireToast('✓ Запрос на другое время отправлен')}>
-                              {t('chat.propose')}
-                            </button>
-                          </div>
-                        )}
-                        {cardAccepted && (
+                        {isInstructor ? (
+                          // Инструктор видит статус своего предложения, без кнопок
                           <div className={`${styles.cbActions} ${styles.cbAcceptedLabel}`}>
-                            ✓ {t('chat.accepted')}
+                            {cardAccepted ? `✓ ${t('chat.accepted')}` : '⏳ Ожидает подтверждения'}
                           </div>
+                        ) : (
+                          <>
+                            {!cardAccepted && (
+                              <div className={styles.cbActions}>
+                                <button className={`${styles.cbBtn} ${styles.cbAccept}`} onClick={() => setCardAccepted(true)}>
+                                  ✓ {t('chat.accept')}
+                                </button>
+                                <button className={`${styles.cbBtn} ${styles.cbDecline}`} onClick={() => fireToast('✓ Запрос на другое время отправлен')}>
+                                  {t('chat.propose')}
+                                </button>
+                              </div>
+                            )}
+                            {cardAccepted && (
+                              <div className={`${styles.cbActions} ${styles.cbAcceptedLabel}`}>
+                                ✓ {t('chat.accepted')}
+                              </div>
+                            )}
+                          </>
                         )}
                       </div>
                       <span className={styles.mt}>{msg.time}</span>
@@ -319,12 +339,15 @@ export function ChatScreen({
               }
 
               return (
-                <div key={msg.id} className={`${styles.mrow} ${msg.from === 'out' ? styles.mrowOut : ''}`}>
-                  {msg.from === 'in' && (
-                    <div className={`${styles.av} ${styles.avSm} ${styles['av-ice']}`}>АМ</div>
+                <div key={msg.id} className={`${styles.mrow} ${dir === 'out' ? styles.mrowOut : ''}`}>
+                  {dir === 'in' && (
+                    // Входящее: у гостя это инструктор (АМ), у инструктора это ученик
+                    <div className={`${styles.av} ${styles.avSm} ${isInstructor ? styles[`av-${personAvColor}`] : styles['av-ice']}`}>
+                      {isInstructor ? personInitials : 'АМ'}
+                    </div>
                   )}
                   <div>
-                    <div className={`${styles.bubble} ${msg.from === 'in' ? styles.bubbleIn : styles.bubbleOut}`}>
+                    <div className={`${styles.bubble} ${dir === 'in' ? styles.bubbleIn : styles.bubbleOut}`}>
                       {msg.text}
                     </div>
                     <span className={styles.mt}>{msg.time}{msg.ticks ? ` ${msg.ticks}` : ''}</span>
@@ -333,10 +356,12 @@ export function ChatScreen({
               );
             })}
 
-            {/* Typing indicator */}
+            {/* Typing indicator — у инструктора это ученик печатает, у гостя — инструктор */}
             {typing && !previewExhausted && (
               <div className={styles.mrow}>
-                <div className={`${styles.av} ${styles.avSm} ${styles['av-ice']}`}>АМ</div>
+                <div className={`${styles.av} ${styles.avSm} ${isInstructor ? styles[`av-${personAvColor}`] : styles['av-ice']}`}>
+                  {isInstructor ? personInitials : 'АМ'}
+                </div>
                 <div className={styles.typingBubble}>
                   <div className={styles.td} /><div className={styles.td} /><div className={styles.td} />
                 </div>
