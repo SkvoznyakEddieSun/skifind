@@ -94,15 +94,15 @@
 .selectInput {
   display: block;
   width: 100%;
-  padding: 13px 14px;
-  background: transparent;
+  padding: 13px 32px 13px 14px;
+  background: transparent url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path d='M1 1l5 5 5-5' stroke='%23888' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>") no-repeat right 12px center;
   border: none;
   font-size: 16px;
   font-family: var(--ff);
   color: var(--text);
   box-sizing: border-box;
-  appearance: auto;
-  -webkit-appearance: auto;
+  appearance: none;
+  -webkit-appearance: none;
   outline: none;
   cursor: pointer;
 }
