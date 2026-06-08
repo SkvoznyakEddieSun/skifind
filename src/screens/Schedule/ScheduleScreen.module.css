@@ -200,7 +200,7 @@
   background: var(--surface-2);
   font-size: 24px;
   font-weight: 300;
-  line-height: 1;
+  line-height: 0;
   cursor: pointer;
   display: flex;
   align-items: center;
