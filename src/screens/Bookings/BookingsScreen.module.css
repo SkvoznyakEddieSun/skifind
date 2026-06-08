@@ -69,7 +69,7 @@
   background: var(--surface-1);
   border: 1px solid var(--border);
   border-radius: var(--r16);
-  overflow: hidden;
+  overflow: clip;
   transition: transform .1s;
 }
 

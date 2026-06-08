@@ -167,7 +167,7 @@
   background: var(--surface-1);
   border: 1px solid var(--border);
   border-radius: var(--r12);
-  overflow: hidden;
+  overflow: clip;
   margin-bottom: 10px;
 }
 

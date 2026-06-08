@@ -21,7 +21,7 @@
 .content {
   flex: 1;
   overflow-y: auto;
-  overflow-x: hidden;
+  min-height: 0;  overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   padding-bottom: calc(var(--safe-bot) + 80px);
 }
@@ -347,7 +347,6 @@
   background: var(--surface-1);
   border: 1px solid var(--border);
   border-radius: var(--r16);
-  overflow: hidden;
   transition: transform .1s;
   position: relative;
   cursor: pointer;
