@@ -265,7 +265,7 @@ export function InstrProfileScreen({ onBalance, onMyProfile, onLogout }: InstrPr
             <div className={styles.settingsGroupBody}>
               <div className={styles.settingRow}>
                 <div className={styles.settingLabel}>
-                  <div className={styles.settingTitle}>🧒 Работаю с детьми</div>
+                  <div className={styles.settingTitle}>🧒 Детский тариф</div>
                   <div className={styles.settingSub}>Детские занятия · до 8 лет</div>
                 </div>
                 <button
