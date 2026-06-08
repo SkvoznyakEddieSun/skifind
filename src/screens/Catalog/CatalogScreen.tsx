@@ -153,7 +153,7 @@ export const INSTRUCTORS: Instructor[] = [
     bio: '10 лет на склонах Шерегеша. Мастер спорта по горным лыжам, опыт фрирайда в Альпах. Обучаю технике параллельного ведения и навыкам бэккантри.',
     exp: 10, onMountain: true, hasFreeSlotsToday: true,
     gender: 'male', busyUntil: '15:00',
-    tags: [{ label: 'Сноуборд', color: 'blue' }, { label: 'Фрирайд', color: 'straw' }],
+    tags: [{ label: 'Горные лыжи', color: 'blue' }, { label: 'Сноуборд', color: 'blue' }, { label: 'Фрирайд', color: 'straw' }],
     students: 64, reviewsCount: 22,
     skills: [
       { name: 'Фрирайд',            pct: 100, color: 'leaf'  },

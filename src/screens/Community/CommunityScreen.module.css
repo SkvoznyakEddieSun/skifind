@@ -125,7 +125,7 @@
 .messages {
   flex: 1;
   overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
+  min-height: 0;  -webkit-overflow-scrolling: touch;
   padding: 14px 14px 10px;
   display: flex;
   flex-direction: column;
@@ -323,7 +323,7 @@
   line-height: 1.45;
   max-height: 120px;
   overflow-y: auto;
-}
+  min-height: 0;}
 
 .chatInput::placeholder { color: var(--text-faint); }
 .chatInput:focus { border-color: var(--accent); }
@@ -444,7 +444,7 @@
 
 .membersList {
   overflow-y: auto;
-  flex: 1;
+  min-height: 0;  flex: 1;
   padding: 8px 0;
 }
 

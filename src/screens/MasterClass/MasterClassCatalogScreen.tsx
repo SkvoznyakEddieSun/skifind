@@ -79,7 +79,10 @@ export function MasterClassCatalogScreen({
             className={`${styles.filterChip} ${sport === s ? styles.filterChipActive : ''}`}
             onClick={() => setSport(s)}
           >
-            {s === 'all' ? 'Все' : s === 'ski' ? '🎿 Лыжи' : '🏂 Сноуборд'}
+            {s === 'all' ? 'Все' : s === 'ski'
+              ? <><Icon name="ski" size={13} /> Лыжи</>
+              : <><Icon name="snowboard" size={13} /> Сноуборд</>
+            }
           </button>
         ))}
       </div>
@@ -91,7 +94,7 @@ export function MasterClassCatalogScreen({
         {filtered.length === 0 ? (
           <div className={styles.emptyState}>
             <div className={styles.emptyIcon}>
-              {sport === 'ski' ? '🎿' : '🏂'}
+              <Icon name={sport === 'ski' ? 'ski' : 'snowboard'} size={40} />
             </div>
             <div className={styles.emptyTitle}>
               В этой категории пока нет мастер-классов

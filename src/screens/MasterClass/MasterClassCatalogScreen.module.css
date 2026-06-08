@@ -53,6 +53,9 @@
 
 
 .filterChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   padding: 8px 16px;
   border-radius: 20px;
   border: 1px solid var(--border-strong);
@@ -76,7 +79,7 @@
 .scroll {
   flex: 1;
   overflow-y: auto;
-  scrollbar-width: none;
+  min-height: 0;  scrollbar-width: none;
 }
 .scroll::-webkit-scrollbar { display: none; }
 
@@ -277,7 +280,7 @@
   text-align: center;
 }
 
-.emptyIcon  { font-size: 48px; margin-bottom: 4px; }
+.emptyIcon  { font-size: 48px; margin-bottom: 4px; display: flex; align-items: center; justify-content: center; color: var(--text-dim); }
 
 .emptyTitle {
   font-size: 15px;

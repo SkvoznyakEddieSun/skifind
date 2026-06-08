@@ -51,7 +51,7 @@
 .scroll {
   flex: 1;
   overflow-y: auto;
-  scrollbar-width: none;
+  min-height: 0;  scrollbar-width: none;
 }
 .scroll::-webkit-scrollbar { display: none; }
 
@@ -311,7 +311,7 @@
 
 .overlayList {
   overflow-y: auto;
-  flex: 1;
+  min-height: 0;  flex: 1;
   padding: 8px 0;
 }
 
