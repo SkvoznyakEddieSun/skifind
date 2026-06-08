@@ -11,6 +11,7 @@ import {
 } from '@/store/bookings';
 import type { Booking } from '@/store/bookings';
 import { addInstrRecentChat } from '@/screens/ChatList/ChatListScreen';
+import { getStudentProfileByName } from '@/screens/StudentProfile/studentData';
 
 // ── Pre-existing "own" students (без комиссии, добавлены до платформы) ──────
 
@@ -170,8 +171,12 @@ export function RequestsScreen({ onBack, onChat, onRequest }: RequestsScreenProp
         ice: 'avIce', mint: 'avMint', straw: 'avStraw',
         purple: 'avPurple', coral: 'avCoral', blue: 'avBlue',
       };
+      const studentProfile = getStudentProfileByName(booking.studentName);
+      if (!studentProfile) {
+        console.error(`Профиль студента не найден: ${booking.studentName}`);
+      }
       addInstrRecentChat({
-        id:            booking.id,
+        id:            studentProfile?.id ?? booking.id,
         initials:      booking.studentInitials,
         avClass:       colorMap[booking.studentColor] ?? 'avIce',
         name:          booking.studentName,
