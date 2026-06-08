@@ -453,3 +453,193 @@
   color: var(--text-dim);
   margin-top: 2px;
 }
+
+/* ── Step header ── */
+.stepHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px 4px;
+}
+
+.stepNum {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--surface-2);
+  border: 1.5px solid var(--border-strong);
+  color: var(--text-dim);
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.stepDone {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-text);
+}
+
+/* Remove top padding from sectionLabel when inside stepHeader */
+.stepHeader .sectionLabel {
+  padding: 0;
+}
+
+/* ── Duration grid ── */
+.durationGrid {
+  display: flex;
+  gap: 8px;
+  padding: 4px 16px 12px;
+  flex-wrap: wrap;
+}
+
+.durationBtn {
+  padding: 10px 18px;
+  border-radius: 20px;
+  border: 1.5px solid var(--border-strong);
+  background: none;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  font-family: var(--ff);
+  cursor: pointer;
+  transition: all .15s;
+}
+
+.durationBtnActive {
+  background: var(--accent);
+  color: var(--accent-text);
+  border-color: var(--accent);
+}
+
+/* ── Day chip sub-label ── */
+.dayChipSub {
+  font-size: 10px;
+  color: var(--text-dim);
+}
+.dayChipActive .dayChipSub { color: rgba(255,255,255,.8); }
+.dayChipEmpty .dayChipSub  { color: var(--text-faint); }
+
+/* ── Time list ── */
+.timeList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 4px 16px 12px;
+}
+
+.timeBtn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-radius: var(--r12);
+  border: 1.5px solid var(--border);
+  background: var(--surface-1);
+  cursor: pointer;
+  font-family: var(--ff);
+  transition: all .15s;
+}
+
+.timeBtnActive {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.timeBtnTime {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+}
+.timeBtnActive .timeBtnTime { color: var(--accent); }
+
+.timeBtnDur {
+  font-size: 12px;
+  color: var(--text-dim);
+  background: var(--surface-2);
+  padding: 3px 8px;
+  border-radius: 8px;
+}
+.timeBtnActive .timeBtnDur { background: var(--accent-soft); color: var(--accent); }
+
+.noSlots {
+  padding: 12px 16px;
+  font-size: 13px;
+  color: var(--text-dim);
+  font-style: italic;
+}
+
+/* ── Summary bar ── */
+.summaryBar {
+  flex-shrink: 0;
+  background: var(--surface-1);
+  border-top: 1px solid var(--border);
+  padding: 12px 16px calc(var(--safe-bot) + 12px);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.summaryRows {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.summaryRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+}
+
+.summaryLabel {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.summaryMeta {
+  color: var(--text-dim);
+  font-size: 12px;
+}
+
+.summaryPriceRow {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.summaryPrice {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.summaryPriceSub {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+/* ── Submit button ── */
+.submitBtn {
+  display: block;
+  width: 100%;
+  padding: 15px;
+  border-radius: var(--r12);
+  background: var(--pine, #3d8b40);
+  color: #fff;
+  border: none;
+  font-size: 16px;
+  font-weight: 700;
+  font-family: var(--ff);
+  cursor: pointer;
+  transition: opacity .15s;
+  letter-spacing: .2px;
+}
+
+.submitBtn:active   { opacity: .8; }
+.submitBtn:disabled { opacity: .4; cursor: not-allowed; }

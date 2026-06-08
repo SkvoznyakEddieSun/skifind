@@ -7,6 +7,36 @@ type SportType = 'all' | 'ski' | 'board';
 type Level = 'all' | 'beginner' | 'advanced' | 'kids' | 'freeride';
 type SortKey = 'rating' | 'price-asc' | 'price-desc' | 'experience';
 
+export type WeekDay = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun';
+
+export interface DayAvailability {
+  start: string;   // "09:00"
+  end:   string;   // "17:00"
+  breaks?: { start: string; end: string }[];
+}
+
+export interface HourlyPricing {
+  h1: number;
+  h2: number;
+  h3: number;
+  h4: number;
+}
+
+export interface GroupHourlyPricing extends HourlyPricing {
+  extraPersonPrice: number;
+  maxParticipants:  number;
+}
+
+export interface InstructorPricing {
+  individual: HourlyPricing;
+  miniGroup:  GroupHourlyPricing;
+  kids?: {
+    individual: HourlyPricing;
+    miniGroup:  GroupHourlyPricing;
+    shortSlot?: number;
+  };
+}
+
 export interface InstructorSkill {
   name: string;
   pct: number;
@@ -42,9 +72,9 @@ export interface Instructor {
   level: Level[];
   rating: number;
   price: number;
-  miniGroupBasePrice?: number;
-  miniGroupExtraPrice?: number;
-  miniGroupMaxParticipants?: number;
+  allowsShortSlots?: boolean;  // only relevant when worksWithKids: true
+  weekSchedule: Partial<Record<WeekDay, DayAvailability>>;
+  pricing: InstructorPricing;
   worksWithKids: boolean;
   bio?: string;
   exp: number;
@@ -70,7 +100,18 @@ export const INSTRUCTORS: Instructor[] = [
     id: 'aleksey', name: 'Алексей Морозов', initials: 'АМ', avatarColor: 'ice',
     resort: 'Шерегеш', type: ['board'], level: ['beginner', 'advanced'],
     rating: 4.9, price: 3500,
-    miniGroupBasePrice: 7000, miniGroupExtraPrice: 2300, miniGroupMaxParticipants: 5,
+    weekSchedule: {
+      mon: { start: '09:00', end: '17:00', breaks: [{ start: '13:00', end: '14:00' }] },
+      tue: { start: '09:00', end: '17:00', breaks: [{ start: '13:00', end: '14:00' }] },
+      wed: { start: '09:00', end: '17:00', breaks: [{ start: '13:00', end: '14:00' }] },
+      thu: { start: '09:00', end: '17:00', breaks: [{ start: '13:00', end: '14:00' }] },
+      fri: { start: '09:00', end: '17:00', breaks: [{ start: '13:00', end: '14:00' }] },
+      sat: { start: '10:00', end: '16:00' },
+    },
+    pricing: {
+      individual: { h1: 3500, h2: 6500, h3: 9000,  h4: 11000 },
+      miniGroup:  { h1: 5500, h2: 9000, h3: 12500, h4: 15500, extraPersonPrice: 1500, maxParticipants: 5 },
+    },
     worksWithKids: false,
     bio: 'Катаюсь с 14 лет, преподаю с 2016 года. Специализируюсь на обучении взрослых с нуля и улучшении техники. Умею объяснить сложное просто — каждому подбираю свой темп.',
     exp: 8, onMountain: true, hasFreeSlotsToday: true,
@@ -108,8 +149,24 @@ export const INSTRUCTORS: Instructor[] = [
   {
     id: 'natalya', name: 'Наталья Петрова', initials: 'НП', avatarColor: 'mint',
     resort: 'Шерегеш', type: ['ski'], level: ['kids'],
-    rating: 5.0, price: 2800,
-    miniGroupBasePrice: 5500, miniGroupExtraPrice: 1800, miniGroupMaxParticipants: 6,
+    rating: 5.0, price: 3200,
+    allowsShortSlots: true,
+    weekSchedule: {
+      mon: { start: '09:00', end: '16:00', breaks: [{ start: '12:00', end: '13:00' }] },
+      wed: { start: '09:00', end: '16:00', breaks: [{ start: '12:00', end: '13:00' }] },
+      thu: { start: '09:00', end: '16:00', breaks: [{ start: '12:00', end: '13:00' }] },
+      fri: { start: '09:00', end: '16:00', breaks: [{ start: '12:00', end: '13:00' }] },
+      sat: { start: '10:00', end: '15:00' },
+    },
+    pricing: {
+      individual: { h1: 3200, h2: 6000,  h3: 8500,  h4: 10500 },
+      miniGroup:  { h1: 5500, h2: 9000,  h3: 12500, h4: 15500, extraPersonPrice: 1800, maxParticipants: 6 },
+      kids: {
+        individual: { h1: 2800, h2: 5200, h3: 7500,  h4: 9500  },
+        miniGroup:  { h1: 4500, h2: 7500, h3: 10500, h4: 13000, extraPersonPrice: 1500, maxParticipants: 6 },
+        shortSlot: 1800,
+      },
+    },
     worksWithKids: true,
     bio: '6 лет работаю с детьми от 3 до 12 лет. Нашла подход к самым непоседливым — занятия в игровой форме, без страха, с результатом.',
     exp: 6, onMountain: false, hasFreeSlotsToday: false,
@@ -148,7 +205,18 @@ export const INSTRUCTORS: Instructor[] = [
     id: 'dmitry', name: 'Дмитрий Захаров', initials: 'ДЗ', avatarColor: 'purple',
     resort: 'Шерегеш', type: ['ski', 'board'], level: ['advanced', 'freeride'],
     rating: 4.7, price: 4200,
-    miniGroupBasePrice: 8000, miniGroupExtraPrice: 2800, miniGroupMaxParticipants: 4,
+    weekSchedule: {
+      mon: { start: '09:00', end: '18:00', breaks: [{ start: '13:00', end: '14:00' }] },
+      tue: { start: '09:00', end: '18:00', breaks: [{ start: '13:00', end: '14:00' }] },
+      wed: { start: '09:00', end: '18:00', breaks: [{ start: '13:00', end: '14:00' }] },
+      thu: { start: '09:00', end: '18:00', breaks: [{ start: '13:00', end: '14:00' }] },
+      fri: { start: '09:00', end: '18:00', breaks: [{ start: '13:00', end: '14:00' }] },
+      sat: { start: '09:00', end: '18:00', breaks: [{ start: '13:00', end: '14:00' }] },
+    },
+    pricing: {
+      individual: { h1: 4200, h2: 8000,  h3: 11000, h4: 14000 },
+      miniGroup:  { h1: 6500, h2: 11000, h3: 15000, h4: 18000, extraPersonPrice: 2000, maxParticipants: 4 },
+    },
     worksWithKids: false,
     bio: '10 лет на склонах Шерегеша. Мастер спорта по горным лыжам, опыт фрирайда в Альпах. Обучаю технике параллельного ведения и навыкам бэккантри.',
     exp: 10, onMountain: true, hasFreeSlotsToday: true,
@@ -187,7 +255,24 @@ export const INSTRUCTORS: Instructor[] = [
     id: 'marina', name: 'Марина Волкова', initials: 'МВ', avatarColor: 'straw',
     resort: 'Шерегеш', type: ['ski'], level: ['beginner', 'kids'],
     rating: 4.8, price: 2500,
-    miniGroupBasePrice: 5000, miniGroupExtraPrice: 1600, miniGroupMaxParticipants: 6,
+    allowsShortSlots: true,
+    weekSchedule: {
+      mon: { start: '09:00', end: '16:00' },
+      tue: { start: '09:00', end: '16:00' },
+      wed: { start: '09:00', end: '16:00' },
+      thu: { start: '09:00', end: '16:00' },
+      fri: { start: '09:00', end: '16:00' },
+      sat: { start: '10:00', end: '15:00' },
+    },
+    pricing: {
+      individual: { h1: 2500, h2: 4800, h3: 6800,  h4: 8500  },
+      miniGroup:  { h1: 4500, h2: 7500, h3: 10000, h4: 12500, extraPersonPrice: 1500, maxParticipants: 6 },
+      kids: {
+        individual: { h1: 2500, h2: 4500, h3: 6300,  h4: 7800  },
+        miniGroup:  { h1: 3800, h2: 6500, h3: 9000,  h4: 11000, extraPersonPrice: 1200, maxParticipants: 6 },
+        shortSlot: 1600,
+      },
+    },
     worksWithKids: true,
     bio: 'Работаю с новичками и детьми 5 лет. Умею мотивировать и поддерживать уверенность — даже самые осторожные гости начинают кататься самостоятельно.',
     exp: 5, onMountain: false, hasFreeSlotsToday: true,
@@ -226,7 +311,18 @@ export const INSTRUCTORS: Instructor[] = [
     id: 'sergey', name: 'Сергей Лебедев', initials: 'СЛ', avatarColor: 'blue',
     resort: 'Шерегеш', type: ['ski'], level: ['advanced', 'freeride'],
     rating: 5.0, price: 5000,
-    miniGroupBasePrice: 9000, miniGroupExtraPrice: 3000, miniGroupMaxParticipants: 4,
+    weekSchedule: {
+      mon: { start: '08:00', end: '18:00', breaks: [{ start: '13:00', end: '14:00' }] },
+      tue: { start: '08:00', end: '18:00', breaks: [{ start: '13:00', end: '14:00' }] },
+      wed: { start: '08:00', end: '18:00', breaks: [{ start: '13:00', end: '14:00' }] },
+      thu: { start: '08:00', end: '18:00', breaks: [{ start: '13:00', end: '14:00' }] },
+      fri: { start: '08:00', end: '18:00', breaks: [{ start: '13:00', end: '14:00' }] },
+      sat: { start: '09:00', end: '17:00', breaks: [{ start: '13:00', end: '14:00' }] },
+    },
+    pricing: {
+      individual: { h1: 5000, h2: 9500,  h3: 13500, h4: 17000 },
+      miniGroup:  { h1: 7500, h2: 13000, h3: 18000, h4: 22000, extraPersonPrice: 2500, maxParticipants: 4 },
+    },
     worksWithKids: false,
     bio: '12 лет инструкторского опыта, международный сертификат ISIA. Специализируюсь на продвинутых райдерах и фрирайде — помогу выйти на новый уровень.',
     exp: 12, onMountain: true, hasFreeSlotsToday: true,
