@@ -248,7 +248,7 @@ export const INSTRUCTORS: Instructor[] = [
     id: 'marina', name: 'Марина Волкова', initials: 'МВ', avatarColor: 'straw',
     resort: 'Шерегеш', type: ['ski'], level: ['beginner', 'kids'],
     rating: 4.8, price: 2500,
-    allowsShortSlots: true,
+    // allowsShortSlots не задан → false: работает с детьми, но только часовые слоты
     weekSchedule: {
       mon: { start: '09:00', end: '16:00' },
       tue: { start: '09:00', end: '16:00' },
@@ -258,9 +258,8 @@ export const INSTRUCTORS: Instructor[] = [
       sat: { start: '10:00', end: '15:00' },
     },
     pricing: {
-      individual:     { h1: 2500, h2: 4800, h3: 6800,  h4: 8500  },
-      miniGroup:      { h1: 4500, h2: 7500, h3: 10000, h4: 12500, extraPersonPrice: 1500, maxParticipants: 6 },
-      shortSlotPrice: 1600,
+      individual: { h1: 2500, h2: 4800, h3: 6800, h4: 8500 },
+      miniGroup:  { h1: 4500, h2: 7500, h3: 10000, h4: 12500, extraPersonPrice: 1500, maxParticipants: 6 },
     },
     worksWithKids: true,
     bio: 'Работаю с новичками и детьми 5 лет. Умею мотивировать и поддерживать уверенность — даже самые осторожные гости начинают кататься самостоятельно.',
