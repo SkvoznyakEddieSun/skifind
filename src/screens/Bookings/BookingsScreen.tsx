@@ -320,7 +320,7 @@ export function BookingsScreen({ onChat, onCancel, onBookAgain, onBack }: Bookin
 
             {/* Textarea */}
             <textarea
-              className={styles.reviewTextarea}
+              className="input-field input-field--textarea"
               value={reviewText}
               onChange={e => setReviewText(e.target.value)}
               placeholder="Расскажите о занятии..."

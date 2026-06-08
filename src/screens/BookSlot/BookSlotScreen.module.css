@@ -296,29 +296,6 @@
   font-size: 16px;
 }
 
-/* ── Message input ── */
-.messageInput {
-  width: 100%;
-  box-sizing: border-box;
-  margin: 0 0 0 0;
-  padding: 12px 14px;
-  background: var(--surface-1);
-  border: 1px solid var(--border);
-  border-radius: var(--r12);
-  font-size: 16px; /* iOS no-zoom */
-  font-family: var(--ff);
-  color: var(--text);
-  resize: none;
-  line-height: 1.5;
-  display: block;
-  margin: 0 16px;
-  width: calc(100% - 32px);
-}
-
-.messageInput:focus {
-  border-color: var(--accent);
-  outline: none;
-}
 
 /* ── Send button ── */
 .sendBtn {

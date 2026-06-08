@@ -89,29 +89,6 @@
   margin: 0 14px;
 }
 
-/* ── Text input / textarea inside card ── */
-.textInput {
-  display: block;
-  width: 100%;
-  padding: 13px 14px;
-  background: transparent;
-  border: none;
-  font-size: 16px;
-  font-family: var(--ff);
-  color: var(--text);
-  box-sizing: border-box;
-  outline: none;
-}
-.textInput::placeholder { color: var(--text-faint); }
-
-.textArea {
-  resize: none;
-  line-height: 1.5;
-}
-
-.textInputError {
-  color: #dc2626;
-}
 
 /* ── Select inside card ── */
 .selectInput {

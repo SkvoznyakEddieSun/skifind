@@ -314,21 +314,6 @@
 
 .customWrap { margin-bottom: 14px; }
 
-.customInput {
-  width: 100%;
-  padding: 14px;
-  border: 1.5px solid var(--border);
-  border-radius: var(--r12);
-  font-size: 15px;
-  font-family: var(--ff);
-  text-align: center;
-  background: var(--surface-1);
-  color: var(--text);
-  outline: none;
-  box-sizing: border-box;
-}
-
-.customInput:focus { border-color: var(--accent); }
 
 .customMin {
   font-size: 11px;

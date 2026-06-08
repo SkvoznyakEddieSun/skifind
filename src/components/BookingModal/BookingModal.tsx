@@ -93,7 +93,7 @@ export function BookingModal({
         <div className={styles.sectionLabel}>{t('booking.date')}</div>
         <input
           type="date"
-          className={styles.input}
+          className="input-field input-field--left"
           value={date}
           onChange={e => setDate(e.target.value)}
         />
@@ -113,7 +113,7 @@ export function BookingModal({
         {/* Comment */}
         <div className={styles.sectionLabel}>{t('booking.comment')}</div>
         <textarea
-          className={styles.textarea}
+          className="input-field input-field--textarea"
           placeholder={t('booking.commentPlaceholder')}
           value={comment}
           onChange={e => setComment(e.target.value)}

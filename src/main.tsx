@@ -1,4 +1,5 @@
 import './styles/tokens.css';   // ПЕРВОЙ строкой — обязательно
+import './styles/inputs.css';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';

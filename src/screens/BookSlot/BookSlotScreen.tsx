@@ -331,7 +331,8 @@ export function BookSlotScreen({ onBack, onBooked, instructor }: BookSlotScreenP
         <div className={styles.divider} />
         <div className={styles.sectionLabel}>Сообщение инструктору (необязательно)</div>
         <textarea
-          className={styles.messageInput}
+          className="input-field input-field--textarea"
+          style={{ margin: '0 16px', width: 'calc(100% - 32px)' }}
           placeholder={format === 'kids' ? 'Укажите возраст ребёнка и опыт катания' : 'Любые пожелания или вопросы...'}
           value={message}
           onChange={e => setMessage(e.target.value)}

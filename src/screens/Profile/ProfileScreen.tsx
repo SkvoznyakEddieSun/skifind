@@ -510,7 +510,7 @@ export function ProfileScreen({ instructor, onBack, onBook, onAskQuestion, onAll
             </div>
             <div className={styles.reportSectionLabel}>Комментарий <span className={styles.reportOptional}>(необязательно)</span></div>
             <textarea
-              className={styles.reportTextarea}
+              className="input-field input-field--textarea"
               placeholder="Опишите ситуацию подробнее..."
               value={reportText}
               onChange={e => setReportText(e.target.value)}

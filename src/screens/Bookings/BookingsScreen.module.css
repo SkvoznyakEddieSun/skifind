@@ -355,21 +355,6 @@
 .starBtn:active { transform: scale(1.2); }
 .starBtnOn { color: var(--gold); }
 
-.reviewTextarea {
-  width: 100%;
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  border-radius: var(--r12);
-  padding: 12px;
-  font-size: 14px;
-  color: var(--text);
-  font-family: var(--ff);
-  resize: none;
-  outline: none;
-  box-sizing: border-box;
-}
-
-.reviewTextarea::placeholder { color: var(--text-faint); }
 
 /* ── Review section label ── */
 .reviewSectionLabel {

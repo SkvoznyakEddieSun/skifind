@@ -111,7 +111,7 @@ function TopupModal({ onClose }: { onClose: () => void }) {
         <div className={styles.customWrap}>
           <input
             type="number"
-            className={styles.customInput}
+            className="input-field"
             placeholder="Другая сумма"
             value={custom}
             onChange={e => { setCustom(e.target.value); }}

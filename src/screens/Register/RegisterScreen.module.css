@@ -102,20 +102,49 @@
 }
 
 .field input,
-.field textarea,
-.field select {
+.field textarea {
   width: 100%;
-  padding: 11px 14px;
-  border: 1px solid var(--border);
-  border-radius: var(--r12);
-  font-size: 14px;
-  background: var(--surface-1);
-  color: var(--text);
-  font-family: var(--ff);
   box-sizing: border-box;
+  padding: 10px 12px;
+  background: var(--surface-2);
+  color: var(--text);
+  border: 1px solid transparent;
+  border-radius: var(--r8);
+  font-size: 15px;
+  font-family: var(--ff);
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+  transition: border-color .2s;
+}
+
+.field input:focus,
+.field textarea:focus {
+  border-color: var(--accent);
+}
+
+.field textarea {
+  resize: vertical;
+  min-height: 80px;
+  line-height: 1.5;
+  text-align: left;
+}
+
+.field input::placeholder,
+.field textarea::placeholder {
+  color: var(--text-faint);
 }
 
 .field select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--r8);
+  font-size: 15px;
+  background: var(--surface-1);
+  color: var(--text);
+  font-family: var(--ff);
   appearance: none;
   -webkit-appearance: none;
   padding-right: 36px;
@@ -125,17 +154,9 @@
   cursor: pointer;
 }
 
-.field input:focus,
-.field textarea:focus,
 .field select:focus {
   border-color: var(--accent);
   outline: none;
-}
-
-.field textarea {
-  resize: vertical;
-  min-height: 80px;
-  line-height: 1.6;
 }
 
 .fieldRow {

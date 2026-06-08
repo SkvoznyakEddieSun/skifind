@@ -172,15 +172,13 @@ export function MasterClassCreateScreen({ onBack, onPublished }: MasterClassCrea
 
           {/* Название */}
           <div className={styles.sectionLabel}>Название</div>
-          <div className={styles.card}>
-            <input
-              className={styles.textInput}
-              placeholder='Например, «Техника карвинга»'
-              value={title}
-              onChange={e => setTitle(e.target.value)}
-              maxLength={60}
-            />
-          </div>
+          <input
+            className="input-field input-field--left"
+            placeholder='Например, «Техника карвинга»'
+            value={title}
+            onChange={e => setTitle(e.target.value)}
+            maxLength={60}
+          />
 
           {/* Вид спорта */}
           <div className={styles.sectionLabel}>Вид спорта</div>
@@ -293,7 +291,7 @@ export function MasterClassCreateScreen({ onBack, onPublished }: MasterClassCrea
             <input
               type="number"
               inputMode="numeric"
-              className={`${styles.textInput} ${priceError ? styles.textInputError : ''}`}
+              className={`input-field input-field--right${priceError ? ' input-field--error' : ''}`}
               placeholder={`от ${PRICE_MIN.toLocaleString('ru')}`}
               value={price}
               onChange={e => setPrice(e.target.value)}
@@ -308,14 +306,12 @@ export function MasterClassCreateScreen({ onBack, onPublished }: MasterClassCrea
 
           {/* Место встречи */}
           <div className={styles.sectionLabel}>Место встречи</div>
-          <div className={styles.card}>
-            <input
-              className={styles.textInput}
-              placeholder='Например, «Касса Шерегеш, вход А»'
-              value={location}
-              onChange={e => setLocation(e.target.value)}
-            />
-          </div>
+          <input
+            className="input-field input-field--left"
+            placeholder='Например, «Касса Шерегеш, вход А»'
+            value={location}
+            onChange={e => setLocation(e.target.value)}
+          />
 
           {/* Дедлайн записи */}
           <div className={styles.sectionLabel}>Дедлайн записи</div>
@@ -342,7 +338,7 @@ export function MasterClassCreateScreen({ onBack, onPublished }: MasterClassCrea
           </div>
           <div className={styles.card}>
             <textarea
-              className={`${styles.textInput} ${styles.textArea}`}
+              className="input-field input-field--textarea"
               placeholder="Расскажите, что будет на мастер-классе, кому подходит и что взять с собой…"
               value={description}
               onChange={e => setDescription(e.target.value.slice(0, MAX_DESC))}

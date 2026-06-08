@@ -464,22 +464,6 @@
   letter-spacing: .4px;
 }
 
-.inviteInput {
-  width: 100%;
-  padding: 13px 14px;
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  border-radius: var(--r12);
-  font-size: 16px;
-  font-family: var(--ff);
-  color: var(--text);
-  outline: none;
-  box-sizing: border-box;
-  transition: border-color .15s;
-}
-
-.inviteInput:focus { border-color: var(--accent); }
-.inviteInput::placeholder { color: var(--text-faint); }
 
 .inviteHint {
   font-size: 12px;

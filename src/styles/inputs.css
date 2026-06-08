@@ -1,0 +1,68 @@
+/* SkiFind — Unified input field (global styles) */
+
+.input-field {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  background: var(--surface-2);
+  color: var(--text);
+  border: 1px solid transparent;
+  border-radius: var(--r8);
+  font-size: 15px;
+  font-family: var(--ff);
+  font-weight: 400;
+  text-align: center;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+  transition: border-color .2s;
+}
+
+.input-field:focus {
+  border-color: var(--accent);
+}
+
+.input-field::placeholder {
+  color: var(--text-faint);
+}
+
+.input-field:disabled {
+  background: var(--surface-3);
+  color: var(--text-dim);
+  pointer-events: none;
+}
+
+/* Alignment modifiers */
+.input-field--left   { text-align: left; }
+.input-field--right  { text-align: right; }
+
+/* Textarea */
+.input-field--textarea {
+  text-align: left;
+  min-height: 80px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+/* Compact size (price inputs) */
+.input-field--sm {
+  font-size: 14px;
+  padding: 6px 8px;
+  width: auto;
+}
+
+/* Error state */
+.input-field--error {
+  border-color: var(--red) !important;
+}
+
+/* Remove number spinners */
+.input-field[type="number"] {
+  -moz-appearance: textfield;
+}
+.input-field[type="number"]::-webkit-inner-spin-button,
+.input-field[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}

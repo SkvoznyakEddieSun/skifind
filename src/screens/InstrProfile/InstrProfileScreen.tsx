@@ -199,7 +199,8 @@ export function InstrProfileScreen({ onBalance, onMyProfile, onLogout }: InstrPr
                       <div className={styles.priceLabel}>{d.label}</div>
                       <div className={styles.priceRight}>
                         <input type="number" inputMode="numeric"
-                          className={`${styles.priceInput} ${invalid ? styles.priceInputError : ''}`}
+                          className={`input-field input-field--right input-field--sm${invalid ? ' input-field--error' : ''}`}
+                          style={{ width: '72px' }}
                           value={val} onChange={e => handlePriceChange(path, e.target.value)} />
                         <span className={styles.priceUnit}>₽</span>
                       </div>
@@ -228,7 +229,8 @@ export function InstrProfileScreen({ onBalance, onMyProfile, onLogout }: InstrPr
                       <div className={styles.priceLabel}>{d.label}</div>
                       <div className={styles.priceRight}>
                         <input type="number" inputMode="numeric"
-                          className={`${styles.priceInput} ${invalid ? styles.priceInputError : ''}`}
+                          className={`input-field input-field--right input-field--sm${invalid ? ' input-field--error' : ''}`}
+                          style={{ width: '72px' }}
                           value={val} onChange={e => handlePriceChange(path, e.target.value)} />
                         <span className={styles.priceUnit}>₽</span>
                       </div>
@@ -238,7 +240,9 @@ export function InstrProfileScreen({ onBalance, onMyProfile, onLogout }: InstrPr
                 <div className={styles.priceRow}>
                   <div className={styles.priceLabel}>Доп. участник</div>
                   <div className={styles.priceRight}>
-                    <input type="number" inputMode="numeric" className={styles.priceInput}
+                    <input type="number" inputMode="numeric"
+                      className="input-field input-field--right input-field--sm"
+                      style={{ width: '72px' }}
                       value={draft['miniGroup.extraPersonPrice'] ?? ''}
                       onChange={e => handlePriceChange('miniGroup.extraPersonPrice', e.target.value)} />
                     <span className={styles.priceUnit}>₽/чел.</span>
@@ -248,7 +252,8 @@ export function InstrProfileScreen({ onBalance, onMyProfile, onLogout }: InstrPr
                   <div className={styles.priceLabel}>Макс. участников</div>
                   <div className={styles.priceRight}>
                     <input type="number" inputMode="numeric"
-                      className={`${styles.priceInput} ${styles.priceInputSm}`}
+                      className="input-field input-field--right input-field--sm"
+                      style={{ width: '52px' }}
                       value={draft['miniGroup.maxParticipants'] ?? ''}
                       onChange={e => handlePriceChange('miniGroup.maxParticipants', e.target.value)} />
                     <span className={styles.priceUnit}>чел.</span>
@@ -280,7 +285,9 @@ export function InstrProfileScreen({ onBalance, onMyProfile, onLogout }: InstrPr
                     <div className={styles.priceLabel}>45 минут</div>
                     <div className={styles.priceRight}>
                       <input
-                        type="number" inputMode="numeric" className={styles.priceInput}
+                        type="number" inputMode="numeric"
+                        className="input-field input-field--right input-field--sm"
+                        style={{ width: '72px' }}
                         value={draft['shortSlotPrice'] ?? ''}
                         onChange={e => handlePriceChange('shortSlotPrice', e.target.value)}
                       />

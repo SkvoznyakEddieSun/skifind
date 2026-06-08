@@ -441,7 +441,7 @@ export function RequestsScreen({ onBack, onChat, onRequest }: RequestsScreenProp
             <div className={styles.inviteField}>
               <label className={styles.inviteLabel}>Имя</label>
               <input
-                className={styles.inviteInput}
+                className="input-field input-field--left"
                 type="text"
                 placeholder="Например, Иван"
                 value={inviteName}
@@ -451,7 +451,7 @@ export function RequestsScreen({ onBack, onChat, onRequest }: RequestsScreenProp
             <div className={styles.inviteField}>
               <label className={styles.inviteLabel}>Номер телефона</label>
               <input
-                className={styles.inviteInput}
+                className="input-field input-field--left"
                 type="tel"
                 placeholder="+7 (___) ___-__-__"
                 value={invitePhone}

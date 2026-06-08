@@ -370,39 +370,6 @@
   flex-shrink: 0;
 }
 
-.priceInput {
-  width: 72px;
-  padding: 6px 8px;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text);
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: var(--r8);
-  font-family: var(--ff);
-  text-align: right;
-  outline: none;
-  appearance: textfield;
-  -moz-appearance: textfield;
-}
-
-.priceInput::-webkit-inner-spin-button,
-.priceInput::-webkit-outer-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-
-.priceInput:focus {
-  border-color: var(--accent);
-}
-
-.priceInputError {
-  border-color: var(--red) !important;
-}
-
-.priceInputSm {
-  width: 52px;
-}
 
 .priceUnit {
   font-size: 11px;
