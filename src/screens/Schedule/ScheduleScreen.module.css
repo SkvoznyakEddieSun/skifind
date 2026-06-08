@@ -588,18 +588,20 @@
 /* ── Time input ── */
 .timeInput {
   flex: 1;
+  min-width: 0;
   padding: 7px 4px;
   border: 1px solid var(--border);
   border-radius: var(--r8);
   font-size: 13px;
   font-weight: 500;
-  background: var(--bg);
-  color: var(--text);
   font-family: var(--ff);
+  background: var(--surface-1);
+  color: var(--text);
   text-align: center;
+  text-align-last: center; /* cross-browser centering */
   cursor: pointer;
-  min-width: 0;
-  width: 0; /* flex will size it */
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 .timeInput:focus {
@@ -607,8 +609,11 @@
   outline: none;
 }
 
+/* Disabled: grey text + slightly darker bg, not clickable */
 .timeInputDisabled {
-  opacity: .35;
+  background: var(--surface-2);
+  color: var(--text-dim);
+  border-color: var(--border);
   cursor: not-allowed;
   pointer-events: none;
 }
