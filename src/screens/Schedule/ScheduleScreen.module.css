@@ -416,59 +416,105 @@
   color: var(--text-dim);
 }
 
-/* ── Template tab — card-style groups ── */
+/* ── Settings tab — section labels & cards ── */
 
-.tmSecLabel {
-  font-size: 13px;
+.settingsSecLabel {
+  font-size: 12px;
   font-weight: 600;
-  color: var(--text);
-  letter-spacing: -0.2px;
-  margin-bottom: 8px;
-  margin-top: 16px;
+  text-transform: uppercase;
+  letter-spacing: .6px;
+  color: var(--text-dim);
+  margin-top: 20px;
+  margin-bottom: 6px;
 }
 
-.tmSecLabel:first-child {
+.settingsSecLabel:first-child {
   margin-top: 0;
 }
 
-.tmCard {
+.settingsCard {
   background: var(--surface-1);
   border: 1px solid var(--border);
   border-radius: var(--r12);
   overflow: clip;
-  margin-bottom: 10px;
+  margin-bottom: 4px;
 }
 
-.tmCardLabel {
-  padding: 7px 14px;
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--text-dim);
-  text-transform: uppercase;
-  letter-spacing: .7px;
+.settingsCardBody {
+  padding: 2px 14px 12px;
+}
+
+/* ── Day row (per-day toggle + label + time selects) ── */
+
+.dayRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
   border-bottom: 0.5px solid var(--border);
 }
 
-.tmCardBody {
-  padding: 10px 14px;
+.dayRow:last-child {
+  border-bottom: none;
 }
 
-/* Time row С / До */
-.tmTimeRow {
+/* Compact toggle — same visual as tmSw but sized for inline use */
+.daySw {
+  width: 40px;
+  height: 24px;
+  background: var(--surface-3);
+  border-radius: 12px;
+  position: relative;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background .25s;
+  border: none;
+  padding: 0;
+}
+
+.daySw::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform .25s;
+  box-shadow: 0 1px 3px rgba(0,0,0,.2);
+}
+
+.daySwOn { background: var(--accent); }
+.daySwOn::after { transform: translateX(16px); }
+
+.dayName {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  width: 24px;
+  flex-shrink: 0;
+}
+
+.dayNameOff {
+  color: var(--text-dim);
+}
+
+.dayTimes {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 0;
+  gap: 6px;
+  flex: 1;
+  justify-content: flex-end;
 }
 
-.tmTimeLabel {
-  font-size: 12px;
+.dayTimeSep {
+  font-size: 14px;
   color: var(--text-dim);
   flex-shrink: 0;
-  min-width: 16px;
 }
 
-/* Toggle switch row */
+/* ── Toggle switch row (lunch / similar) ── */
 .tmSwRow {
   display: flex;
   justify-content: space-between;
@@ -518,31 +564,19 @@
 .tmSwOn { background: var(--accent); }
 .tmSwOn::after { transform: translateX(18px); }
 
-/* Day chips */
-.tmDayChips {
+/* Time row С / До (lunch time pickers) */
+.tmTimeRow {
   display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-  padding: 0 0 4px;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
 }
 
-.tmDayChip {
-  padding: 6px 10px;
-  border-radius: 20px;
+.tmTimeLabel {
   font-size: 12px;
-  font-weight: 500;
-  background: var(--bg);
   color: var(--text-dim);
-  border: 1px solid var(--border);
-  cursor: pointer;
-  font-family: var(--ff);
-  transition: background .15s, color .15s, border-color .15s;
-}
-
-.tmDayChipOn {
-  background: var(--accent);
-  color: var(--accent-text);
-  border-color: var(--accent);
+  flex-shrink: 0;
+  min-width: 16px;
 }
 
 .tmChipHint {
@@ -551,49 +585,13 @@
   margin-top: 6px;
 }
 
-/* ── Template tab ── */
-.sectionTitle {
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--text);
-  margin-bottom: 10px;
-  margin-top: 16px;
-}
-
-.sectionTitle:first-child {
-  margin-top: 0;
-}
-
-/* Day block (still used in advanced mode) */
-.dayBlock {
-  background: var(--surface-1);
-  border: 1px solid var(--border);
-  border-radius: var(--r12);
-  padding: 14px;
-  margin-bottom: 12px;
-}
-
-.dayBlockTitle {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text);
-  margin-bottom: 10px;
-}
-
-/* Time row (used in advanced mode blocks) */
-.timeRow {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 10px;
-}
-
+/* ── Time select ── */
 .timeSelect {
   flex: 1;
-  padding: 9px 8px;
+  padding: 7px 6px;
   border: 1px solid var(--border);
   border-radius: var(--r8);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   background: var(--bg);
   color: var(--text);
@@ -601,6 +599,7 @@
   text-align: center;
   appearance: auto;
   cursor: pointer;
+  min-width: 0;
 }
 
 .timeSelect:focus {
@@ -608,47 +607,13 @@
   outline: none;
 }
 
-.timeSep {
-  font-size: 16px;
-  color: var(--text-dim);
-  flex-shrink: 0;
+.timeSelectDisabled {
+  opacity: .35;
+  cursor: not-allowed;
+  pointer-events: none;
 }
 
-/* Checkbox row — kept for backwards compat */
-.checkRow {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  user-select: none;
-  margin-top: 4px;
-}
-
-.checkbox {
-  width: 20px;
-  height: 20px;
-  border: 1.5px solid var(--border-strong);
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  flex-shrink: 0;
-  transition: all .15s;
-}
-
-.checkboxOn {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: var(--accent-text);
-}
-
-.checkLabel {
-  font-size: 13px;
-  color: var(--text);
-}
-
-/* Chips */
+/* ── Buffer / duration chips ── */
 .chipRow {
   display: flex;
   gap: 6px;
@@ -657,11 +622,11 @@
 }
 
 .durationChip {
-  padding: 6px 10px;
+  padding: 6px 14px;
   border-radius: 20px;
   border: 1px solid var(--border);
   background: var(--bg);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 500;
   color: var(--text-dim);
   font-family: var(--ff);
@@ -676,46 +641,7 @@
   border-color: var(--accent);
 }
 
-.offDayChipActive {
-  background: var(--surface-2);
-  color: var(--text-dim);
-  border-color: var(--border-strong);
-  text-decoration: line-through;
-  opacity: .6;
-}
-
-.chipUnit {
-  font-size: 12px;
-  color: var(--text-dim);
-  margin-bottom: 16px;
-}
-
-/* Custom duration */
-.customDurRow {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 8px 0;
-}
-
-.customDurInput {
-  width: 80px;
-  padding: 8px 10px;
-  border: 1px solid var(--border);
-  border-radius: var(--r8);
-  font-size: 16px;
-  background: var(--surface-1);
-  color: var(--text);
-  font-family: var(--ff);
-  text-align: center;
-}
-
-.customDurLabel {
-  font-size: 12px;
-  color: var(--text-dim);
-}
-
-/* Preview */
+/* ── Preview block ── */
 .previewBlock {
   background: var(--surface-1);
   border: 1px solid var(--border);
@@ -767,16 +693,9 @@
   font-style: italic;
 }
 
-/* Template actions */
-.templateActions {
-  display: flex;
-  gap: 8px;
-  margin-top: 8px;
-  margin-bottom: 32px;
-}
-
-.btnApply {
-  flex: 2;
+/* ── Save button ── */
+.btnSave {
+  width: 100%;
   padding: 14px;
   border-radius: var(--r12);
   background: var(--accent);
@@ -787,173 +706,9 @@
   font-family: var(--ff);
   cursor: pointer;
   transition: opacity .15s;
+  margin-bottom: 32px;
 }
-.btnApply:active { opacity: .8; }
-
-.btnAdvanced {
-  flex: 1;
-  padding: 14px;
-  border-radius: var(--r12);
-  background: var(--surface-1);
-  color: var(--text);
-  border: 1px solid var(--border);
-  font-size: 13px;
-  font-weight: 600;
-  font-family: var(--ff);
-  cursor: pointer;
-  transition: opacity .15s;
-  white-space: nowrap;
-}
-.btnAdvanced:active { opacity: .8; }
-
-/* ── Advanced mode ── */
-.advDayNav {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: var(--surface-1);
-  border: 1px solid var(--border);
-  border-radius: var(--r12);
-  padding: 12px 16px;
-  margin-bottom: 12px;
-}
-
-.advDayNavBtn {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  border: 1px solid var(--border);
-  background: var(--surface-2);
-  color: var(--text);
-  font-size: 16px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.advDayNavBtn:disabled {
-  opacity: .3;
-  cursor: not-allowed;
-}
-
-.advDayName {
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--text);
-}
-
-.advEmptyDay {
-  padding: 20px;
-  text-align: center;
-  background: var(--surface-1);
-  border: 1px dashed var(--border-strong);
-  border-radius: var(--r12);
-  margin-bottom: 10px;
-}
-
-.advEmptyDayText {
-  font-size: 13px;
-  color: var(--text-dim);
-}
-
-.advBlock {
-  background: var(--surface-1);
-  border: 1px solid var(--border);
-  border-radius: var(--r12);
-  padding: 12px;
-  margin-bottom: 10px;
-}
-
-.advBlockTitle {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--accent);
-  margin-bottom: 8px;
-}
-
-.advBlockMeta {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-top: 8px;
-}
-
-.advBlockMetaLabel {
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: .5px;
-  color: var(--text-dim);
-  font-weight: 600;
-}
-
-.advChipRow {
-  display: flex;
-  gap: 6px;
-}
-
-.advChip {
-  padding: 5px 12px;
-  border-radius: 20px;
-  border: 1px solid var(--border-strong);
-  background: none;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text);
-  font-family: var(--ff);
-  cursor: pointer;
-}
-
-.advChipActive {
-  background: var(--accent);
-  color: var(--accent-text);
-  border-color: var(--accent);
-}
-
-.advBlockRemove {
-  margin-top: 10px;
-  padding: 7px 14px;
-  border-radius: var(--r8);
-  border: 1px solid var(--red);
-  background: var(--red-soft);
-  color: var(--red);
-  font-size: 12px;
-  font-family: var(--ff);
-  cursor: pointer;
-}
-
-.addBlockBtn {
-  width: 100%;
-  padding: 12px;
-  border: 1px dashed var(--border-strong);
-  border-radius: var(--r12);
-  background: none;
-  color: var(--accent);
-  font-size: 14px;
-  font-weight: 600;
-  font-family: var(--ff);
-  cursor: pointer;
-  margin-bottom: 16px;
-}
-
-.advDivider {
-  height: 1px;
-  background: var(--border);
-  margin: 12px 0;
-}
-
-.copyDayBtn {
-  width: 100%;
-  padding: 12px;
-  border: 1px solid var(--border);
-  border-radius: var(--r12);
-  background: var(--surface-1);
-  color: var(--text);
-  font-size: 14px;
-  font-family: var(--ff);
-  cursor: pointer;
-  margin-bottom: 16px;
-}
+.btnSave:active { opacity: .8; }
 
 /* ── Toast ── */
 .toast {

@@ -7,8 +7,7 @@ import { Icon } from '@/components/Icon/Icon';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
-type ScheduleTab = 'lessons' | 'available' | 'template';
-type TemplateMode = 'simple' | 'advanced';
+type ScheduleTab = 'lessons' | 'available' | 'settings';
 
 interface Booking {
   id: string;
@@ -30,6 +29,16 @@ interface Slot {
   label: string;
 }
 
+/** Конфиг одного дня недели */
+interface DaySchedule {
+  dow: number;      // 0=Вс, 1=Пн … 6=Сб
+  label: string;   // 'Пн', 'Вт', …
+  enabled: boolean;
+  startTime: string;
+  endTime: string;
+}
+
+/** Внутренний конфиг для генерации слотов */
 interface DayConfig {
   startTime: string;
   endTime: string;
@@ -38,35 +47,16 @@ interface DayConfig {
   breakEnd: string;
 }
 
-interface AdvancedBlock {
-  id: string;
-  startTime: string;
-  endTime: string;
-  duration: number;
-  buffer: number;
-}
-
-interface DayAdvanced {
-  blocks: AdvancedBlock[];
+interface GeneratedSlot {
+  start: string;
+  end: string;
+  tooShort: boolean;
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
-const MONTH_RU = ['янв', 'фев', 'мар', 'апр', 'мая', 'июн',
-                   'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
-const DAY_SHORT = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
-const DAY_FULL  = ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
-
-// For the off-days picker: Mon–Sun chips (js getDay: 0=Sun,1=Mon...6=Sat)
-const DAY_CHIPS: { label: string; dow: number }[] = [
-  { label: 'Пн', dow: 1 },
-  { label: 'Вт', dow: 2 },
-  { label: 'Ср', dow: 3 },
-  { label: 'Чт', dow: 4 },
-  { label: 'Пт', dow: 5 },
-  { label: 'Сб', dow: 6 },
-  { label: 'Вс', dow: 0 },
-];
+const MONTH_RU  = ['янв','фев','мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек'];
+const DAY_SHORT = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
 
 function timeToMinutes(t: string): number {
   const [h, m] = t.split(':').map(Number);
@@ -76,40 +66,36 @@ function timeToMinutes(t: string): number {
 function minutesToTime(m: number): string {
   const h = Math.floor(m / 60);
   const min = m % 60;
-  return `${String(h).padStart(2, '0')}:${String(min).padStart(2, '0')}`;
+  return `${String(h).padStart(2,'0')}:${String(min).padStart(2,'0')}`;
 }
 
+/** Дропдаун с шагом 30 мин, 06:00–22:00 */
 function generateTimeOptions(): string[] {
   const opts: string[] = [];
   for (let h = 6; h <= 22; h++) {
-    for (const m of [0, 15, 30, 45]) {
-      if (h === 22 && m > 0) break;
-      opts.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
-    }
+    opts.push(`${String(h).padStart(2,'0')}:00`);
+    if (h < 22) opts.push(`${String(h).padStart(2,'0')}:30`);
   }
   return opts;
 }
 
 const TIME_OPTIONS = generateTimeOptions();
 
-interface GeneratedSlot {
-  start: string;
-  end: string;
-  tooShort: boolean;
-}
+// Длительность слота фиксирована 60 мин — ученик выбирает продолжительность при записи
+const SLOT_DURATION = 60;
 
 function generatePreviewSlots(cfg: DayConfig, slotDuration: number, buffer: number): GeneratedSlot[] {
   const slots: GeneratedSlot[] = [];
   const intervals: { start: string; end: string }[] = [];
   if (cfg.breakEnabled && cfg.breakStart && cfg.breakEnd) {
     intervals.push({ start: cfg.startTime, end: cfg.breakStart });
-    intervals.push({ start: cfg.breakEnd, end: cfg.endTime });
+    intervals.push({ start: cfg.breakEnd,  end: cfg.endTime });
   } else {
     intervals.push({ start: cfg.startTime, end: cfg.endTime });
   }
   for (const interval of intervals) {
     let current = timeToMinutes(interval.start);
-    const end = timeToMinutes(interval.end);
+    const end   = timeToMinutes(interval.end);
     while (current + slotDuration <= end) {
       slots.push({ start: minutesToTime(current), end: minutesToTime(current + slotDuration), tooShort: false });
       current += slotDuration + buffer;
@@ -122,13 +108,12 @@ function generatePreviewSlots(cfg: DayConfig, slotDuration: number, buffer: numb
 }
 
 function generateSlotsForDay(date: Date, cfg: DayConfig, slotDuration: number, buffer: number): Slot[] {
-  const preview = generatePreviewSlots(cfg, slotDuration, buffer);
-  return preview
+  return generatePreviewSlots(cfg, slotDuration, buffer)
     .filter(p => !p.tooShort)
     .map((p, i) => ({
-      id: `${date.toISOString().slice(0, 10)}-${i}`,
+      id: `${date.toISOString().slice(0,10)}-${i}`,
       timeStart: p.start,
-      timeEnd: p.end,
+      timeEnd:   p.end,
       status: 'available' as const,
       label: 'Свободно для индивидуальных',
     }));
@@ -136,54 +121,31 @@ function generateSlotsForDay(date: Date, cfg: DayConfig, slotDuration: number, b
 
 // ── Mock data ──────────────────────────────────────────────────────────────
 
-const today = new Date();
-today.setHours(0, 0, 0, 0);
-const tomorrow = new Date(today);
-tomorrow.setDate(today.getDate() + 1);
-const dayAfter = new Date(today);
-dayAfter.setDate(today.getDate() + 2);
-const nextWeek = new Date(today);
-nextWeek.setDate(today.getDate() + 8);
+const today    = new Date(); today.setHours(0,0,0,0);
+const tomorrow = new Date(today); tomorrow.setDate(today.getDate() + 1);
+const dayAfter = new Date(today); dayAfter.setDate(today.getDate() + 2);
+const nextWeek = new Date(today); nextWeek.setDate(today.getDate() + 8);
 
 const MOCK_BOOKINGS: Booking[] = [
-  {
-    id: 'b1', date: today,
-    timeStart: '10:00', timeEnd: '11:30',
-    clientName: 'Кирилл Волков', discipline: 'Сноуборд',
-    price: 7000, format: 'Индивидуал', group: 'today',
-  },
-  {
-    id: 'b2', date: today,
-    timeStart: '13:00', timeEnd: '14:30',
-    clientName: 'Мария Смирнова', discipline: 'Горные лыжи',
-    price: 5000, format: 'Мини-группа', group: 'today',
-  },
-  {
-    id: 'b3', date: tomorrow,
-    timeStart: '09:30', timeEnd: '11:00',
-    clientName: 'Артём Лебедев', discipline: 'Сноуборд',
-    price: 7000, format: 'Индивидуал', group: 'tomorrow',
-  },
-  {
-    id: 'b4', date: dayAfter,
-    timeStart: '11:00', timeEnd: '12:30',
-    clientName: 'Ольга Кузнецова', discipline: 'Горные лыжи',
-    price: 4000, format: 'Детское', group: 'week',
-  },
-  {
-    id: 'b5', date: nextWeek,
-    timeStart: '10:00', timeEnd: '11:30',
-    clientName: 'Павел Иванов', discipline: 'Сноуборд',
-    price: 7000, format: 'Индивидуал', group: 'later',
-  },
+  { id:'b1', date:today,    timeStart:'10:00', timeEnd:'11:30', clientName:'Кирилл Волков',   discipline:'Сноуборд',    price:7000, format:'Индивидуал',   group:'today'    },
+  { id:'b2', date:today,    timeStart:'13:00', timeEnd:'14:30', clientName:'Мария Смирнова',  discipline:'Горные лыжи', price:5000, format:'Мини-группа', group:'today'    },
+  { id:'b3', date:tomorrow, timeStart:'09:30', timeEnd:'11:00', clientName:'Артём Лебедев',   discipline:'Сноуборд',    price:7000, format:'Индивидуал',   group:'tomorrow' },
+  { id:'b4', date:dayAfter, timeStart:'11:00', timeEnd:'12:30', clientName:'Ольга Кузнецова', discipline:'Горные лыжи', price:4000, format:'Детское',      group:'week'     },
+  { id:'b5', date:nextWeek, timeStart:'10:00', timeEnd:'11:30', clientName:'Павел Иванов',    discipline:'Сноуборд',    price:7000, format:'Индивидуал',   group:'later'    },
 ];
 
-const DEFAULT_CFG: DayConfig = {
-  startTime: '09:00', endTime: '17:00',
-  breakEnabled: false, breakStart: '13:00', breakEnd: '14:00',
-};
+// По умолчанию: Пн–Пт включены 09:00–17:00, Сб–Вс выключены
+const DEFAULT_DAY_SCHEDULES: DaySchedule[] = [
+  { dow:1, label:'Пн', enabled:true,  startTime:'09:00', endTime:'17:00' },
+  { dow:2, label:'Вт', enabled:true,  startTime:'09:00', endTime:'17:00' },
+  { dow:3, label:'Ср', enabled:true,  startTime:'09:00', endTime:'17:00' },
+  { dow:4, label:'Чт', enabled:true,  startTime:'09:00', endTime:'17:00' },
+  { dow:5, label:'Пт', enabled:true,  startTime:'09:00', endTime:'17:00' },
+  { dow:6, label:'Сб', enabled:false, startTime:'09:00', endTime:'17:00' },
+  { dow:0, label:'Вс', enabled:false, startTime:'09:00', endTime:'17:00' },
+];
 
-const WEEK_DAYS = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота', 'Воскресенье'];
+// ── Props ──────────────────────────────────────────────────────────────────
 
 interface ScheduleScreenProps {
   onLesson: (id?: string) => void;
@@ -193,17 +155,23 @@ interface ScheduleScreenProps {
 
 // ── Components ─────────────────────────────────────────────────────────────
 
-function TimeSelect({ value, onChange, label }: { value: string; onChange: (v: string) => void; label?: string }) {
+function TimeSelect({
+  value, onChange, label, disabled,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  label?: string;
+  disabled?: boolean;
+}) {
   return (
     <select
-      className={styles.timeSelect}
+      className={`${styles.timeSelect} ${disabled ? styles.timeSelectDisabled : ''}`}
       value={value}
       onChange={e => onChange(e.target.value)}
       aria-label={label}
+      disabled={disabled}
     >
-      {TIME_OPTIONS.map(t => (
-        <option key={t} value={t}>{t}</option>
-      ))}
+      {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
     </select>
   );
 }
@@ -214,24 +182,23 @@ export function ScheduleScreen({ onLesson, onChat, onCreateMasterClass }: Schedu
   const [tab, setTab] = useState<ScheduleTab>('lessons');
 
   // Вкладка «Свободно»
-  const [selectedDayIdx, setSelectedDayIdx] = useState(0);
-  const [generatedSlots, setGeneratedSlots] = useState<Map<string, Slot[]>>(new Map());
-  const [blockedSlotIds, setBlockedSlotIds] = useState<Set<string>>(new Set());
-
-  // Вкладка «Шаблон»
-  const [templateMode, setTemplateMode] = useState<TemplateMode>('simple');
-  const [dayCfg, setDayCfg] = useState<DayConfig>({ ...DEFAULT_CFG });
-  // workDays: set of js-getDay numbers (0=Sun, 1=Mon, ..., 6=Sat). Default: все дни
-  const [workDays, setWorkDays] = useState<Set<number>>(new Set([0, 1, 2, 3, 4, 5, 6]));
-  // Длительность слота фиксирована — ученик выбирает продолжительность при записи
-  const slotDuration = 60;
-  const [buffer, setBuffer] = useState(0);
+  const [selectedDayIdx,  setSelectedDayIdx]  = useState(0);
+  const [generatedSlots,  setGeneratedSlots]  = useState<Map<string, Slot[]>>(new Map());
+  const [blockedSlotIds,  setBlockedSlotIds]  = useState<Set<string>>(new Set());
   const [templateApplied, setTemplateApplied] = useState(false);
+
+  // Настройки расписания (новая модель)
+  const [daySchedules, setDaySchedules] = useState<DaySchedule[]>(DEFAULT_DAY_SCHEDULES);
+  const [lunchEnabled, setLunchEnabled] = useState(false);
+  const [lunchStart,   setLunchStart]   = useState('13:00');
+  const [lunchEnd,     setLunchEnd]     = useState('14:00');
+  const [buffer,       setBuffer]       = useState(0);
+
   const [showToast, setShowToast] = useState<string | false>(false);
 
-  // ── Tab swipe (только между lessons и available) ──────────────────────────
+  // ── Tab swipe только между lessons и available ─────────────────────────
   const SWIPE_TABS = ['lessons', 'available'] as const;
-  const swipeActive = tab === 'template' ? 'lessons' : tab as 'lessons' | 'available';
+  const swipeActive = tab === 'settings' ? 'lessons' : tab as 'lessons' | 'available';
   const [tabAnimDir, setTabAnimDir] = useState<'left' | 'right' | null>(null);
   const [tabAnimKey, setTabAnimKey] = useState(0);
   const { onTouchStart: swipeTouchStart, onTouchEnd: swipeTouchEnd } = useTabSwipe(
@@ -240,9 +207,9 @@ export function ScheduleScreen({ onLesson, onChat, onCreateMasterClass }: Schedu
     (t, dir) => { setTabAnimDir(dir); setTabAnimKey(k => k + 1); setTab(t); },
   );
 
-  // ── Scroll tracking ────────────────────────────────────────────────────────
+  // ── Scroll tracking ────────────────────────────────────────────────────
   const scrollRef = useRef<HTMLDivElement>(null);
-  const [showTop, setShowTop] = useState(false);
+  const [showTop,  setShowTop]  = useState(false);
 
   const handleScroll = useCallback(() => {
     const el = scrollRef.current;
@@ -256,78 +223,89 @@ export function ScheduleScreen({ onLesson, onChat, onCreateMasterClass }: Schedu
     setTimeout(() => setShowToast(false), 2500);
   }
 
-  // Advanced mode
-  const [advancedDayIdx, setAdvancedDayIdx] = useState(0);
-  const [advancedDays, setAdvancedDays] = useState<DayAdvanced[]>(
-    WEEK_DAYS.map(() => ({ blocks: [] }))
-  );
-
   // ── 7 days strip ───────────────────────────────────────────────────────
-  const days14 = useMemo(() => {
-    return Array.from({ length: 7 }, (_, i) => {
-      const d = new Date(today);
-      d.setDate(today.getDate() + i);
-      return d;
-    });
-  }, []);
+  const days14 = useMemo(() => Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(today);
+    d.setDate(today.getDate() + i);
+    return d;
+  }), []);
 
-  const effectiveDuration = slotDuration; // 60 мин — минимальный слот, ученик выберет длину
+  // ── Helpers ────────────────────────────────────────────────────────────
 
-  function isOffDay(date: Date): boolean {
-    return !workDays.has(date.getDay());
+  function makeDayConfig(ds: DaySchedule): DayConfig {
+    return {
+      startTime:    ds.startTime,
+      endTime:      ds.endTime,
+      breakEnabled: lunchEnabled,
+      breakStart:   lunchStart,
+      breakEnd:     lunchEnd,
+    };
   }
 
-  // ── Preview calculation ────────────────────────────────────────────────
-  const previewDay = days14[1];
-  const previewIsOff = isOffDay(previewDay);
-  const previewSlots = useMemo(
-    () => previewIsOff ? [] : generatePreviewSlots(dayCfg, effectiveDuration, buffer),
-    [previewIsOff, dayCfg, effectiveDuration, buffer]
-  );
-  const previewValidSlots = previewSlots.filter(s => !s.tooShort).length;
+  function getDaySchedule(date: Date): DaySchedule | undefined {
+    return daySchedules.find(s => s.dow === date.getDay());
+  }
 
-  // Estimate weekly slots
-  const slotsPerWorkingDay = useMemo(
-    () => generatePreviewSlots(dayCfg, effectiveDuration, buffer).filter(s => !s.tooShort).length,
-    [dayCfg, effectiveDuration, buffer]
-  );
-  const workingDaysPerWeek = workDays.size;
-  const weeklyEstimate = slotsPerWorkingDay * workingDaysPerWeek;
+  function isOffDay(date: Date): boolean {
+    return !(getDaySchedule(date)?.enabled ?? false);
+  }
 
-  // ── Slots for selected day ─────────────────────────────────────────────
-  const selectedDate = days14[selectedDayIdx];
+  // ── Следующий рабочий день (для превью) ───────────────────────────────
+  const nextWorkDay = useMemo(() => {
+    for (let i = 1; i <= 7; i++) {
+      const d = new Date(today);
+      d.setDate(today.getDate() + i);
+      const ds = daySchedules.find(s => s.dow === d.getDay());
+      if (ds?.enabled) return { date: d, ds };
+    }
+    return null;
+  }, [daySchedules]);
+
+  const previewSlots = useMemo(() => {
+    if (!nextWorkDay) return [];
+    return generatePreviewSlots(makeDayConfig(nextWorkDay.ds), SLOT_DURATION, buffer);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [nextWorkDay, lunchEnabled, lunchStart, lunchEnd, buffer]);
+
+  // ── Слоты для вкладки «Свободно» ──────────────────────────────────────
+  const selectedDate    = days14[selectedDayIdx];
   const selectedDateKey = selectedDate.toISOString().slice(0, 10);
 
   const slotsForSelectedDay = useMemo(() => {
     if (!templateApplied) return null;
-    if (isOffDay(selectedDate)) return [];
+    const ds = daySchedules.find(s => s.dow === selectedDate.getDay());
+    if (!ds?.enabled) return [];
     const cached = generatedSlots.get(selectedDateKey);
     if (cached) return cached;
-    return generateSlotsForDay(selectedDate, dayCfg, effectiveDuration, buffer);
-  }, [templateApplied, generatedSlots, selectedDateKey, selectedDate, dayCfg, effectiveDuration, buffer, workDays]);
+    return generateSlotsForDay(selectedDate, makeDayConfig(ds), SLOT_DURATION, buffer);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [templateApplied, generatedSlots, selectedDateKey, selectedDate, daySchedules, lunchEnabled, lunchStart, lunchEnd, buffer]);
 
   function slotCountForDay(date: Date): number {
     if (!templateApplied) return 0;
-    if (isOffDay(date)) return 0;
+    const ds = getDaySchedule(date);
+    if (!ds?.enabled) return 0;
     const key = date.toISOString().slice(0, 10);
     const cached = generatedSlots.get(key);
     if (cached) return cached.filter(s => !blockedSlotIds.has(s.id)).length;
-    return generatePreviewSlots(dayCfg, effectiveDuration, buffer).filter(s => !s.tooShort).length;
+    return generatePreviewSlots(makeDayConfig(ds), SLOT_DURATION, buffer).filter(s => !s.tooShort).length;
   }
 
-  function applyTemplate() {
+  // ── Сохранить расписание ───────────────────────────────────────────────
+  function saveSchedule() {
     const newMap = new Map<string, Slot[]>();
     days14.forEach(date => {
       const key = date.toISOString().slice(0, 10);
-      if (!isOffDay(date)) {
-        newMap.set(key, generateSlotsForDay(date, dayCfg, effectiveDuration, buffer));
-      } else {
+      const ds  = getDaySchedule(date);
+      if (!ds?.enabled) {
         newMap.set(key, []);
+      } else {
+        newMap.set(key, generateSlotsForDay(date, makeDayConfig(ds), SLOT_DURATION, buffer));
       }
     });
     setGeneratedSlots(newMap);
     setTemplateApplied(true);
-    fireToast('✓ Шаблон сохранён. Создано слотов на 7 дней вперёд.');
+    fireToast('✓ Расписание сохранено — слоты обновлены на 7 дней');
     setTab('available');
   }
 
@@ -339,54 +317,16 @@ export function ScheduleScreen({ onLesson, onChat, onCreateMasterClass }: Schedu
     });
   }
 
-  function toggleWorkDay(dow: number) {
-    setWorkDays(prev => {
-      const next = new Set(prev);
-      next.has(dow) ? next.delete(dow) : next.add(dow);
-      return next;
-    });
+  function updateDaySchedule(idx: number, patch: Partial<DaySchedule>) {
+    setDaySchedules(prev => prev.map((d, i) => i === idx ? { ...d, ...patch } : d));
   }
 
-  // ── Advanced mode helpers ──────────────────────────────────────────────
-  function addAdvancedBlock() {
-    setAdvancedDays(prev => {
-      const next = [...prev];
-      next[advancedDayIdx] = {
-        blocks: [
-          ...next[advancedDayIdx].blocks,
-          { id: Date.now().toString(), startTime: '09:00', endTime: '12:00', duration: 60, buffer: 15 },
-        ],
-      };
-      return next;
-    });
-  }
-
-  function removeAdvancedBlock(blockId: string) {
-    setAdvancedDays(prev => {
-      const next = [...prev];
-      next[advancedDayIdx] = {
-        blocks: next[advancedDayIdx].blocks.filter(b => b.id !== blockId),
-      };
-      return next;
-    });
-  }
-
-  function updateAdvancedBlock(blockId: string, field: keyof AdvancedBlock, val: string | number) {
-    setAdvancedDays(prev => {
-      const next = [...prev];
-      next[advancedDayIdx] = {
-        blocks: next[advancedDayIdx].blocks.map(b => b.id === blockId ? { ...b, [field]: val } : b),
-      };
-      return next;
-    });
-  }
-
-  // ── Booking groups — объединяем mock + принятые из store ──────────────
+  // ── Booking groups ─────────────────────────────────────────────────────
   function dateToGroup(d: Date): Booking['group'] {
-    const t0 = new Date(today); t0.setHours(0, 0, 0, 0);
+    const t0 = new Date(today);
     const t1 = new Date(t0); t1.setDate(t0.getDate() + 1);
     const t7 = new Date(t0); t7.setDate(t0.getDate() + 7);
-    const dn = new Date(d);   dn.setHours(0, 0, 0, 0);
+    const dn = new Date(d); dn.setHours(0,0,0,0);
     if (dn.getTime() === t0.getTime()) return 'today';
     if (dn.getTime() === t1.getTime()) return 'tomorrow';
     if (dn <= t7) return 'week';
@@ -405,18 +345,14 @@ export function ScheduleScreen({ onLesson, onChat, onCreateMasterClass }: Schedu
     group:      dateToGroup(new Date(b.dateISO)),
   }));
 
-  // Исключаем дубликаты MOCK (у них те же ID что в store — l1, l2)
-  const storeIds = new Set(storeBookings.map(b => b.id));
-  const allBookings = [
-    ...storeBookings,
-    ...MOCK_BOOKINGS.filter(b => !storeIds.has(b.id)),
-  ];
+  const storeIds   = new Set(storeBookings.map(b => b.id));
+  const allBookings = [...storeBookings, ...MOCK_BOOKINGS.filter(b => !storeIds.has(b.id))];
 
-  const bookingGroups: { key: string; label: string; items: Booking[] }[] = [
-    { key: 'today',    label: 'Сегодня',     items: allBookings.filter(b => b.group === 'today') },
-    { key: 'tomorrow', label: 'Завтра',      items: allBookings.filter(b => b.group === 'tomorrow') },
-    { key: 'week',     label: 'Эта неделя',  items: allBookings.filter(b => b.group === 'week') },
-    { key: 'later',    label: 'Позже',       items: allBookings.filter(b => b.group === 'later') },
+  const bookingGroups = [
+    { key:'today',    label:'Сегодня',    items: allBookings.filter(b => b.group === 'today')    },
+    { key:'tomorrow', label:'Завтра',     items: allBookings.filter(b => b.group === 'tomorrow') },
+    { key:'week',     label:'Эта неделя', items: allBookings.filter(b => b.group === 'week')     },
+    { key:'later',    label:'Позже',      items: allBookings.filter(b => b.group === 'later')    },
   ].filter(g => g.items.length > 0);
 
   // ── Render ─────────────────────────────────────────────────────────────
@@ -427,9 +363,9 @@ export function ScheduleScreen({ onLesson, onChat, onCreateMasterClass }: Schedu
         <div className={styles.headerRow}>
           <div className={styles.headerTitle}>Расписание</div>
           <button
-            className={`${styles.headerGear} ${tab === 'template' ? styles.headerGearActive : ''}`}
-            aria-label="Настройки шаблона"
-            onClick={() => setTab(t => t === 'template' ? 'lessons' : 'template')}
+            className={`${styles.headerGear} ${tab === 'settings' ? styles.headerGearActive : ''}`}
+            aria-label="Настройки расписания"
+            onClick={() => setTab(t => t === 'settings' ? 'lessons' : 'settings')}
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="3"/>
@@ -437,17 +373,19 @@ export function ScheduleScreen({ onLesson, onChat, onCreateMasterClass }: Schedu
             </svg>
           </button>
         </div>
-        <div className={styles.tabs}>
-          {(['lessons', 'available'] as ScheduleTab[]).map(t => (
-            <button
-              key={t}
-              className={`${styles.tab} ${tab === t ? styles.tabActive : ''}`}
-              onClick={() => setTab(t)}
-            >
-              {t === 'lessons' ? 'Занятия' : 'Свободно'}
-            </button>
-          ))}
-        </div>
+        {tab !== 'settings' && (
+          <div className={styles.tabs}>
+            {(['lessons', 'available'] as ScheduleTab[]).map(t => (
+              <button
+                key={t}
+                className={`${styles.tab} ${tab === t ? styles.tabActive : ''}`}
+                onClick={() => setTab(t)}
+              >
+                {t === 'lessons' ? 'Занятия' : 'Свободно'}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       <div ref={scrollRef} className={styles.scroll} onScroll={handleScroll}
@@ -460,45 +398,47 @@ export function ScheduleScreen({ onLesson, onChat, onCreateMasterClass }: Schedu
             key={tabAnimKey}
             style={{ animation: tabAnimDir ? `${tabAnimDir === 'left' ? 'tabSlideLeft' : 'tabSlideRight'} 200ms cubic-bezier(0.25,0.46,0.45,0.94) both` : undefined }}
           >
-          <div className={styles.tabContent}>
-            {bookingGroups.length === 0 ? (
-              <div className={styles.emptyState}>
-                <div className={styles.emptyIcon}><Icon name="calendar" size={32} /></div>
-                <div className={styles.emptyTitle}>Пока нет подтверждённых занятий</div>
-                <div className={styles.emptySub}>Заполните «Шаблон» — гости начнут видеть свободное время</div>
-                <button className={styles.emptyBtn} onClick={() => setTab('template')}>
-                  Перейти к шаблону →
-                </button>
-              </div>
-            ) : (
-              bookingGroups.map(group => (
-                <div key={group.key}>
-                  <div className={`${styles.groupLabel} ${styles[`group-${group.key}`]}`}>
-                    {group.label}
-                  </div>
-                  {group.items.map(b => (
-                    <div key={b.id} className={`${styles.bookingCard} ${styles[`bookingCard-${group.key}`]}`}>
-                      <div className={styles.bookingLeft}>
-                        <div className={styles.bookingDay}>{b.date.getDate()}</div>
-                        <div className={styles.bookingMonth}>{MONTH_RU[b.date.getMonth()].toUpperCase()}</div>
-                      </div>
-                      <div className={styles.bookingMain}>
-                        <div className={styles.bookingTime}>{b.timeStart} — {b.timeEnd}</div>
-                        <div className={styles.bookingClient}>{b.clientName} · {b.discipline}</div>
-                        <div className={styles.bookingMeta}>
-                          {b.price.toLocaleString('ru')} ₽ · {b.format}
+            <div className={styles.tabContent}>
+              {bookingGroups.length === 0 ? (
+                <div className={styles.emptyState}>
+                  <div className={styles.emptyIcon}><Icon name="calendar" size={32} /></div>
+                  <div className={styles.emptyTitle}>Пока нет подтверждённых занятий</div>
+                  <div className={styles.emptySub}>Настройте расписание — гости начнут видеть свободное время</div>
+                  <button className={styles.emptyBtn} onClick={() => setTab('settings')}>
+                    Настроить расписание →
+                  </button>
+                </div>
+              ) : (
+                bookingGroups.map(group => (
+                  <div key={group.key}>
+                    <div className={`${styles.groupLabel} ${styles[`group-${group.key}`]}`}>
+                      {group.label}
+                    </div>
+                    {group.items.map(b => (
+                      <div key={b.id} className={`${styles.bookingCard} ${styles[`bookingCard-${group.key}`]}`}>
+                        <div className={styles.bookingLeft}>
+                          <div className={styles.bookingDay}>{b.date.getDate()}</div>
+                          <div className={styles.bookingMonth}>{MONTH_RU[b.date.getMonth()].toUpperCase()}</div>
+                        </div>
+                        <div className={styles.bookingMain}>
+                          <div className={styles.bookingTime}>{b.timeStart} — {b.timeEnd}</div>
+                          <div className={styles.bookingClient}>{b.clientName} · {b.discipline}</div>
+                          <div className={styles.bookingMeta}>{b.price.toLocaleString('ru')} ₽ · {b.format}</div>
+                        </div>
+                        <div className={styles.bookingActions}>
+                          <button className={styles.bookingActBtn} onClick={onChat} aria-label="Написать">
+                            <Icon name="chat" size={16} />
+                          </button>
+                          <button className={`${styles.bookingActBtn} ${styles.bookingActBtnPrimary}`} onClick={() => onLesson(b.id)} aria-label="Открыть занятие">
+                            ›
+                          </button>
                         </div>
                       </div>
-                      <div className={styles.bookingActions}>
-                        <button className={styles.bookingActBtn} onClick={onChat}><Icon name="chat" size={16} /></button>
-                        <button className={`${styles.bookingActBtn} ${styles.bookingActBtnPrimary}`} onClick={() => onLesson(b.id)}>›</button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ))
-            )}
-          </div>
+                    ))}
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         )}
 
@@ -508,320 +448,213 @@ export function ScheduleScreen({ onLesson, onChat, onCreateMasterClass }: Schedu
             key={tabAnimKey}
             style={{ animation: tabAnimDir ? `${tabAnimDir === 'left' ? 'tabSlideLeft' : 'tabSlideRight'} 200ms cubic-bezier(0.25,0.46,0.45,0.94) both` : undefined }}
           >
-          <div className={styles.tabContent}>
-            <div className={styles.availHeader}>
-              <div className={styles.availHeaderTitle}>Свободные слоты — 7 дней вперёд</div>
-              <div className={styles.availHeaderRange}>
-                {days14[0].getDate()} {MONTH_RU[days14[0].getMonth()]} —{' '}
-                {days14[6].getDate()} {MONTH_RU[days14[6].getMonth()]}
+            <div className={styles.tabContent}>
+              <div className={styles.availHeader}>
+                <div className={styles.availHeaderTitle}>Свободные слоты — 7 дней вперёд</div>
+                <div className={styles.availHeaderRange}>
+                  {days14[0].getDate()} {MONTH_RU[days14[0].getMonth()]} —{' '}
+                  {days14[6].getDate()} {MONTH_RU[days14[6].getMonth()]}
+                </div>
               </div>
-            </div>
 
-            <div className={styles.dayStrip}>
-              {days14.map((d, i) => {
-                const cnt = slotCountForDay(d);
-                const isSelected = i === selectedDayIdx;
-                const isOff = isOffDay(d);
-                return (
-                  <button
-                    key={i}
-                    className={`${styles.dayChip} ${isSelected ? styles.dayChipActive : ''} ${isOff ? styles.dayChipOff : ''}`}
-                    onClick={() => setSelectedDayIdx(i)}
-                  >
-                    <span className={styles.dayChipLabel}>{DAY_SHORT[d.getDay()]} {d.getDate()}</span>
-                    {templateApplied && (
-                      <span className={styles.dayChipCount}>{isOff ? '—' : cnt}</span>
-                    )}
+              <div className={styles.dayStrip}>
+                {days14.map((d, i) => {
+                  const cnt        = slotCountForDay(d);
+                  const isSelected = i === selectedDayIdx;
+                  const isOff      = isOffDay(d);
+                  return (
+                    <button
+                      key={i}
+                      className={`${styles.dayChip} ${isSelected ? styles.dayChipActive : ''} ${isOff ? styles.dayChipOff : ''}`}
+                      onClick={() => setSelectedDayIdx(i)}
+                    >
+                      <span className={styles.dayChipLabel}>{DAY_SHORT[d.getDay()]} {d.getDate()}</span>
+                      {templateApplied && (
+                        <span className={styles.dayChipCount}>{isOff ? '—' : cnt}</span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {!templateApplied ? (
+                <div className={styles.emptyState}>
+                  <div className={styles.emptyIcon}>🕒</div>
+                  <div className={styles.emptyTitle}>Расписание ещё не настроено</div>
+                  <div className={styles.emptySub}>Нажмите ⚙ и сохраните расписание — слоты появятся автоматически</div>
+                  <button className={styles.emptyBtn} onClick={() => setTab('settings')}>
+                    Настроить →
                   </button>
-                );
-              })}
-            </div>
-
-            {!templateApplied ? (
-              <div className={styles.emptyState}>
-                <div className={styles.emptyIcon}>🕒</div>
-                <div className={styles.emptyTitle}>Расписание ещё не настроено</div>
-                <div className={styles.emptySub}>Заполните «Шаблон» — система автоматически создаст слоты на 7 дней вперёд</div>
-                <button className={styles.emptyBtn} onClick={() => setTab('template')}>
-                  Заполнить шаблон →
-                </button>
-              </div>
-            ) : isOffDay(selectedDate) ? (
-              <div className={styles.emptyStateSm}>
-                <div className={styles.emptyStatSmText}>Выходной день — слотов нет</div>
-              </div>
-            ) : (
-              <div className={styles.slotList}>
-                {(slotsForSelectedDay || []).length === 0 ? (
-                  <div className={styles.emptyStateSm}>
-                    <div className={styles.emptyStatSmText}>Нет слотов на этот день</div>
-                  </div>
-                ) : (
-                  (slotsForSelectedDay || []).map(slot => {
-                    const isBlocked = blockedSlotIds.has(slot.id);
-                    return (
-                      <div key={slot.id} className={`${styles.slotCard} ${isBlocked ? styles.slotCardBlocked : ''}`}>
-                        <div className={styles.slotIcon}>{isBlocked ? '🚫' : '✓'}</div>
-                        <div className={styles.slotInfo}>
-                          <div className={styles.slotTime}>{slot.timeStart} — {slot.timeEnd}</div>
-                          <div className={styles.slotLabel}>{isBlocked ? 'Заблокировано' : slot.label}</div>
-                          {!isBlocked && (
-                            <div className={styles.slotActions}>
-                              <button className={styles.slotBtn} onClick={() => toggleBlockSlot(slot.id)}>
-                                Заблокировать
-                              </button>
-                              <button
-                                className={`${styles.slotBtn} ${styles.slotBtnAccent}`}
-                                onClick={onCreateMasterClass}
-                              >
-                                + Мастер-класс
-                              </button>
-                            </div>
-                          )}
-                          {isBlocked && (
-                            <div className={styles.slotActions}>
-                              <button className={styles.slotBtn} onClick={() => toggleBlockSlot(slot.id)}>
-                                Разблокировать
-                              </button>
-                            </div>
-                          )}
+                </div>
+              ) : isOffDay(selectedDate) ? (
+                <div className={styles.emptyStateSm}>
+                  <div className={styles.emptyStatSmText}>Выходной день — слотов нет</div>
+                </div>
+              ) : (
+                <div className={styles.slotList}>
+                  {(slotsForSelectedDay || []).length === 0 ? (
+                    <div className={styles.emptyStateSm}>
+                      <div className={styles.emptyStatSmText}>Нет слотов на этот день</div>
+                    </div>
+                  ) : (
+                    (slotsForSelectedDay || []).map(slot => {
+                      const isBlocked = blockedSlotIds.has(slot.id);
+                      return (
+                        <div key={slot.id} className={`${styles.slotCard} ${isBlocked ? styles.slotCardBlocked : ''}`}>
+                          <div className={styles.slotIcon}>{isBlocked ? '🚫' : '✓'}</div>
+                          <div className={styles.slotInfo}>
+                            <div className={styles.slotTime}>{slot.timeStart} — {slot.timeEnd}</div>
+                            <div className={styles.slotLabel}>{isBlocked ? 'Заблокировано' : slot.label}</div>
+                            {!isBlocked ? (
+                              <div className={styles.slotActions}>
+                                <button className={styles.slotBtn} onClick={() => toggleBlockSlot(slot.id)}>
+                                  Заблокировать
+                                </button>
+                                <button className={`${styles.slotBtn} ${styles.slotBtnAccent}`} onClick={onCreateMasterClass}>
+                                  + Мастер-класс
+                                </button>
+                              </div>
+                            ) : (
+                              <div className={styles.slotActions}>
+                                <button className={styles.slotBtn} onClick={() => toggleBlockSlot(slot.id)}>
+                                  Разблокировать
+                                </button>
+                              </div>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    );
-                  })
-                )}
-              </div>
-            )}
-          </div>
+                      );
+                    })
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         )}
 
-        {/* ── ШАБЛОН ── */}
-        {tab === 'template' && (
+        {/* ── НАСТРОЙКИ РАСПИСАНИЯ ── */}
+        {tab === 'settings' && (
           <div className={styles.tabContent}>
-            {templateMode === 'simple' ? (
-              <>
-                {/* ── Рабочие часы ── */}
-                <div className={styles.tmSecLabel}>Рабочие часы</div>
 
-                <div className={styles.tmCard}>
-                  <div className={styles.tmCardLabel}>РАБОЧИЕ ЧАСЫ</div>
-                  <div className={styles.tmCardBody}>
-                    <div className={styles.tmTimeRow}>
-                      <span className={styles.tmTimeLabel}>С</span>
-                      <TimeSelect value={dayCfg.startTime} onChange={v => setDayCfg(p => ({ ...p, startTime: v }))} label="Начало" />
-                      <span className={styles.tmTimeLabel}>До</span>
-                      <TimeSelect value={dayCfg.endTime} onChange={v => setDayCfg(p => ({ ...p, endTime: v }))} label="Конец" />
-                    </div>
-                  </div>
-                </div>
-
-                <div className={styles.tmCard}>
-                  <div className={styles.tmCardBody}>
-                    <div className={styles.tmSwRow}>
-                      <div className={styles.tmSwInfo}>
-                        <div className={styles.tmSwTitle}>Перерыв на обед</div>
-                        <div className={styles.tmSwSub}>
-                          {dayCfg.breakEnabled ? `${dayCfg.breakStart} — ${dayCfg.breakEnd}` : 'Выключен'}
-                        </div>
-                      </div>
-                      <button
-                        className={`${styles.tmSw} ${dayCfg.breakEnabled ? styles.tmSwOn : ''}`}
-                        onClick={() => setDayCfg(p => ({ ...p, breakEnabled: !p.breakEnabled }))}
-                      />
-                    </div>
-                    {dayCfg.breakEnabled && (
-                      <div className={styles.tmTimeRow} style={{ paddingTop: 8 }}>
-                        <span className={styles.tmTimeLabel}>С</span>
-                        <TimeSelect value={dayCfg.breakStart} onChange={v => setDayCfg(p => ({ ...p, breakStart: v }))} label="Начало перерыва" />
-                        <span className={styles.tmTimeLabel}>До</span>
-                        <TimeSelect value={dayCfg.breakEnd} onChange={v => setDayCfg(p => ({ ...p, breakEnd: v }))} label="Конец перерыва" />
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* ── Рабочие дни ── */}
-                <div className={styles.tmSecLabel}>Рабочие дни</div>
-                <div className={styles.tmCard}>
-                  <div className={styles.tmCardBody}>
-                    <div className={styles.tmDayChips}>
-                      {DAY_CHIPS.map(({ label, dow }) => (
-                        <button
-                          key={dow}
-                          className={`${styles.tmDayChip} ${workDays.has(dow) ? styles.tmDayChipOn : ''}`}
-                          onClick={() => toggleWorkDay(dow)}
-                        >
-                          {label}
-                        </button>
-                      ))}
-                    </div>
-                    <div className={styles.tmChipHint}>
-                      {workDays.size === 7 ? 'Каждый день' : workDays.size === 0 ? 'Выберите дни' : `${workDays.size} дн. в неделю`}
-                    </div>
-                  </div>
-                </div>
-
-                {/* ── Перерыв между занятиями ── */}
-                <div className={styles.tmSecLabel}>Перерыв между занятиями</div>
-                <div className={styles.tmCard}>
-                  <div className={styles.tmCardBody}>
-                    <div className={styles.chipRow}>
-                      {[0, 15, 30].map(b => (
-                        <button
-                          key={b}
-                          className={`${styles.durationChip} ${buffer === b ? styles.durationChipActive : ''}`}
-                          onClick={() => setBuffer(b)}
-                        >
-                          {b}
-                        </button>
-                      ))}
-                    </div>
-                    <div className={styles.tmChipHint}>минут</div>
-                  </div>
-                </div>
-
-                {/* Preview */}
-                <div className={styles.previewBlock}>
-                  <div className={styles.previewTitle}>
-                    📅 Превью на завтра ({DAY_SHORT[previewDay.getDay()]} {previewDay.getDate()} {MONTH_RU[previewDay.getMonth()]}):
-                  </div>
-                  {previewIsOff ? (
-                    <div className={styles.previewOff}>Выходной день — слотов нет</div>
-                  ) : (
-                    <>
-                      {previewSlots.map((s, i) => (
-                        <div key={i} className={`${styles.previewSlot} ${s.tooShort ? styles.previewSlotShort : ''}`}>
-                          {s.start} — {s.end}
-                          <span className={styles.previewSlotLabel}>
-                            {s.tooShort ? ' слишком короткий' : ' свободно'}
-                          </span>
-                        </div>
-                      ))}
-                      <div className={styles.previewSummary}>
-                        Получится {previewValidSlots} слотов в день, ~{weeklyEstimate} в неделю.
-                      </div>
-                    </>
-                  )}
-                </div>
-
-                {/* Action buttons */}
-                <div className={styles.templateActions}>
-                  <button className={styles.btnApply} onClick={applyTemplate}>
-                    Применить
-                  </button>
-                  <button className={styles.btnAdvanced} onClick={() => setTemplateMode('advanced')}>
-                    Гибкий режим
-                  </button>
-                </div>
-              </>
-            ) : (
-              /* ── Advanced mode ── */
-              <>
-                <div className={styles.sectionTitle}>Гибкий режим</div>
-
-                <div className={styles.advDayNav}>
+            {/* Рабочие дни и часы */}
+            <div className={styles.settingsSecLabel}>Рабочие дни и часы</div>
+            <div className={styles.settingsCard}>
+              {daySchedules.map((ds, idx) => (
+                <div key={ds.dow} className={styles.dayRow}>
                   <button
-                    className={styles.advDayNavBtn}
-                    onClick={() => setAdvancedDayIdx(i => Math.max(0, i - 1))}
-                    disabled={advancedDayIdx === 0}
-                  >
-                    ◀
-                  </button>
-                  <span className={styles.advDayName}>{DAY_FULL[advancedDayIdx === 6 ? 0 : advancedDayIdx + 1]}</span>
-                  <button
-                    className={styles.advDayNavBtn}
-                    onClick={() => setAdvancedDayIdx(i => Math.min(6, i + 1))}
-                    disabled={advancedDayIdx === 6}
-                  >
-                    ▶
-                  </button>
+                    className={`${styles.daySw} ${ds.enabled ? styles.daySwOn : ''}`}
+                    aria-label={`${ds.label} ${ds.enabled ? 'выключить' : 'включить'}`}
+                    onClick={() => updateDaySchedule(idx, { enabled: !ds.enabled })}
+                  />
+                  <span className={`${styles.dayName} ${!ds.enabled ? styles.dayNameOff : ''}`}>
+                    {ds.label}
+                  </span>
+                  <div className={styles.dayTimes}>
+                    <TimeSelect
+                      value={ds.startTime}
+                      onChange={v => updateDaySchedule(idx, { startTime: v })}
+                      label={`${ds.label} начало`}
+                      disabled={!ds.enabled}
+                    />
+                    <span className={styles.dayTimeSep}>—</span>
+                    <TimeSelect
+                      value={ds.endTime}
+                      onChange={v => updateDaySchedule(idx, { endTime: v })}
+                      label={`${ds.label} конец`}
+                      disabled={!ds.enabled}
+                    />
+                  </div>
                 </div>
+              ))}
+            </div>
 
-                {advancedDays[advancedDayIdx].blocks.length === 0 && (
-                  <div className={styles.advEmptyDay}>
-                    <div className={styles.advEmptyDayText}>Нет блоков — добавьте рабочее время</div>
+            {/* Перерыв на обед */}
+            <div className={styles.settingsSecLabel}>Перерыв на обед</div>
+            <div className={styles.settingsCard}>
+              <div className={styles.settingsCardBody}>
+                <div className={styles.tmSwRow}>
+                  <div className={styles.tmSwInfo}>
+                    <div className={styles.tmSwTitle}>Перерыв на обед</div>
+                    <div className={styles.tmSwSub}>
+                      {lunchEnabled ? `${lunchStart} — ${lunchEnd}` : 'Выключен'}
+                    </div>
+                  </div>
+                  <button
+                    className={`${styles.tmSw} ${lunchEnabled ? styles.tmSwOn : ''}`}
+                    onClick={() => setLunchEnabled(v => !v)}
+                    aria-label={lunchEnabled ? 'Выключить перерыв' : 'Включить перерыв'}
+                  />
+                </div>
+                {lunchEnabled && (
+                  <div className={styles.tmTimeRow} style={{ paddingTop: 8 }}>
+                    <span className={styles.tmTimeLabel}>С</span>
+                    <TimeSelect value={lunchStart} onChange={setLunchStart} label="Начало перерыва" />
+                    <span className={styles.tmTimeLabel}>До</span>
+                    <TimeSelect value={lunchEnd}   onChange={setLunchEnd}   label="Конец перерыва" />
                   </div>
                 )}
-                {advancedDays[advancedDayIdx].blocks.map((block, bi) => (
-                  <div key={block.id} className={styles.advBlock}>
-                    <div className={styles.advBlockTitle}>▸ Блок {bi + 1}</div>
-                    <div className={styles.timeRow}>
-                      <TimeSelect value={block.startTime} onChange={v => updateAdvancedBlock(block.id, 'startTime', v)} label={`Блок ${bi+1} начало`} />
-                      <span className={styles.timeSep}>—</span>
-                      <TimeSelect value={block.endTime} onChange={v => updateAdvancedBlock(block.id, 'endTime', v)} label={`Блок ${bi+1} конец`} />
-                    </div>
-                    <div className={styles.advBlockMeta}>
-                      <span className={styles.advBlockMetaLabel}>Длительность</span>
-                      <div className={styles.advChipRow}>
-                        {[45, 60, 90, 120].map(d => (
-                          <button
-                            key={d}
-                            className={`${styles.advChip} ${block.duration === d ? styles.advChipActive : ''}`}
-                            onClick={() => updateAdvancedBlock(block.id, 'duration', d)}
-                          >
-                            {d}
-                          </button>
-                        ))}
-                      </div>
-                      <span className={styles.advBlockMetaLabel}>Перерыв</span>
-                      <div className={styles.advChipRow}>
-                        {[0, 15, 30].map(b => (
-                          <button
-                            key={b}
-                            className={`${styles.advChip} ${block.buffer === b ? styles.advChipActive : ''}`}
-                            onClick={() => updateAdvancedBlock(block.id, 'buffer', b)}
-                          >
-                            {b}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                    <button className={styles.advBlockRemove} onClick={() => removeAdvancedBlock(block.id)}>
-                      Удалить блок
+              </div>
+            </div>
+
+            {/* Перерыв между занятиями */}
+            <div className={styles.settingsSecLabel}>Перерыв между занятиями</div>
+            <div className={styles.settingsCard}>
+              <div className={styles.settingsCardBody}>
+                <div className={styles.chipRow}>
+                  {[0, 15, 30].map(b => (
+                    <button
+                      key={b}
+                      className={`${styles.durationChip} ${buffer === b ? styles.durationChipActive : ''}`}
+                      onClick={() => setBuffer(b)}
+                    >
+                      {b}
                     </button>
-                  </div>
-                ))}
-
-                <button className={styles.addBlockBtn} onClick={addAdvancedBlock}>
-                  + Добавить блок
-                </button>
-
-                <div className={styles.advDivider} />
-                <button className={styles.copyDayBtn} onClick={() => {
-                  const sourceDayName = DAY_FULL[advancedDayIdx === 6 ? 0 : advancedDayIdx + 1];
-                  setAdvancedDays(prev => {
-                    const sourceBlocks = prev[advancedDayIdx].blocks;
-                    return prev.map((day, idx) =>
-                      idx === advancedDayIdx
-                        ? day
-                        : { blocks: sourceBlocks.map(b => ({ ...b, id: `${b.id}-copy-${idx}` })) }
-                    );
-                  });
-                  fireToast(`✓ Настройки ${sourceDayName.toLowerCase()} скопированы на остальные дни`);
-                }}>
-                  Скопировать на другие дни
-                </button>
-
-                <div className={styles.templateActions}>
-                  <button className={styles.btnApply} onClick={applyTemplate}>
-                    Применить
-                  </button>
-                  <button className={styles.btnAdvanced} onClick={() => setTemplateMode('simple')}>
-                    Простой режим
-                  </button>
+                  ))}
                 </div>
-              </>
-            )}
+                <div className={styles.tmChipHint}>минут</div>
+              </div>
+            </div>
+
+            {/* Превью на следующий рабочий день */}
+            <div className={styles.previewBlock}>
+              <div className={styles.previewTitle}>
+                📅 Превью:{' '}
+                {nextWorkDay
+                  ? `${DAY_SHORT[nextWorkDay.date.getDay()]} ${nextWorkDay.date.getDate()} ${MONTH_RU[nextWorkDay.date.getMonth()]}`
+                  : 'нет рабочих дней'}
+              </div>
+              {!nextWorkDay ? (
+                <div className={styles.previewOff}>Включите хотя бы один рабочий день</div>
+              ) : previewSlots.filter(s => !s.tooShort).length === 0 ? (
+                <div className={styles.previewOff}>Нет слотов — проверьте настройки</div>
+              ) : (
+                <>
+                  {previewSlots.map((s, i) => (
+                    <div key={i} className={`${styles.previewSlot} ${s.tooShort ? styles.previewSlotShort : ''}`}>
+                      {s.start} — {s.end}
+                      <span className={styles.previewSlotLabel}>
+                        {s.tooShort ? ' слишком короткий' : ' свободно'}
+                      </span>
+                    </div>
+                  ))}
+                  <div className={styles.previewSummary}>
+                    {previewSlots.filter(s => !s.tooShort).length} слотов в этот день
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Кнопка «Сохранить» */}
+            <button className={styles.btnSave} onClick={saveSchedule}>
+              Сохранить
+            </button>
+
           </div>
         )}
 
       </div>
 
-      {/* Toast */}
-      {showToast && (
-        <div className={styles.toast}>{showToast}</div>
-      )}
+      {showToast && <div className={styles.toast}>{showToast}</div>}
 
       <ScrollToTopBtn
         show={showTop}
