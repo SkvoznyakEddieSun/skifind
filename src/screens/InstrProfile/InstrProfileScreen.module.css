@@ -185,6 +185,39 @@
   padding: 0 14px;
 }
 
+/* ── Collapsible section header ── */
+.collapsibleHeader {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: .7px;
+  border: none;
+  background: none;
+  border-bottom: 0.5px solid var(--border);
+  text-align: left;
+  cursor: pointer;
+  font-family: var(--ff);
+}
+
+.chevron {
+  font-size: 18px;
+  color: var(--text-dim);
+  transform: rotate(90deg);
+  transition: transform .2s ease;
+  line-height: 1;
+  font-weight: 300;
+}
+
+.chevronOpen {
+  transform: rotate(-90deg);
+}
+
 /* Static info row */
 .infoRow {
   display: flex;

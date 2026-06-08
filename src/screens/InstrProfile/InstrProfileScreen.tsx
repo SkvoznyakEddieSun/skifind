@@ -64,6 +64,10 @@ export function InstrProfileScreen({ onBalance, onMyProfile, onLogout }: InstrPr
   // ── Цены ──────────────────────────────────────────────────────────────
   const [draft, setDraft] = useState<Record<string, string>>(initDraft);
   const [pricesSaved, setPricesSaved] = useState(false);
+  const [openSections, setOpenSections] = useState({ individual: true, miniGroup: true, kids: true });
+  function toggleSection(s: keyof typeof openSections) {
+    setOpenSections(prev => ({ ...prev, [s]: !prev[s] }));
+  }
 
   function handlePriceChange(path: string, val: string) {
     setDraft(prev => ({ ...prev, [path]: val }));
@@ -181,69 +185,79 @@ export function InstrProfileScreen({ onBalance, onMyProfile, onLogout }: InstrPr
 
           {/* Индивидуальное */}
           <div className={styles.settingsGroup}>
-            <div className={styles.settingsGroupLabel}>🎿 Индивидуальное · один ученик</div>
-            <div className={styles.settingsGroupBody}>
-              {DURATIONS.map(d => {
-                const path = `individual.${d.key}`;
-                const val = draft[path] ?? '';
-                const n = parseInt(val, 10);
-                const invalid = val.trim() !== '' && (isNaN(n) || n <= 0);
-                return (
-                  <div key={d.key} className={styles.priceRow}>
-                    <div className={styles.priceLabel}>{d.label}</div>
-                    <div className={styles.priceRight}>
-                      <input type="number" inputMode="numeric"
-                        className={`${styles.priceInput} ${invalid ? styles.priceInputError : ''}`}
-                        value={val} onChange={e => handlePriceChange(path, e.target.value)} />
-                      <span className={styles.priceUnit}>₽</span>
+            <button className={styles.collapsibleHeader} onClick={() => toggleSection('individual')}>
+              <span>🎿 Индивидуальное · один ученик</span>
+              <span className={`${styles.chevron} ${openSections.individual ? styles.chevronOpen : ''}`}>›</span>
+            </button>
+            {openSections.individual && (
+              <div className={styles.settingsGroupBody}>
+                {DURATIONS.map(d => {
+                  const path = `individual.${d.key}`;
+                  const val = draft[path] ?? '';
+                  const n = parseInt(val, 10);
+                  const invalid = val.trim() !== '' && (isNaN(n) || n <= 0);
+                  return (
+                    <div key={d.key} className={styles.priceRow}>
+                      <div className={styles.priceLabel}>{d.label}</div>
+                      <div className={styles.priceRight}>
+                        <input type="number" inputMode="numeric"
+                          className={`${styles.priceInput} ${invalid ? styles.priceInputError : ''}`}
+                          value={val} onChange={e => handlePriceChange(path, e.target.value)} />
+                        <span className={styles.priceUnit}>₽</span>
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           {/* Мини-группа */}
           <div className={styles.settingsGroup}>
-            <div className={styles.settingsGroupLabel}>👥 Мини-группа · база за 2 чел.</div>
-            <div className={styles.settingsGroupBody}>
-              {DURATIONS.map(d => {
-                const path = `miniGroup.${d.key}`;
-                const val = draft[path] ?? '';
-                const n = parseInt(val, 10);
-                const invalid = val.trim() !== '' && (isNaN(n) || n <= 0);
-                return (
-                  <div key={d.key} className={styles.priceRow}>
-                    <div className={styles.priceLabel}>{d.label}</div>
-                    <div className={styles.priceRight}>
-                      <input type="number" inputMode="numeric"
-                        className={`${styles.priceInput} ${invalid ? styles.priceInputError : ''}`}
-                        value={val} onChange={e => handlePriceChange(path, e.target.value)} />
-                      <span className={styles.priceUnit}>₽</span>
+            <button className={styles.collapsibleHeader} onClick={() => toggleSection('miniGroup')}>
+              <span>👥 Мини-группа · база за 2 чел.</span>
+              <span className={`${styles.chevron} ${openSections.miniGroup ? styles.chevronOpen : ''}`}>›</span>
+            </button>
+            {openSections.miniGroup && (
+              <div className={styles.settingsGroupBody}>
+                {DURATIONS.map(d => {
+                  const path = `miniGroup.${d.key}`;
+                  const val = draft[path] ?? '';
+                  const n = parseInt(val, 10);
+                  const invalid = val.trim() !== '' && (isNaN(n) || n <= 0);
+                  return (
+                    <div key={d.key} className={styles.priceRow}>
+                      <div className={styles.priceLabel}>{d.label}</div>
+                      <div className={styles.priceRight}>
+                        <input type="number" inputMode="numeric"
+                          className={`${styles.priceInput} ${invalid ? styles.priceInputError : ''}`}
+                          value={val} onChange={e => handlePriceChange(path, e.target.value)} />
+                        <span className={styles.priceUnit}>₽</span>
+                      </div>
                     </div>
+                  );
+                })}
+                <div className={styles.priceRow}>
+                  <div className={styles.priceLabel}>Доп. участник</div>
+                  <div className={styles.priceRight}>
+                    <input type="number" inputMode="numeric" className={styles.priceInput}
+                      value={draft['miniGroup.extraPersonPrice'] ?? ''}
+                      onChange={e => handlePriceChange('miniGroup.extraPersonPrice', e.target.value)} />
+                    <span className={styles.priceUnit}>₽/чел.</span>
                   </div>
-                );
-              })}
-              <div className={styles.priceRow}>
-                <div className={styles.priceLabel}>Доп. участник</div>
-                <div className={styles.priceRight}>
-                  <input type="number" inputMode="numeric" className={styles.priceInput}
-                    value={draft['miniGroup.extraPersonPrice'] ?? ''}
-                    onChange={e => handlePriceChange('miniGroup.extraPersonPrice', e.target.value)} />
-                  <span className={styles.priceUnit}>₽/чел.</span>
+                </div>
+                <div className={styles.priceRow}>
+                  <div className={styles.priceLabel}>Макс. участников</div>
+                  <div className={styles.priceRight}>
+                    <input type="number" inputMode="numeric"
+                      className={`${styles.priceInput} ${styles.priceInputSm}`}
+                      value={draft['miniGroup.maxParticipants'] ?? ''}
+                      onChange={e => handlePriceChange('miniGroup.maxParticipants', e.target.value)} />
+                    <span className={styles.priceUnit}>чел.</span>
+                  </div>
                 </div>
               </div>
-              <div className={styles.priceRow}>
-                <div className={styles.priceLabel}>Макс. участников</div>
-                <div className={styles.priceRight}>
-                  <input type="number" inputMode="numeric"
-                    className={`${styles.priceInput} ${styles.priceInputSm}`}
-                    value={draft['miniGroup.maxParticipants'] ?? ''}
-                    onChange={e => handlePriceChange('miniGroup.maxParticipants', e.target.value)} />
-                  <span className={styles.priceUnit}>чел.</span>
-                </div>
-              </div>
-            </div>
+            )}
           </div>
 
           {/* Детское — тоггл + цены */}
@@ -264,7 +278,11 @@ export function InstrProfileScreen({ onBalance, onMyProfile, onLogout }: InstrPr
 
           {worksWithKids && (
             <div className={styles.settingsGroup}>
-              <div className={styles.settingsGroupLabel}>🧒 Детское · до 8 лет</div>
+              <button className={styles.collapsibleHeader} onClick={() => toggleSection('kids')}>
+                <span>🧒 Детское · до 8 лет</span>
+                <span className={`${styles.chevron} ${openSections.kids ? styles.chevronOpen : ''}`}>›</span>
+              </button>
+              {openSections.kids && (
               <div className={styles.settingsGroupBody}>
                 {draft['kids.shortSlot'] !== undefined && (
                   <div className={styles.priceRow}>
@@ -296,6 +314,7 @@ export function InstrProfileScreen({ onBalance, onMyProfile, onLogout }: InstrPr
                   );
                 })}
               </div>
+              )}
             </div>
           )}
 
