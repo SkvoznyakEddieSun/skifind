@@ -286,17 +286,17 @@ export function getGuestBookings(): Booking[] {
   return BOOKINGS.filter(b => b.isGuestBooking);
 }
 
-/** Входящие заявки инструктора (только pending + не гостевые) */
+/** Входящие заявки инструктора (все pending — и с платформы, и от гостей) */
 export function getPendingRequests(instructorId: string): Booking[] {
   return BOOKINGS.filter(
-    b => !b.isGuestBooking && b.instructorId === instructorId && b.status === 'pending',
+    b => b.instructorId === instructorId && b.status === 'pending',
   );
 }
 
 /** Принятые/завершённые уроки инструктора */
 export function getAcceptedLessons(instructorId: string): Booking[] {
   return BOOKINGS.filter(
-    b => !b.isGuestBooking && b.instructorId === instructorId &&
+    b => b.instructorId === instructorId &&
          (b.status === 'accepted' || b.status === 'completed'),
   );
 }
@@ -332,8 +332,8 @@ export interface AddBookingParams {
 export function addBooking(params: AddBookingParams): Booking {
   const booking: Booking = {
     id: `b-${_nextId++}`,
-    studentName:     'Вы',
-    studentInitials: 'ГО',
+    studentName:     'Новый ученик',
+    studentInitials: 'НУ',
     studentColor:    'ice',
     instructorId:          params.instructorId,
     instructorName:        params.instructorName,
