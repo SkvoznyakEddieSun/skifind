@@ -110,12 +110,14 @@ export function App() {
   const [activeRequestId, setActiveRequestId] = useState<string>('');
   const [activeLessonId,  setActiveLessonId]  = useState<string>('');
 
-  /** Open chat pre-filled with the active instructor's identity. */
+  /** Open chat pre-filled with the active instructor's identity (always guest-side). */
   function openInstrChat() {
     setChatPersonName(activeInstructor.name);
     setChatPersonInitials(activeInstructor.initials);
     setChatPersonAvColor(activeInstructor.avatarColor);
     setChatPersonHasProfile(true);
+    setChatPersonProfileType('instructor');
+    setChatIsInstructor(false);   // гость смотрит на инструктора
     push('chat');
   }
 

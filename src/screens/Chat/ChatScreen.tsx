@@ -343,12 +343,12 @@ export function ChatScreen({
                           </div>
                         </div>
                         {isInstructor ? (
+                          // ── Инструктор: принять / отклонить ──────────────
                           cardAccepted ? (
                             <div className={`${styles.cbActions} ${styles.cbAcceptedLabel}`}>
                               ✓ {t('chat.accepted')}
                             </div>
                           ) : (
-                            // Инструктор может принять или отклонить прямо из чата
                             <div className={styles.cbActions}>
                               <button
                                 className={`${styles.cbBtn} ${styles.cbAccept}`}
@@ -373,23 +373,14 @@ export function ChatScreen({
                             </div>
                           )
                         ) : (
-                          <>
-                            {!cardAccepted && (
-                              <div className={styles.cbActions}>
-                                <button className={`${styles.cbBtn} ${styles.cbAccept}`} onClick={() => setCardAccepted(true)}>
-                                  ✓ {t('chat.accept')}
-                                </button>
-                                <button className={`${styles.cbBtn} ${styles.cbDecline}`} onClick={() => fireToast('✓ Запрос на другое время отправлен')}>
-                                  {t('chat.propose')}
-                                </button>
-                              </div>
-                            )}
-                            {cardAccepted && (
-                              <div className={`${styles.cbActions} ${styles.cbAcceptedLabel}`}>
-                                ✓ {t('chat.accepted')}
-                              </div>
-                            )}
-                          </>
+                          // ── Гость: только статус, без кнопок действий ────
+                          // (DECLINED уже перехвачен внешним баннером выше)
+                          <div className={styles.cbGuestStatus}>
+                            {bookingStatus === 'ACCEPTED'
+                              ? <span className={styles.cbStatusOk}>✓ Подтверждено</span>
+                              : <span className={styles.cbStatusWait}>⏳ Ожидает подтверждения</span>
+                            }
+                          </div>
                         )}
                       </div>
                       <span className={styles.mt}>{msg.time}</span>

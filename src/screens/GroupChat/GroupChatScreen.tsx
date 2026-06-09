@@ -188,15 +188,17 @@ export function GroupChatScreen({
           <div className={styles.headerTitle}>{mcTitle}</div>
           <div className={styles.headerSub}>{participantCount} участников</div>
         </div>
-        {/* Instructor phone button — locked until group is confirmed */}
-        <button
-          className={`${styles.phoneBtn} ${!isConfirmed ? styles.phoneBtnLocked : ''}`}
-          onClick={handlePhoneBtn}
-          title={isConfirmed ? 'Позвонить инструктору' : 'Телефон откроется когда наберётся группа'}
-          aria-disabled={!isConfirmed}
-        >
-          📞
-        </button>
+        {/* Кнопка звонка — только для гостей; инструктор звонит сам */}
+        {role !== 'instructor' && (
+          <button
+            className={`${styles.phoneBtn} ${!isConfirmed ? styles.phoneBtnLocked : ''}`}
+            onClick={handlePhoneBtn}
+            title={isConfirmed ? 'Позвонить инструктору' : 'Телефон откроется когда наберётся группа'}
+            aria-disabled={!isConfirmed}
+          >
+            📞
+          </button>
+        )}
       </div>
 
       {/* Pinned bar */}

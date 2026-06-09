@@ -322,6 +322,16 @@
 .cbAccept  { background: var(--accent);    color: var(--accent-text); }
 .cbDecline { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); }
 
+/* ── Гостевой статус карточки (без кнопок) ── */
+.cbGuestStatus {
+  padding: 10px 14px;
+  border-top: 1px solid var(--border);
+}
+
+.cbStatusOk   { font-size: 13px; font-weight: 600; color: var(--pine, #3d8b40); }
+.cbStatusNo   { font-size: 13px; font-weight: 600; color: #dc2626; }
+.cbStatusWait { font-size: 13px; font-weight: 500; color: var(--text-dim); }
+
 /* Typing indicator */
 .typingBubble {
   background: var(--surface-1);
