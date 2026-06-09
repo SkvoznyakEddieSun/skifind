@@ -27,6 +27,10 @@ function initDraft(): Record<string, string> {
     d[`individual.${dk}`] = String(INSTR_PRICING.individual[dk]);
     d[`miniGroup.${dk}`]  = String(INSTR_PRICING.miniGroup[dk]);
   }
+  d['individual.fullDay'] = INSTR_PRICING.individual.fullDay != null
+    ? String(INSTR_PRICING.individual.fullDay) : '';
+  d['miniGroup.fullDay']  = INSTR_PRICING.miniGroup.fullDay != null
+    ? String(INSTR_PRICING.miniGroup.fullDay) : '';
   d['miniGroup.extraPersonPrice'] = String(INSTR_PRICING.miniGroup.extraPersonPrice);
   d['miniGroup.maxParticipants']  = String(INSTR_PRICING.miniGroup.maxParticipants);
   d['shortSlotPrice'] = INSTR_PRICING.shortSlotPrice != null
@@ -83,7 +87,9 @@ export function InstrProfileScreen({ onBalance, onMyProfile, onLogout }: InstrPr
     showToast('✓ Цены сохранены');
   }
 
-  const pricesDirty = Object.entries(draft).some(([, val]) => {
+  const OPTIONAL_PRICE_KEYS = new Set(['individual.fullDay', 'miniGroup.fullDay', 'shortSlotPrice']);
+  const pricesDirty = Object.entries(draft).some(([key, val]) => {
+    if (OPTIONAL_PRICE_KEYS.has(key)) return false; // empty string is valid for optional fields
     const n = parseInt(val, 10);
     return isNaN(n) || n <= 0;
   }) || (() => {
@@ -208,6 +214,26 @@ export function InstrProfileScreen({ onBalance, onMyProfile, onLogout }: InstrPr
                     </div>
                   );
                 })}
+                {/* Весь день — необязательно */}
+                {(() => {
+                  const path = 'individual.fullDay';
+                  const val = draft[path] ?? '';
+                  const n = parseInt(val, 10);
+                  const invalid = val.trim() !== '' && (isNaN(n) || n <= 0);
+                  return (
+                    <div className={styles.priceRow}>
+                      <div className={styles.priceLabel} style={{ color: 'var(--text-dim)' }}>Весь день <span style={{ fontSize: 11 }}>(необяз.)</span></div>
+                      <div className={styles.priceRight}>
+                        <input type="number" inputMode="numeric"
+                          className={`input-field input-field--right input-field--sm${invalid ? ' input-field--error' : ''}`}
+                          style={{ width: '72px' }}
+                          placeholder="—"
+                          value={val} onChange={e => handlePriceChange(path, e.target.value)} />
+                        <span className={styles.priceUnit}>₽</span>
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
             )}
           </div>
@@ -238,6 +264,26 @@ export function InstrProfileScreen({ onBalance, onMyProfile, onLogout }: InstrPr
                     </div>
                   );
                 })}
+                {/* Весь день — необязательно */}
+                {(() => {
+                  const path = 'miniGroup.fullDay';
+                  const val = draft[path] ?? '';
+                  const n = parseInt(val, 10);
+                  const invalid = val.trim() !== '' && (isNaN(n) || n <= 0);
+                  return (
+                    <div className={styles.priceRow}>
+                      <div className={styles.priceLabel} style={{ color: 'var(--text-dim)' }}>Весь день <span style={{ fontSize: 11 }}>(необяз.)</span></div>
+                      <div className={styles.priceRight}>
+                        <input type="number" inputMode="numeric"
+                          className={`input-field input-field--right input-field--sm${invalid ? ' input-field--error' : ''}`}
+                          style={{ width: '72px' }}
+                          placeholder="—"
+                          value={val} onChange={e => handlePriceChange(path, e.target.value)} />
+                        <span className={styles.priceUnit}>₽</span>
+                      </div>
+                    </div>
+                  );
+                })()}
                 <div className={styles.priceRow}>
                   <div className={styles.priceLabel}>Доп. участник</div>
                   <div className={styles.priceRight}>

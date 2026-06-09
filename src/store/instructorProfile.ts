@@ -44,7 +44,7 @@ export function updateInstrPrice(path: string, value: number): void {
   }
   const [format, key] = path.split('.') as [string, string];
   const section = (INSTR_PRICING as unknown as Record<string, Record<string, number>>)[format];
-  if (section && key in section) section[key] = value;
+  if (section) section[key] = value;  // allow setting optional fields like fullDay
 }
 
 // ── Расписание ─────────────────────────────────────────────────────────────

@@ -89,6 +89,7 @@ export function BookSlotScreen({ onBack, onBooked, instructor }: BookSlotScreenP
 
   const [format,    setFormat]    = useState<Format | null>(null);
   const [duration,  setDuration]  = useState<Duration | null>(null);
+  const [isFullDay, setIsFullDay] = useState(false);
   const [dayIdx,    setDayIdx]    = useState<number | null>(null);
   const [timeStart, setTimeStart] = useState<string | null>(null);
   const [groupSize, setGroupSize] = useState(2);
@@ -118,6 +119,9 @@ export function BookSlotScreen({ onBack, onBooked, instructor }: BookSlotScreenP
   const hasAnyDay = DAYS.some(d => !!instructor.weekSchedule[WEEKDAY_KEY[d.getDay()]]);
 
   function getPrice(): number {
+    if (isFullDay && format && format !== 'kids') {
+      return instructor.pricing[format as 'individual' | 'miniGroup']?.fullDay ?? 0;
+    }
     if (!format || !duration) return 0;
     if (duration === 45) {
       return instructor.pricing.shortSlotPrice ?? 0;
@@ -136,28 +140,46 @@ export function BookSlotScreen({ onBack, onBooked, instructor }: BookSlotScreenP
   function handleFormatChange(f: Format) {
     setFormat(f);
     setDuration(null);
+    setIsFullDay(false);
     setDayIdx(null);
     setTimeStart(null);
     setGroupSize(2);
   }
 
   function handleDurationChange(d: Duration) {
+    setIsFullDay(false);
     setDuration(d);
     setDayIdx(null);
     setTimeStart(null);
   }
 
-  function handleDayChange(i: number) {
-    const key = WEEKDAY_KEY[DAYS[i].getDay()];
-    if (!instructor.weekSchedule[key]) return;
-    setDayIdx(i);
+  function handleFullDay() {
+    setIsFullDay(true);
+    setDuration(null);
     setTimeStart(null);
+    // Если день уже выбран — сразу проставляем время начала
+    if (dayIdx !== null) {
+      const key   = WEEKDAY_KEY[DAYS[dayIdx].getDay()];
+      const sched = instructor.weekSchedule[key];
+      setTimeStart(sched?.start ?? null);
+    }
+  }
+
+  function handleDayChange(i: number) {
+    const key   = WEEKDAY_KEY[DAYS[i].getDay()];
+    const sched = instructor.weekSchedule[key];
+    if (!sched) return;
+    setDayIdx(i);
+    // При «Весь день» время начала = старт рабочего дня
+    setTimeStart(isFullDay ? sched.start : null);
   }
 
   function handleSubmit() {
-    if (!format || !duration || dayIdx === null || !timeStart || submitted) return;
+    if (!format || (!duration && !isFullDay) || dayIdx === null || !timeStart || submitted) return;
     const date    = DAYS[dayIdx];
-    const timeEnd = addMinutes(timeStart, duration);
+    const timeEnd = isFullDay && selectedDaySchedule
+      ? selectedDaySchedule.end
+      : addMinutes(timeStart, duration!);
 
     addBooking({
       instructorId:          instructor.id,
@@ -170,9 +192,11 @@ export function BookSlotScreen({ onBack, onBooked, instructor }: BookSlotScreenP
       timeStart,
       timeEnd,
       format,
-      formatLabel: format === 'miniGroup'
-        ? `Мини-группа · ${groupSize} чел.`
-        : format === 'kids' ? 'Детское занятие' : 'Индивидуальное занятие',
+      formatLabel: isFullDay
+        ? (format === 'miniGroup' ? `Весь день · мини-группа ${groupSize} чел.` : 'Весь день')
+        : format === 'miniGroup'
+          ? `Мини-группа · ${groupSize} чел.`
+          : format === 'kids' ? 'Детское занятие' : 'Индивидуальное занятие',
       discipline: instructor.type.includes('ski') ? 'ski' : 'board',
       level:      format === 'kids' ? 'Дети' : 'Не указан',
       groupSize:  format === 'miniGroup' ? groupSize : undefined,
@@ -236,7 +260,7 @@ export function BookSlotScreen({ onBack, onBooked, instructor }: BookSlotScreenP
         {/* ── STEP 2 — Duration ── */}
         <div className={styles.divider} />
         <div className={styles.stepHeader}>
-          <div className={`${styles.stepNum} ${duration ? styles.stepDone : ''}`}>2</div>
+          <div className={`${styles.stepNum} ${(duration || isFullDay) ? styles.stepDone : ''}`}>2</div>
           <div className={styles.sectionLabel}>Длительность</div>
         </div>
         <div className={`${styles.durationGrid} ${!format ? styles.stepDisabled : ''}`}>
@@ -247,12 +271,21 @@ export function BookSlotScreen({ onBack, onBooked, instructor }: BookSlotScreenP
             <button
               key={opt.value}
               disabled={!format}
-              className={`${styles.durationBtn} ${duration === opt.value ? styles.durationBtnActive : ''}`}
+              className={`${styles.durationBtn} ${duration === opt.value && !isFullDay ? styles.durationBtnActive : ''}`}
               onClick={() => handleDurationChange(opt.value)}
             >
               {opt.label}
             </button>
           ))}
+          {/* «Весь день» — только если задан тариф и формат не «Дети» */}
+          {format && format !== 'kids' && !!instructor.pricing[format as 'individual' | 'miniGroup']?.fullDay && (
+            <button
+              className={`${styles.durationBtn} ${isFullDay ? styles.durationBtnActive : ''}`}
+              onClick={handleFullDay}
+            >
+              Весь день
+            </button>
+          )}
         </div>
 
         {/* ── STEP 3 — Day ── */}
@@ -264,12 +297,12 @@ export function BookSlotScreen({ onBack, onBooked, instructor }: BookSlotScreenP
         {!hasAnyDay ? (
           <div className={styles.noSlots}>Нет доступных дней — инструктор не работает в ближайшие 7 дней</div>
         ) : (
-          <div className={`${styles.dayStrip} ${!duration ? styles.stepDisabled : ''}`}>
+          <div className={`${styles.dayStrip} ${(!duration && !isFullDay) ? styles.stepDisabled : ''}`}>
             {DAYS.map((d, i) => {
               const key         = WEEKDAY_KEY[d.getDay()];
               const hasSchedule = !!instructor.weekSchedule[key];
               const isSelected  = i === dayIdx;
-              const isDisabled  = !duration || !hasSchedule;
+              const isDisabled  = (!duration && !isFullDay) || !hasSchedule;
               return (
                 <button
                   key={i}
@@ -295,7 +328,18 @@ export function BookSlotScreen({ onBack, onBooked, instructor }: BookSlotScreenP
               : 'Время начала'}
           </div>
         </div>
-        {!duration || dayIdx === null ? (
+        {isFullDay ? (
+          dayIdx === null ? (
+            <div className={styles.noSlots}>Выберите день</div>
+          ) : (
+            <div className={styles.timeList}>
+              <div className={`${styles.timeBtn} ${styles.timeBtnActive}`} style={{ cursor: 'default' }}>
+                <span className={styles.timeBtnTime}>{selectedDaySchedule!.start} — {selectedDaySchedule!.end}</span>
+                <span className={styles.timeBtnDur}>Весь день</span>
+              </div>
+            </div>
+          )
+        ) : !duration || dayIdx === null ? (
           <div className={styles.noSlots}>Выберите длительность и день</div>
         ) : slots.length === 0 ? (
           <div className={styles.noSlots}>Нет свободных слотов — выберите другой день</div>
@@ -364,22 +408,28 @@ export function BookSlotScreen({ onBack, onBooked, instructor }: BookSlotScreenP
           {format && (
             <div className={styles.summaryRow}>
               <span className={styles.summaryLabel}>{FORMAT_LABELS[format]}</span>
-              {duration && (
+              {isFullDay ? (
+                <span className={styles.summaryMeta}>Весь день</span>
+              ) : duration ? (
                 <span className={styles.summaryMeta}>
                   {duration === 45 ? '45 мин' : `${duration / 60} ч`}
                 </span>
-              )}
+              ) : null}
             </div>
           )}
-          {selectedDay && timeStart && duration && (
+          {selectedDay && timeStart && (isFullDay || duration) && (
             <div className={styles.summaryRow}>
               <span className={styles.summaryLabel}>
                 {DAY_SHORT[selectedDay.getDay()]} {selectedDay.getDate()} {MONTH_RU[selectedDay.getMonth()]}
               </span>
-              <span className={styles.summaryMeta}>{timeStart} — {addMinutes(timeStart, duration)}</span>
+              <span className={styles.summaryMeta}>
+                {timeStart} — {isFullDay && selectedDaySchedule
+                  ? selectedDaySchedule.end
+                  : addMinutes(timeStart, duration!)}
+              </span>
             </div>
           )}
-          {format && duration && (
+          {format && (isFullDay || duration) && (
             <div className={styles.summaryPriceRow}>
               <span className={styles.summaryPrice}>{getPrice().toLocaleString('ru')} ₽</span>
               {format === 'miniGroup' && (
@@ -392,7 +442,7 @@ export function BookSlotScreen({ onBack, onBooked, instructor }: BookSlotScreenP
         </div>
         <button
           className={styles.submitBtn}
-          disabled={!format || !duration || dayIdx === null || !timeStart || submitted}
+          disabled={!format || (!duration && !isFullDay) || dayIdx === null || !timeStart || submitted}
           onClick={handleSubmit}
         >
           Отправить заявку →

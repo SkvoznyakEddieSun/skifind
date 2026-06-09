@@ -20,6 +20,8 @@ export interface HourlyPricing {
   h2: number;
   h3: number;
   h4: number;
+  /** Тариф «Весь день» — если не задан, опция не отображается ученику */
+  fullDay?: number;
 }
 
 export interface GroupHourlyPricing extends HourlyPricing {
@@ -106,8 +108,8 @@ export const INSTRUCTORS: Instructor[] = [
       sat: { start: '10:00', end: '16:00' },
     },
     pricing: {
-      individual: { h1: 3500, h2: 6500, h3: 9000,  h4: 11000 },
-      miniGroup:  { h1: 5500, h2: 9000, h3: 12500, h4: 15500, extraPersonPrice: 1500, maxParticipants: 5 },
+      individual: { h1: 3500, h2: 6500, h3: 9000,  h4: 11000, fullDay: 16500 },
+      miniGroup:  { h1: 5500, h2: 9000, h3: 12500, h4: 15500, fullDay: 23000, extraPersonPrice: 1500, maxParticipants: 5 },
     },
     worksWithKids: false,
     bio: 'Катаюсь с 14 лет, преподаю с 2016 года. Специализируюсь на обучении взрослых с нуля и улучшении техники. Умею объяснить сложное просто — каждому подбираю свой темп.',
@@ -156,8 +158,8 @@ export const INSTRUCTORS: Instructor[] = [
       sat: { start: '10:00', end: '15:00' },
     },
     pricing: {
-      individual:     { h1: 3200, h2: 6000,  h3: 8500,  h4: 10500 },
-      miniGroup:      { h1: 5500, h2: 9000,  h3: 12500, h4: 15500, extraPersonPrice: 1800, maxParticipants: 6 },
+      individual:     { h1: 3200, h2: 6000,  h3: 8500,  h4: 10500, fullDay: 16000 },
+      miniGroup:      { h1: 5500, h2: 9000,  h3: 12500, h4: 15500, fullDay: 23000, extraPersonPrice: 1800, maxParticipants: 6 },
       shortSlotPrice: 1800,
     },
     worksWithKids: true,
@@ -207,8 +209,8 @@ export const INSTRUCTORS: Instructor[] = [
       sat: { start: '09:00', end: '18:00', breaks: [{ start: '13:00', end: '14:00' }] },
     },
     pricing: {
-      individual: { h1: 4200, h2: 8000,  h3: 11000, h4: 14000 },
-      miniGroup:  { h1: 6500, h2: 11000, h3: 15000, h4: 18000, extraPersonPrice: 2000, maxParticipants: 4 },
+      individual: { h1: 4200, h2: 8000,  h3: 11000, h4: 14000, fullDay: 21000 },
+      miniGroup:  { h1: 6500, h2: 11000, h3: 15000, h4: 18000, fullDay: 27000, extraPersonPrice: 2000, maxParticipants: 4 },
     },
     worksWithKids: false,
     bio: '10 лет на склонах Шерегеша. Мастер спорта по горным лыжам, опыт фрирайда в Альпах. Обучаю технике параллельного ведения и навыкам бэккантри.',
@@ -258,8 +260,8 @@ export const INSTRUCTORS: Instructor[] = [
       sat: { start: '10:00', end: '15:00' },
     },
     pricing: {
-      individual: { h1: 2500, h2: 4800, h3: 6800, h4: 8500 },
-      miniGroup:  { h1: 4500, h2: 7500, h3: 10000, h4: 12500, extraPersonPrice: 1500, maxParticipants: 6 },
+      individual: { h1: 2500, h2: 4800, h3: 6800, h4: 8500,  fullDay: 13000 },
+      miniGroup:  { h1: 4500, h2: 7500, h3: 10000, h4: 12500, fullDay: 19000, extraPersonPrice: 1500, maxParticipants: 6 },
     },
     worksWithKids: true,
     bio: 'Работаю с новичками и детьми 5 лет. Умею мотивировать и поддерживать уверенность — даже самые осторожные гости начинают кататься самостоятельно.',
@@ -308,8 +310,8 @@ export const INSTRUCTORS: Instructor[] = [
       sat: { start: '09:00', end: '17:00', breaks: [{ start: '13:00', end: '14:00' }] },
     },
     pricing: {
-      individual: { h1: 5000, h2: 9500,  h3: 13500, h4: 17000 },
-      miniGroup:  { h1: 7500, h2: 13000, h3: 18000, h4: 22000, extraPersonPrice: 2500, maxParticipants: 4 },
+      individual: { h1: 5000, h2: 9500,  h3: 13500, h4: 17000, fullDay: 25500 },
+      miniGroup:  { h1: 7500, h2: 13000, h3: 18000, h4: 22000, fullDay: 33000, extraPersonPrice: 2500, maxParticipants: 4 },
     },
     worksWithKids: false,
     bio: '12 лет инструкторского опыта, международный сертификат ISIA. Специализируюсь на продвинутых райдерах и фрирайде — помогу выйти на новый уровень.',
