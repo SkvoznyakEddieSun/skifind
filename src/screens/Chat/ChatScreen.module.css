@@ -241,13 +241,15 @@
   border: 1px solid var(--border);
   border-radius: 18px;
   border-bottom-left-radius: 4px;
-  overflow: hidden;
+  /* overflow: hidden убран — он глотал wheel-события и блокировал скролл списка */
 }
 
 .cbHead {
   padding: 10px 14px;
   background: var(--accent-soft);
   border-bottom: 1px solid var(--border);
+  /* Сами скругляем верхние углы, чтобы фон не вылезал за рамки карточки */
+  border-radius: 17px 17px 0 0;
 }
 
 .cbHeadT {
