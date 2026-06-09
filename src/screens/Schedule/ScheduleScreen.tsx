@@ -4,6 +4,7 @@ import { ScrollToTopBtn } from '@/components/ScrollToTopBtn';
 import { getAcceptedLessons } from '@/store/bookings';
 import { useTabSwipe } from '@/hooks/useTabSwipe';
 import { Icon } from '@/components/Icon/Icon';
+import { INSTRUCTORS, type WeekDay, type DayAvailability } from '@/screens/Catalog/CatalogScreen';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -71,6 +72,11 @@ function minutesToTime(m: number): string {
 
 // Длительность слота фиксирована 60 мин — ученик выбирает продолжительность при записи
 const SLOT_DURATION = 60;
+
+// DOW (getDay()) → WeekDay ключ для weekSchedule
+const DOW_TO_WEEKDAY: Record<number, WeekDay> = {
+  0: 'sun', 1: 'mon', 2: 'tue', 3: 'wed', 4: 'thu', 5: 'fri', 6: 'sat',
+};
 
 /** Свободное окно целиком (не нарезанное по часам) */
 interface FreeWindow {
@@ -306,6 +312,19 @@ export function ScheduleScreen({ onLesson, onChat, onCreateMasterClass }: Schedu
     });
     setGeneratedSlots(newMap);
     setTemplateApplied(true);
+
+    // Синхронизируем weekSchedule инструктора → BookSlotScreen увидит изменения
+    const newWeekSchedule: Partial<Record<WeekDay, DayAvailability>> = {};
+    for (const ds of daySchedules) {
+      if (!ds.enabled) continue;
+      newWeekSchedule[DOW_TO_WEEKDAY[ds.dow]] = {
+        start:  ds.startTime,
+        end:    ds.endTime,
+        breaks: lunchEnabled ? [{ start: lunchStart, end: lunchEnd }] : [],
+      };
+    }
+    INSTRUCTORS[0].weekSchedule = newWeekSchedule;
+
     fireToast('✓ Расписание сохранено — слоты обновлены на 7 дней');
     setTab('available');
   }

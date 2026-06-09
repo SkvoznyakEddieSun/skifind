@@ -6,6 +6,7 @@ import {
   INSTR_PRICING,
   INSTR_FLAGS,
   updateInstrPrice,
+  updateInstrFlags,
 } from '@/store/instructorProfile';
 import { Icon } from '@/components/Icon/Icon';
 
@@ -275,7 +276,7 @@ export function InstrProfileScreen({ onBalance, onMyProfile, onLogout }: InstrPr
                   <button
                     className={`${styles.sw} ${allowsShortSlots ? styles.swOn : ''}`}
                     onClick={() => setAllowsShortSlots(v => {
-                      INSTR_FLAGS.allowsShortSlots = !v;
+                      updateInstrFlags('allowsShortSlots', !v);
                       return !v;
                     })}
                   />

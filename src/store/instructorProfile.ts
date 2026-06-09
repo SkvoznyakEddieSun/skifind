@@ -14,19 +14,23 @@ export const INSTR_PRICING = INSTRUCTORS[0].pricing;
 
 /**
  * Мутируемые флаги профиля инструктора.
- * Инициализируются из данных, обновляются из RegisterScreen.
+ * Инициализируются из данных INSTRUCTORS[0], обновляются из RegisterScreen.
  * InstrProfileScreen читает их через useState при маунте.
  */
 export const INSTR_FLAGS = {
-  // true — совпадает с defaultOn в RegisterScreen (Дети выбраны по умолчанию)
-  worksWithKids:    true,
+  worksWithKids:    INSTRUCTORS[0].worksWithKids,
   allowsShortSlots: !!INSTRUCTORS[0].allowsShortSlots,
 };
 
-/** @deprecated use INSTR_FLAGS.worksWithKids */
-export const INSTR_WORKS_WITH_KIDS:    boolean = INSTR_FLAGS.worksWithKids;
-/** @deprecated use INSTR_FLAGS.allowsShortSlots */
-export const INSTR_ALLOWS_SHORT_SLOTS: boolean = INSTR_FLAGS.allowsShortSlots;
+/**
+ * Обновить флаг профиля инструктора.
+ * Синхронизирует INSTR_FLAGS и INSTRUCTORS[0] (источник правды для BookSlotScreen).
+ */
+export function updateInstrFlags(key: 'worksWithKids' | 'allowsShortSlots', value: boolean): void {
+  INSTR_FLAGS[key] = value;
+  if (key === 'worksWithKids')    INSTRUCTORS[0].worksWithKids    = value;
+  if (key === 'allowsShortSlots') INSTRUCTORS[0].allowsShortSlots = value;
+}
 
 /**
  * Обновить цену.

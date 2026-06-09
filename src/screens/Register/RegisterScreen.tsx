@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import styles from './RegisterScreen.module.css';
 import { applyPhoneMask } from '@/utils/phoneMask';
-import { INSTR_FLAGS } from '@/store/instructorProfile';
+import { INSTR_FLAGS, updateInstrFlags } from '@/store/instructorProfile';
 
 type Step = 1 | 2 | 3 | 'success';
 
@@ -157,7 +157,7 @@ export function RegisterScreen({ onBack, isEditMode = false }: RegisterScreenPro
               <label>С кем работаете</label>
               <div className={styles.checkGrid}>
                 <CheckItem label="Взрослые" defaultOn />
-                <CheckItem label="Дети" defaultOn={INSTR_FLAGS.worksWithKids} onChange={v => { INSTR_FLAGS.worksWithKids = v; }} />
+                <CheckItem label="Дети" defaultOn={INSTR_FLAGS.worksWithKids} onChange={v => { updateInstrFlags('worksWithKids', v); }} />
                 <CheckItem label="Группы" />
               </div>
             </div>
