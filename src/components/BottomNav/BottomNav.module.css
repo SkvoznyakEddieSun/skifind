@@ -5,6 +5,7 @@
   display: flex;
   background: var(--bg);
   border-top: 1px solid var(--border);
+  padding-bottom: var(--safe-bot);
 }
 
 .item {

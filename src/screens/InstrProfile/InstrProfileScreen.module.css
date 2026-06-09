@@ -440,7 +440,7 @@
 /* ── Toast ── */
 .toast {
   position: fixed;
-  bottom: calc(var(--safe-bottom) + 80px);
+  bottom: calc(var(--safe-bot) + 80px);
   left: 50%;
   transform: translateX(-50%);
   background: var(--surface-1);
