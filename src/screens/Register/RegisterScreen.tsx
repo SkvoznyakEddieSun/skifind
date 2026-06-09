@@ -201,7 +201,7 @@ export function RegisterScreen({ onBack, isEditMode = false }: RegisterScreenPro
 
       // — Levels (include 'kids' if worksWithKids)
       const levelArr = [...levels].filter(l => l !== 'kids') as (
-        'beginner' | 'intermediate' | 'advanced' | 'freeride'
+        'beginner' | 'intermediate' | 'advanced' | 'freeride' | 'kids'
       )[];
       if (worksKids) levelArr.push('kids');
       if (levelArr.length > 0) INSTRUCTORS[0].level = levelArr;

@@ -97,6 +97,7 @@ export function MasterClassDetailScreen({
   }
 
   function handleCancelMc() {
+    if (!mc) return;
     setToastText('Мастер-класс отменён');
     toastTimer.current = setTimeout(() => {
       setToastText(null);
