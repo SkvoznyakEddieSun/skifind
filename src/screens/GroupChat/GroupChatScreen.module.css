@@ -284,6 +284,31 @@
   pointer-events: none;
 }
 
+/* ── Phone warning ── */
+.phoneWarning {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 9px 14px;
+  background: rgba(220, 80, 60, .12);
+  border-top: 1px solid rgba(220, 80, 60, .25);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--danger, #dc503c);
+  flex-shrink: 0;
+}
+
+.phoneWarningClose {
+  background: none;
+  border: none;
+  color: var(--danger, #dc503c);
+  font-size: 14px;
+  cursor: pointer;
+  padding: 0 2px;
+  flex-shrink: 0;
+}
+
 /* ── System message ── */
 .sysMsgWrap {
   display: flex;

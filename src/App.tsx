@@ -426,10 +426,14 @@ export function App() {
   }
   else if (s === 'mc-group-chat') {
     const activeMc = MASTER_CLASSES.find(m => m.id === activeMcId);
+    const isGroupConfirmed = activeMc
+      ? activeMc.currentParticipants >= activeMc.minParticipants
+      : false;
     return (
       <GroupChatScreen
         mcTitle={activeMc?.title}
-        isConfirmed={false}
+        isConfirmed={isGroupConfirmed}
+        participantCount={activeMc?.currentParticipants}
         date={activeMc?.date}
         location={activeMc?.location}
         onBack={() => {

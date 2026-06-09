@@ -21,7 +21,23 @@ interface GMessage {
 
 const PHONE_RE = /(\+7|8)[\s\-]?\(?\d{3}\)?[\s\-]?\d{3}[\s\-]?\d{2}[\s\-]?\d{2}/g;
 function filterPhone(text: string): string {
+  PHONE_RE.lastIndex = 0;
   return text.replace(PHONE_RE, '•••');
+}
+
+/**
+ * Проверяет, содержит ли строка российский номер телефона.
+ * Поддерживаемые форматы: +7/8 с кодом и без, с разделителями и без.
+ */
+function hasPhone(text: string): boolean {
+  const chunks = text.match(/[\+\d][\d\s\-\(\)\.]{6,18}\d/g) ?? [];
+  return chunks.some(chunk => {
+    const d = chunk.replace(/\D/g, '');
+    return (
+      (d.length === 10 && d[0] === '9') ||
+      (d.length === 11 && (d[0] === '7' || d[0] === '8'))
+    );
+  });
 }
 
 // ── Mock chat messages ─────────────────────────────────────────────────────
@@ -85,16 +101,19 @@ export function GroupChatScreen({
   participantCount = 9,
   onBack,
 }: GroupChatScreenProps) {
-  // System message prepended — shown once, explains phone access policy
+  // System message: reflects actual group confirmation state
   const sysMsg: GMessage = {
     id: 'sys0',
     from: 'system',
-    text: `Вы записаны на «${mcTitle}». Телефон инструктора откроется когда наберётся группа.`,
+    text: isConfirmed
+      ? `Вы записаны на «${mcTitle}». Группа набрана — телефон инструктора доступен.`
+      : `Вы записаны на «${mcTitle}». Телефон инструктора откроется когда наберётся группа.`,
     time: '',
   };
 
-  const [msgs, setMsgs]         = useState<GMessage[]>([sysMsg, ...CHAT_MSGS]);
-  const [inputVal, setInputVal] = useState('');
+  const [msgs, setMsgs]           = useState<GMessage[]>([sysMsg, ...CHAT_MSGS]);
+  const [inputVal, setInputVal]   = useState('');
+  const [phoneWarning, setPhoneWarning] = useState(false);
   const messagesRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -106,6 +125,14 @@ export function GroupChatScreen({
   function sendMsg() {
     const text = inputVal.trim();
     if (!text) return;
+
+    // Блокируем отправку сообщений с номерами телефонов
+    if (hasPhone(text)) {
+      setPhoneWarning(true);
+      return;
+    }
+    setPhoneWarning(false);
+
     setMsgs(prev => [...prev, {
       id: `gm${Date.now()}`,
       from: 'self',
@@ -205,6 +232,15 @@ export function GroupChatScreen({
       </div>
 
       {/* Input */}
+      {/* Phone warning */}
+      {phoneWarning && (
+        <div className={styles.phoneWarning}>
+          📵 Обмен контактами запрещён в групповом чате
+          <button className={styles.phoneWarningClose} onClick={() => setPhoneWarning(false)}>✕</button>
+        </div>
+      )}
+
+      {/* Input */}
       <div className={styles.inputWrap}>
         <textarea
           ref={textareaRef}
@@ -212,7 +248,11 @@ export function GroupChatScreen({
           placeholder="Сообщение группе…"
           rows={1}
           value={inputVal}
-          onChange={e => { setInputVal(e.target.value); autoResize(e.target); }}
+          onChange={e => {
+            setInputVal(e.target.value);
+            autoResize(e.target);
+            if (phoneWarning) setPhoneWarning(false);
+          }}
           onKeyDown={handleKeyDown}
         />
         <button className={styles.sendBtn} onClick={sendMsg} aria-label="Отправить">

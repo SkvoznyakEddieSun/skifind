@@ -170,14 +170,16 @@ export function MasterClassDetailScreen({
           </div>
         </div>
 
-        {/* КРИТИЧНО 3: минимум участников */}
-        <div className={styles.minPartsWarning}>
-          <Icon name="alert-triangle" size={14} />
-          <span>
-            Минимум: {minPartsLabel(mc.minParticipants)}.<br />
-            Если не наберётся — занятие будет отменено за {mc.bookingDeadlineHours}ч до начала.
-          </span>
-        </div>
+        {/* КРИТИЧНО 3: минимум участников — показываем только если не набрано */}
+        {mc.currentParticipants < mc.minParticipants && (
+          <div className={styles.minPartsWarning}>
+            <Icon name="alert-triangle" size={14} />
+            <span>
+              Минимум: {minPartsLabel(mc.minParticipants)}.<br />
+              Если не наберётся — занятие будет отменено за {mc.bookingDeadlineHours}ч до начала.
+            </span>
+          </div>
+        )}
 
         <div className={styles.divider} />
 
