@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import styles from './RegisterScreen.module.css';
 import { applyPhoneMask } from '@/utils/phoneMask';
 import { INSTR_FLAGS, updateInstrFlags } from '@/store/instructorProfile';
+import { INSTRUCTORS } from '@/screens/Catalog/CatalogScreen';
 
 type Step = 1 | 2 | 3 | 'success';
 
@@ -42,8 +43,17 @@ function AgreeItem({ children, link }: { children: React.ReactNode; link?: strin
 
 export function RegisterScreen({ onBack, isEditMode = false }: RegisterScreenProps) {
   const [step, setStep] = useState<Step>(1);
-  const [name, setName] = useState('');
-  const [lname, setLname] = useState('');
+  // В режиме редактирования — предзаполняем из текущего профиля
+  const [name, setName] = useState(() => {
+    if (!isEditMode) return '';
+    const parts = INSTRUCTORS[0].name.split(' ');
+    return parts[0] ?? '';
+  });
+  const [lname, setLname] = useState(() => {
+    if (!isEditMode) return '';
+    const parts = INSTRUCTORS[0].name.split(' ');
+    return parts.slice(1).join(' ') ?? '';
+  });
   const [phone, setPhone] = useState('');
   // Курорт зафиксирован — только Шерегеш на старте
   const ACTIVE_RESORTS = ['Шерегеш'];
@@ -237,7 +247,18 @@ export function RegisterScreen({ onBack, isEditMode = false }: RegisterScreenPro
               <button className={styles.btnSecondary} onClick={() => setStep(2)}>← Назад</button>
               <button
                 className={`${styles.btnPrimary} ${styles.btnPrimaryGreen}`}
-                onClick={() => setStep('success')}
+                onClick={() => {
+                  // В режиме редактирования — сохраняем имя обратно в shared store
+                  if (isEditMode) {
+                    const fullName = [name.trim(), lname.trim()].filter(Boolean).join(' ');
+                    if (fullName) {
+                      INSTRUCTORS[0].name = fullName;
+                      INSTRUCTORS[0].initials =
+                        ((name[0] ?? '') + (lname[0] ?? '')).toUpperCase() || INSTRUCTORS[0].initials;
+                    }
+                  }
+                  setStep('success');
+                }}
               >
                 {isEditMode ? 'Сохранить' : 'Опубликовать'}
               </button>

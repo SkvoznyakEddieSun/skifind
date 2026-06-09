@@ -8,6 +8,7 @@ import {
   updateInstrPrice,
   updateInstrFlags,
 } from '@/store/instructorProfile';
+import { INSTRUCTORS } from '@/screens/Catalog/CatalogScreen';
 import { Icon } from '@/components/Icon/Icon';
 
 // ── Конфиг длительностей ────────────────────────────────────────────────────
@@ -123,15 +124,21 @@ export function InstrProfileScreen({ onBalance, onMyProfile, onLogout }: InstrPr
 
   return (
     <div className={styles.screen}>
-      {showShare && <ShareModal onClose={() => setShowShare(false)} />}
+      {showShare && (
+        <ShareModal
+          onClose={() => setShowShare(false)}
+          instructorId={INSTRUCTORS[0].id}
+          instructorName={INSTRUCTORS[0].name}
+        />
+      )}
 
       {/* Topbar */}
       <div className={styles.topbar}>
         <div className={styles.tbRow}>
-          <div className={`${styles.av} ${styles.avMd} ${styles.avBlue}`}>АМ</div>
+          <div className={`${styles.av} ${styles.avMd} ${styles.avBlue}`}>{INSTRUCTORS[0].initials}</div>
           <div className={styles.tbInfo}>
-            <div className={styles.tbName}>Алексей Морозов</div>
-            <div className={styles.tbRole}>Инструктор · Сноуборд</div>
+            <div className={styles.tbName}>{INSTRUCTORS[0].name}</div>
+            <div className={styles.tbRole}>Инструктор · {INSTRUCTORS[0].type.map(t => t === 'ski' ? 'Горные лыжи' : 'Сноуборд').join(', ')}</div>
           </div>
           <button className={styles.shareBtn} aria-label="Поделиться" onClick={() => setShowShare(true)}>
             <svg viewBox="0 0 24 24">
