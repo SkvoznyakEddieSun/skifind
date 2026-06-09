@@ -9,7 +9,8 @@ type MsgType = 'text' | 'card';
 
 interface Message {
   id: string;
-  from: 'in' | 'out';
+  /** Stable sender identity — 'aleksey' for instructor, 'student' for guest */
+  sender: string;
   type: MsgType;
   text?: string;
   time: string;
@@ -29,6 +30,13 @@ type ChatItem = Message | DaySep;
 // ── Constants ──────────────────────────────────────────────────────────────
 
 const PREVIEW_LIMIT = 3;
+
+/**
+ * Стабильные идентификаторы отправителей (прототип).
+ * Исходящее сообщение = msg.sender === currentUserId.
+ */
+const INSTR_ID   = 'aleksey'; // matches INSTRUCTORS[0].id
+const STUDENT_ID = 'student';
 
 /**
  * Определяет, содержит ли строка российский номер телефона.
@@ -56,18 +64,24 @@ function hasPhone(text: string): boolean {
   });
 }
 
+/**
+ * История переписки.
+ * sender: INSTR_ID = инструктор отправил, STUDENT_ID = гость отправил.
+ * Направление сообщения определяется сравнением sender с currentUserId
+ * — никакой «перспективы» не нужно.
+ */
 const INITIAL: ChatItem[] = [
   { kind: 'sep', label: '25 апреля', id: 'sep1' },
-  { id: 'm1', from: 'in',  type: 'text', text: 'Привет! Увидел вашу заявку — рад помочь с обучением 🏂 Расскажите о себе — вы совсем новичок или уже пробовали кататься?', time: '14:12' },
-  { id: 'm2', from: 'out', type: 'text', text: 'Привет! Мы с женой абсолютные новички, никогда не стояли на доске.', time: '14:15', ticks: '✓✓' },
+  { id: 'm1', sender: INSTR_ID,   type: 'text', text: 'Привет! Увидел вашу заявку — рад помочь с обучением 🏂 Расскажите о себе — вы совсем новичок или уже пробовали кататься?', time: '14:12' },
+  { id: 'm2', sender: STUDENT_ID, type: 'text', text: 'Привет! Мы с женой абсолютные новички, никогда не стояли на доске.', time: '14:15', ticks: '✓✓' },
   {
-    id: 'm3', from: 'in', type: 'card', time: '14:18',
+    id: 'm3', sender: INSTR_ID, type: 'card', time: '14:18',
     card: { date: '28 апреля, 10:00–12:00', format: 'Мини-группа (2 чел.)', place: 'Касса Шерегеш, вход А', price: '7 000 ₽' },
   },
-  { id: 'm4', from: 'out', type: 'text', text: 'Отлично! Снаряжение нам нужно брать в аренду?', time: '14:31', ticks: '✓✓' },
-  { id: 'm5', from: 'in',  type: 'text', text: 'Да, помогу подобрать в прокате прямо на месте. Приходите за 20 минут до начала.', time: '14:35' },
+  { id: 'm4', sender: STUDENT_ID, type: 'text', text: 'Отлично! Снаряжение нам нужно брать в аренду?', time: '14:31', ticks: '✓✓' },
+  { id: 'm5', sender: INSTR_ID,   type: 'text', text: 'Да, помогу подобрать в прокате прямо на месте. Приходите за 20 минут до начала.', time: '14:35' },
   { kind: 'sep', label: 'Сегодня', id: 'sep2' },
-  { id: 'm6', from: 'out', type: 'text', text: 'Алексей, добрый день! Напоминаю — завтра в 10:00. Подтверждаете?', time: '09:14', ticks: '✓✓' },
+  { id: 'm6', sender: STUDENT_ID, type: 'text', text: 'Алексей, добрый день! Напоминаю — завтра в 10:00. Подтверждаете?', time: '09:14', ticks: '✓✓' },
 ];
 
 const QUICK_REPLIES = [
@@ -90,7 +104,8 @@ interface ChatScreenProps {
   personName?: string;
   personInitials?: string;
   personAvColor?: string;          // 'ice' | 'mint' | 'blue' | 'straw' | 'purple' | 'coral'
-  isInstructor?: boolean;          // true → no preview wall/limits (instructor-side view)
+  /** Роль текущего пользователя. Определяет sender новых сообщений и направление истории. */
+  role?: 'instructor' | 'guest';  // default: 'guest'
   onAcceptBooking?: () => void;    // инструктор принимает заявку из чата
   onDeclineBooking?: () => void;   // инструктор отклоняет заявку из чата
 }
@@ -104,6 +119,10 @@ interface ChatScreenProps {
  * Фильтр: телефонные номера блокируются до записи.
  * DECLINED: чат закрыт, показывается баннер «Заявка отклонена».
  * ACCEPTED: полный чат, кнопка «Позвонить» активна.
+ *
+ * Направление сообщения определяется через sender:
+ *   msg.sender === currentUserId → исходящее (справа, голубое)
+ *   иначе                        → входящее  (слева, серое)
  */
 export function ChatScreen({
   onBack,
@@ -114,11 +133,22 @@ export function ChatScreen({
   personName = 'Собеседник',
   personInitials = '?',
   personAvColor = 'ice',
-  isInstructor = false,
+  role = 'guest',
   onAcceptBooking,
   onDeclineBooking,
 }: ChatScreenProps) {
   const { t } = useTranslation();
+
+  /**
+   * ID текущего пользователя:
+   *   instructor → INSTR_ID ('aleksey')
+   *   guest      → STUDENT_ID ('student')
+   *
+   * Используется для определения направления каждого сообщения.
+   */
+  const currentUserId = role === 'instructor' ? INSTR_ID : STUDENT_ID;
+  const isInstructor  = role === 'instructor';
+
   const [items, setItems] = useState<ChatItem[]>(INITIAL);
   const [inputVal, setInputVal] = useState('');
   const [bookingVisible, setBookingVisible] = useState(true);
@@ -130,9 +160,9 @@ export function ChatScreen({
   const messagesRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Count ALL outgoing messages (including those in INITIAL history)
+  // Считаем только сообщения, отправленные текущим пользователем
   const outMsgCount = items.filter(
-    i => !('kind' in i) && (i as Message).from === 'out'
+    i => !('kind' in i) && (i as Message).sender === currentUserId
   ).length;
 
   const isAccepted = bookingStatus === 'ACCEPTED';
@@ -175,7 +205,7 @@ export function ChatScreen({
 
     const newMsg: Message = {
       id: `m${Date.now()}`,
-      from: 'out',
+      sender: currentUserId,   // ← роль определяет отправителя
       type: 'text',
       text: msg,
       time: new Date().toLocaleTimeString('ru', { hour: '2-digit', minute: '2-digit' }),
@@ -282,16 +312,17 @@ export function ChatScreen({
 
               const msg = item as Message;
 
-              // INITIAL хранит перспективу гостя: 'in' = инструктор, 'out' = ученик.
-              // Для инструктора переворачиваем: его сообщения → вправо, ученика → влево.
-              const dir: 'in' | 'out' = isInstructor
-                ? (msg.from === 'in' ? 'out' : 'in')
-                : msg.from;
+              /**
+               * Направление: sender === currentUserId → исходящее (справа).
+               * Нет никакого «переворота» — каждый видит своё справа.
+               */
+              const dir: 'in' | 'out' = msg.sender === currentUserId ? 'out' : 'in';
 
               if (msg.type === 'card' && msg.card) {
-                // Карточка отправлена инструктором (from:'in' в гостевой перспективе).
-                // У инструктора — справа (outgoing), у гостя — слева с аватаром АМ.
-                const cardDir = isInstructor ? 'out' : 'in';
+                // Карточка от инструктора (sender === INSTR_ID).
+                // Для инструктора — его карточка → справа (out).
+                // Для гостя — карточка инструктора → слева (in).
+                const cardDir: 'in' | 'out' = msg.sender === currentUserId ? 'out' : 'in';
                 return (
                   <div key={msg.id} className={`${styles.mrow} ${cardDir === 'out' ? styles.mrowOut : ''}`}>
                     {cardDir === 'in' && (
@@ -370,7 +401,9 @@ export function ChatScreen({
               return (
                 <div key={msg.id} className={`${styles.mrow} ${dir === 'out' ? styles.mrowOut : ''}`}>
                   {dir === 'in' && (
-                    // Входящее: у гостя это инструктор (АМ), у инструктора это ученик
+                    // Входящее сообщение: аватар собеседника.
+                    // Для гостя — это инструктор (АМ / ice).
+                    // Для инструктора — это ученик (personInitials / personAvColor).
                     <div className={`${styles.av} ${styles.avSm} ${isInstructor ? styles[`av-${personAvColor}`] : styles['av-ice']}`}>
                       {isInstructor ? personInitials : 'АМ'}
                     </div>
@@ -385,7 +418,7 @@ export function ChatScreen({
               );
             })}
 
-            {/* Typing indicator — у инструктора это ученик печатает, у гостя — инструктор */}
+            {/* Typing indicator */}
             {typing && !previewExhausted && (
               <div className={styles.mrow}>
                 <div className={`${styles.av} ${styles.avSm} ${isInstructor ? styles[`av-${personAvColor}`] : styles['av-ice']}`}>

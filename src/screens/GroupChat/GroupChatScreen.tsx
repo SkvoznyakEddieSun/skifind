@@ -89,6 +89,8 @@ interface GroupChatScreenProps {
   location?: string;
   participantCount?: number;
   onBack: () => void;
+  /** Роль текущего пользователя. Инструктор видит свои сообщения справа. */
+  role?: 'instructor' | 'guest';
 }
 
 // ── Component ──────────────────────────────────────────────────────────────
@@ -100,14 +102,22 @@ export function GroupChatScreen({
   location = 'Касса Шерегеш, вход А',
   participantCount = 9,
   onBack,
+  role = 'guest',
 }: GroupChatScreenProps) {
-  // System message: reflects actual group confirmation state
+  /**
+   * Системное сообщение — зависит от роли и статуса группы.
+   * Инструктор видит статус набора, гость — статус записи.
+   */
   const sysMsg: GMessage = {
     id: 'sys0',
     from: 'system',
-    text: isConfirmed
-      ? `Вы записаны на «${mcTitle}». Группа набрана — телефон инструктора доступен.`
-      : `Вы записаны на «${mcTitle}». Телефон инструктора откроется когда наберётся группа.`,
+    text: role === 'instructor'
+      ? isConfirmed
+        ? `Мастер-класс «${mcTitle}» набран. Группа сформирована, можно начинать.`
+        : `Мастер-класс «${mcTitle}». Ожидается набор группы — вы получите уведомление.`
+      : isConfirmed
+        ? `Вы записаны на «${mcTitle}». Группа набрана — телефон инструктора доступен.`
+        : `Вы записаны на «${mcTitle}». Телефон инструктора откроется когда наберётся группа.`,
     time: '',
   };
 
@@ -121,6 +131,15 @@ export function GroupChatScreen({
     const el = messagesRef.current;
     if (el) el.scrollTop = el.scrollHeight;
   }, [msgs]);
+
+  /**
+   * Исходящее сообщение:
+   *   — 'self' всегда исходящее (новые сообщения от текущего пользователя)
+   *   — 'instr' исходящее только когда смотрит инструктор
+   */
+  function isOutgoing(msg: GMessage): boolean {
+    return msg.from === 'self' || (role === 'instructor' && msg.from === 'instr');
+  }
 
   function sendMsg() {
     const text = inputVal.trim();
@@ -200,18 +219,19 @@ export function GroupChatScreen({
             );
           }
 
-          if (msg.from === 'self') {
+          // Исходящее сообщение (текущий пользователь) — справа, без аватара
+          if (isOutgoing(msg)) {
             return (
               <div key={msg.id} className={`${styles.mrow} ${styles.mrowOut}`}>
                 <div>
                   <div className={`${styles.bubble} ${styles.bubbleOut}`}>{msg.text}</div>
-                  <span className={styles.mt}>{msg.time} {msg.ticks}</span>
+                  <span className={styles.mt}>{msg.time}{msg.ticks ? ` ${msg.ticks}` : ''}</span>
                 </div>
               </div>
             );
           }
 
-          // instr / other — filter phone numbers from their messages
+          // Входящее: instr / other — фильтруем номера телефонов только у других участников
           const safeText = msg.from === 'other' ? filterPhone(msg.text) : msg.text;
 
           return (

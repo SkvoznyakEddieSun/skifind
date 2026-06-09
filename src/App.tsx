@@ -217,7 +217,7 @@ export function App() {
         personName={chatPersonName || undefined}
         personInitials={chatPersonInitials || undefined}
         personAvColor={chatPersonAvColor || undefined}
-        isInstructor={chatIsInstructor}
+        role={chatIsInstructor ? 'instructor' : 'guest'}
         onAcceptBooking={chatIsInstructor && activeChatBookingId ? () => {
           acceptBooking(activeChatBookingId);
           setChatBookingStatus('ACCEPTED');
@@ -436,6 +436,7 @@ export function App() {
         participantCount={activeMc?.currentParticipants}
         date={activeMc?.date}
         location={activeMc?.location}
+        role={role}
         onBack={() => {
           const idx = stack.lastIndexOf('mc-catalog');
           setAnimDir('pop');
