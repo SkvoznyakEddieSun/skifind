@@ -293,10 +293,11 @@ export function getPendingRequests(instructorId: string): Booking[] {
   );
 }
 
-/** Принятые/завершённые уроки инструктора */
+/** Принятые/завершённые уроки инструктора (только собственные ученики, без гостевых броней) */
 export function getAcceptedLessons(instructorId: string): Booking[] {
   return BOOKINGS.filter(
     b => b.instructorId === instructorId &&
+         !b.isGuestBooking &&
          (b.status === 'accepted' || b.status === 'completed'),
   );
 }

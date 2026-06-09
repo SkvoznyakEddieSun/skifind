@@ -394,26 +394,54 @@ export function App() {
     );
   }
   else if (s === 'mc-detail') {
+    const detailMc = MASTER_CLASSES.find(m => m.id === activeMcId);
+    const isOwnMc  = role === 'instructor' && detailMc?.instructorId === INSTRUCTORS[0].id;
     return (
       <MasterClassDetailScreen
         key={activeMcId}
         id={activeMcId}
+        role={role}
         onBack={pop}
         onJoined={() => {
+          // Добавляем 'guest' в participants для синхронизации GroupChat
+          if (detailMc && !detailMc.participants.includes('guest')) {
+            detailMc.participants.push('guest');
+          }
           setJoinedMcIds(prev => new Set([...prev, activeMcId]));
           push('mc-group-chat');
         }}
         isAlreadyJoined={joinedMcIds.has(activeMcId)}
-        onLeave={() => setJoinedMcIds(prev => {
-          const next = new Set(prev);
-          next.delete(activeMcId);
-          return next;
-        })}
+        onLeave={() => {
+          // Удаляем 'guest' из participants
+          if (detailMc) {
+            const idx = detailMc.participants.indexOf('guest');
+            if (idx !== -1) detailMc.participants.splice(idx, 1);
+          }
+          setJoinedMcIds(prev => {
+            const next = new Set(prev);
+            next.delete(activeMcId);
+            return next;
+          });
+        }}
         onInstructorProfile={instructorId => {
           const instr = INSTRUCTORS.find(i => i.id === instructorId) ?? INSTRUCTORS[0];
           setActiveInstructor(instr);
           push('instr-profile');
         }}
+        onCancel={isOwnMc ? () => {
+          // Очищаем joinedMcIds если гость был записан
+          setJoinedMcIds(prev => {
+            const next = new Set(prev);
+            next.delete(activeMcId);
+            return next;
+          });
+          // Возвращаемся в каталог МК
+          const idx = stack.lastIndexOf('mc-catalog');
+          setAnimDir('pop');
+          setAnimKey(k => k + 1);
+          if (idx >= 0) setStack(stack.slice(0, idx + 1));
+          else setStack(role === 'instructor' ? ['instr'] : ['guest']);
+        } : undefined}
       />
     );
   }
@@ -427,14 +455,15 @@ export function App() {
   }
   else if (s === 'mc-group-chat') {
     const activeMc = MASTER_CLASSES.find(m => m.id === activeMcId);
+    const participantCount = activeMc?.participants.length ?? 0;
     const isGroupConfirmed = activeMc
-      ? activeMc.currentParticipants >= activeMc.minParticipants
+      ? participantCount >= activeMc.minParticipants
       : false;
     return (
       <GroupChatScreen
         mcTitle={activeMc?.title}
         isConfirmed={isGroupConfirmed}
-        participantCount={activeMc?.currentParticipants}
+        participantCount={participantCount}
         date={activeMc?.date}
         location={activeMc?.location}
         role={role}

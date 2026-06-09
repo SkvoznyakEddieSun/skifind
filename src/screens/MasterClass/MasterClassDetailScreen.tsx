@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import styles from './MasterClassDetailScreen.module.css';
-import { MASTER_CLASSES } from './masterClassData';
+import { MASTER_CLASSES, MC_PARTICIPANTS } from './masterClassData';
 import { Icon } from '@/components/Icon/Icon';
 import { minPartsLabel } from '@/utils/masterClassHelpers';
 
@@ -9,10 +9,14 @@ import { minPartsLabel } from '@/utils/masterClassHelpers';
 interface MasterClassDetailScreenProps {
   id: string;
   onBack:                () => void;
-  onJoined:              () => void; // → открывает групповой чат
-  isAlreadyJoined?:      boolean;   // гость уже записан на этот МК
-  onLeave?:              () => void; // вызывается при отмене записи
+  onJoined:              () => void;  // → открывает групповой чат
+  isAlreadyJoined?:      boolean;    // гость уже записан на этот МК
+  onLeave?:              () => void;  // вызывается при отмене записи
   onInstructorProfile?:  (instructorId: string) => void;
+  /** Роль просматривающего: инструктор видит список участников и кнопку отмены МК */
+  role?:                 'instructor' | 'guest';
+  /** Инструктор отменяет МК — вызывается после тоста */
+  onCancel?:             () => void;
 }
 
 // ── Component ──────────────────────────────────────────────────────────────
@@ -24,19 +28,18 @@ export function MasterClassDetailScreen({
   isAlreadyJoined = false,
   onLeave,
   onInstructorProfile,
+  role = 'guest',
+  onCancel,
 }: MasterClassDetailScreenProps) {
-  // КРИТИЧНО 1: убран fallback на MASTER_CLASSES[0]
   const mc = MASTER_CLASSES.find(m => m.id === id);
 
-  // КРИТИЧНО 2: joined инициализируется из isAlreadyJoined
   const [joined,    setJoined]    = useState(isAlreadyJoined);
-  const [showToast, setShowToast] = useState(false);
+  const [toastText, setToastText] = useState<string | null>(null);
 
-  // БАГ-ФИX: чистим таймер тоста при размонтировании (swipe-back во время тоста)
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => () => { if (toastTimer.current) clearTimeout(toastTimer.current); }, []);
 
-  // ── Empty state (КРИТИЧНО 1) ──────────────────────────────────────────────
+  // ── Empty state ───────────────────────────────────────────────────────────
   if (!mc) {
     return (
       <div className={styles.screen}>
@@ -62,11 +65,11 @@ export function MasterClassDetailScreen({
     );
   }
 
-  // ── Derived values ─────────────────────────────────────────────────────────
-  const left = mc.maxParticipants - mc.currentParticipants;
-  const pct  = Math.round((mc.currentParticipants / mc.maxParticipants) * 100);
+  // ── Derived values ────────────────────────────────────────────────────────
+  const count = mc.participants.length;
+  const left  = mc.maxParticipants - count;
+  const pct   = Math.round((count / mc.maxParticipants) * 100);
 
-  // МЕЛКОЕ 2: deadline calculation
   const now              = Date.now();
   const eventMs          = new Date(mc.eventDateISO).getTime();
   const deadlineMs       = eventMs - mc.bookingDeadlineHours * 3_600_000;
@@ -74,16 +77,16 @@ export function MasterClassDetailScreen({
   const bookingClosed    = hoursUntilDeadline <= 0;
   const showDeadlineWarn = !bookingClosed && hoursUntilDeadline < 24;
 
-  // ── Handlers ───────────────────────────────────────────────────────────────
+  const isInstructor = role === 'instructor';
+
+  // ── Handlers ──────────────────────────────────────────────────────────────
 
   function handleJoin() {
     if (joined || left === 0 || bookingClosed) return;
-    // TODO(backend): replace setJoined with POST /api/masterclass/:id/join
-    // Backend must check participants atomically (race condition).
     setJoined(true);
-    setShowToast(true);
+    setToastText('✓ Вы записаны! Открываем чат группы…');
     toastTimer.current = setTimeout(() => {
-      setShowToast(false);
+      setToastText(null);
       onJoined();
     }, 1800);
   }
@@ -91,6 +94,16 @@ export function MasterClassDetailScreen({
   function handleLeave() {
     setJoined(false);
     onLeave?.();
+  }
+
+  function handleCancelMc() {
+    setToastText('Мастер-класс отменён');
+    toastTimer.current = setTimeout(() => {
+      setToastText(null);
+      // Очищаем список участников в shared store
+      mc.participants.splice(0, mc.participants.length);
+      onCancel?.();
+    }, 1800);
   }
 
   // ── Render ─────────────────────────────────────────────────────────────────
@@ -165,13 +178,13 @@ export function MasterClassDetailScreen({
             <div className={styles.infoIcon}><Icon name="users" /></div>
             <div>
               <div className={styles.infoLabel}>Участники</div>
-              <div className={styles.infoValue}>{mc.currentParticipants} из {mc.maxParticipants}</div>
+              <div className={styles.infoValue}>{count} из {mc.maxParticipants}</div>
             </div>
           </div>
         </div>
 
-        {/* КРИТИЧНО 3: минимум участников — показываем только если не набрано */}
-        {mc.currentParticipants < mc.minParticipants && (
+        {/* Минимум участников */}
+        {count < mc.minParticipants && (
           <div className={styles.minPartsWarning}>
             <Icon name="alert-triangle" size={14} />
             <span>
@@ -189,64 +202,114 @@ export function MasterClassDetailScreen({
 
         <div className={styles.divider} />
 
-        {/* Participants */}
-        <div className={styles.sectionLabel}>МЕСТА</div>
-        <div className={styles.partsBlock}>
-          <div className={styles.partsBar}>
-            <div className={styles.partsFill} style={{ width: `${pct}%` }} />
-          </div>
-          <div className={styles.partsStats}>
-            <span className={styles.partsTaken}>{mc.currentParticipants} занято</span>
-            <span className={`${styles.partsLeft} ${left === 0 ? styles.partsLeftNone : ''}`}>
-              {left > 0 ? `${left} свободно` : 'Мест нет'}
-            </span>
-          </div>
+        {/* ── Participants section ─────────────────────────────────────────── */}
+        {isInstructor ? (
+          /* Instructor: full participant list */
+          <>
+            <div className={styles.sectionLabel}>УЧАСТНИКИ</div>
+            <div className={styles.partsCountLabel}>
+              {count} / {mc.maxParticipants} участников
+            </div>
+            <div className={styles.participantList}>
+              {mc.participants.length === 0 ? (
+                <div className={styles.participantEmpty}>Никто ещё не записался</div>
+              ) : (
+                mc.participants.map(pid => {
+                  const p = MC_PARTICIPANTS[pid] ?? {
+                    name: pid,
+                    initials: pid.slice(0, 2).toUpperCase(),
+                    color: 'ice' as const,
+                  };
+                  return (
+                    <div key={pid} className={styles.participantItem}>
+                      <div className={`${styles.av} ${styles[`av-${p.color}`]}`}>{p.initials}</div>
+                      <div className={styles.participantName}>{p.name}</div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </>
+        ) : (
+          /* Guest: counter + progress bar + dots */
+          <>
+            <div className={styles.sectionLabel}>МЕСТА</div>
+            <div className={styles.partsBlock}>
+              <div className={styles.partsBar}>
+                <div className={styles.partsFill} style={{ width: `${pct}%` }} />
+              </div>
+              <div className={styles.partsStats}>
+                <span className={styles.partsTaken}>{count} занято</span>
+                <span className={`${styles.partsLeft} ${left === 0 ? styles.partsLeftNone : ''}`}>
+                  {left > 0 ? `${left} свободно` : 'Мест нет'}
+                </span>
+              </div>
 
-          {/* Participant dots */}
-          <div className={styles.dotRow}>
-            {Array.from({ length: mc.maxParticipants }, (_, i) => (
-              <div
-                key={i}
-                className={`${styles.dot} ${i < mc.currentParticipants ? styles.dotFilled : ''}`}
-              />
-            ))}
-          </div>
-        </div>
+              {/* Participant dots */}
+              <div className={styles.dotRow}>
+                {Array.from({ length: mc.maxParticipants }, (_, i) => (
+                  <div
+                    key={i}
+                    className={`${styles.dot} ${i < count ? styles.dotFilled : ''}`}
+                  />
+                ))}
+              </div>
+            </div>
+          </>
+        )}
 
         <div className={styles.divider} />
 
-        {/* Price + CTA */}
+        {/* ── CTA block ────────────────────────────────────────────────────── */}
         <div className={styles.bookBlock}>
           <div className={styles.bookPriceWrap}>
             <div className={styles.bookPrice}>{mc.price.toLocaleString('ru')} ₽</div>
             <div className={styles.bookPriceSub}>за участие</div>
           </div>
 
-          {/* КРИТИЧНО 2: состояние "уже записан" */}
-          {joined ? (
-            <button
-              className={`${styles.bookBtn} ${styles.bookBtnLeave}`}
-              onClick={handleLeave}
-            >
-              ✕ Отменить запись
-            </button>
-          ) : bookingClosed ? (
-            <button className={`${styles.bookBtn} ${styles.bookBtnFull}`} disabled>
-              Запись закрыта
-            </button>
-          ) : left === 0 ? (
-            <button className={`${styles.bookBtn} ${styles.bookBtnFull}`} disabled>
-              Мест нет
-            </button>
+          {isInstructor ? (
+            /* Instructor: cancel MK button */
+            onCancel ? (
+              <button
+                className={`${styles.bookBtn} ${styles.bookBtnLeave}`}
+                onClick={handleCancelMc}
+                disabled={!!toastText}
+              >
+                ✕ Отменить МК
+              </button>
+            ) : (
+              /* Instructor viewing without cancel capability (e.g. another instructor's MK) */
+              <button className={`${styles.bookBtn} ${styles.bookBtnFull}`} disabled>
+                Только просмотр
+              </button>
+            )
           ) : (
-            <button className={styles.bookBtn} onClick={handleJoin}>
-              Записаться
-            </button>
+            /* Guest: join / leave / full / closed */
+            joined ? (
+              <button
+                className={`${styles.bookBtn} ${styles.bookBtnLeave}`}
+                onClick={handleLeave}
+              >
+                ✕ Отменить запись
+              </button>
+            ) : bookingClosed ? (
+              <button className={`${styles.bookBtn} ${styles.bookBtnFull}`} disabled>
+                Запись закрыта
+              </button>
+            ) : left === 0 ? (
+              <button className={`${styles.bookBtn} ${styles.bookBtnFull}`} disabled>
+                Мест нет
+              </button>
+            ) : (
+              <button className={styles.bookBtn} onClick={handleJoin}>
+                Записаться
+              </button>
+            )
           )}
         </div>
 
-        {/* МЕЛКОЕ 2: deadline warning */}
-        {showDeadlineWarn && !joined && (
+        {/* Deadline warning (guest only) */}
+        {!isInstructor && showDeadlineWarn && !joined && (
           <div className={styles.deadlineWarn}>
             <Icon name="bell" size={12} /> Запись закроется через {Math.ceil(hoursUntilDeadline)} ч
           </div>
@@ -256,9 +319,9 @@ export function MasterClassDetailScreen({
       </div>
 
       {/* Toast */}
-      {showToast && (
+      {toastText && (
         <div className={styles.toast}>
-          ✓ Вы записаны! Открываем чат группы…
+          {toastText}
         </div>
       )}
     </div>

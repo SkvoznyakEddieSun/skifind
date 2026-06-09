@@ -236,6 +236,40 @@
   background: var(--accent);
 }
 
+/* ── Participant list (instructor view) ── */
+.partsCountLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-dim);
+  padding: 0 16px 10px;
+}
+
+.participantList {
+  padding: 0 16px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.participantItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.participantName {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.participantEmpty {
+  font-size: 13px;
+  color: var(--text-dim);
+  text-align: center;
+  padding: 8px 0;
+}
+
 /* ── Book block ── */
 .bookBlock {
   display: flex;

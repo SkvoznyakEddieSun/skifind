@@ -6,8 +6,8 @@ import { Icon } from '@/components/Icon/Icon';
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
-function spotsLeft(mc: { maxParticipants: number; currentParticipants: number }) {
-  return mc.maxParticipants - mc.currentParticipants;
+function spotsLeft(mc: { maxParticipants: number; participants: string[] }) {
+  return mc.maxParticipants - mc.participants.length;
 }
 
 function spotsLabel(n: number): string {
@@ -17,8 +17,8 @@ function spotsLabel(n: number): string {
   return `Осталось ${n} мест`;
 }
 
-function fillPct(mc: { maxParticipants: number; currentParticipants: number }) {
-  return Math.round((mc.currentParticipants / mc.maxParticipants) * 100);
+function fillPct(mc: { maxParticipants: number; participants: string[] }) {
+  return Math.round((mc.participants.length / mc.maxParticipants) * 100);
 }
 
 function pluralRu(n: number, forms: [string, string, string]): string {
@@ -148,7 +148,7 @@ export function MasterClassCatalogScreen({
                     <div className={styles.partsFill} style={{ width: `${fillPct(mc)}%` }} />
                   </div>
                   <span className={styles.partsTxt}>
-                    {mc.currentParticipants}/{mc.maxParticipants}
+                    {mc.participants.length}/{mc.maxParticipants}
                   </span>
                 </div>
 

@@ -33,7 +33,7 @@ describe('MASTER_CLASSES data', () => {
   const REQUIRED_FIELDS: (keyof MasterClass)[] = [
     'id', 'title', 'sport', 'level', 'levelLabel', 'levelColor',
     'instructorId', 'instructorName', 'instructorRating',
-    'price', 'maxParticipants', 'minParticipants', 'currentParticipants',
+    'price', 'maxParticipants', 'minParticipants', 'participants',
     'description', 'eventDateISO',
   ];
 
@@ -59,9 +59,10 @@ describe('MASTER_CLASSES data', () => {
     expect(mc.maxParticipants).toBeGreaterThanOrEqual(mc.minParticipants);
   });
 
-  it.each(MASTER_CLASSES)('$title currentParticipants is within bounds', (mc) => {
-    expect(mc.currentParticipants).toBeGreaterThanOrEqual(0);
-    expect(mc.currentParticipants).toBeLessThanOrEqual(mc.maxParticipants);
+  it.each(MASTER_CLASSES)('$title participants count is within bounds', (mc) => {
+    expect(Array.isArray(mc.participants)).toBe(true);
+    expect(mc.participants.length).toBeGreaterThanOrEqual(0);
+    expect(mc.participants.length).toBeLessThanOrEqual(mc.maxParticipants);
   });
 
   it('all ids are unique', () => {

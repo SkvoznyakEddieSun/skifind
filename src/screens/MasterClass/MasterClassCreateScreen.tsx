@@ -142,7 +142,7 @@ export function MasterClassCreateScreen({ onBack, onPublished }: MasterClassCrea
       price:                priceNum,
       maxParticipants:      maxParts,
       minParticipants:      minParts,
-      currentParticipants:  0,
+      participants:         [],
       description:          description.trim(),
       bookingDeadlineHours: deadline,
       eventDateISO:         eventDate.toISOString(),
