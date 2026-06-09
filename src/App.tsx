@@ -37,7 +37,7 @@ import { MasterClassDetailScreen }  from './screens/MasterClass/MasterClassDetai
 import { MasterClassCreateScreen }  from './screens/MasterClass/MasterClassCreateScreen';
 import { GroupChatScreen }          from './screens/GroupChat/GroupChatScreen';
 import { MASTER_CLASSES }           from './screens/MasterClass/masterClassData';
-import { getPendingRequests, getBookingById, acceptBooking, declineBooking } from './store/bookings';
+import { getPendingRequests, getBookingById, acceptBooking, declineBooking, completeBooking } from './store/bookings';
 import { StudentProfileScreen }     from './screens/StudentProfile/StudentProfileScreen';
 import { getStudentProfileByName }  from './screens/StudentProfile/studentData';
 
@@ -358,8 +358,9 @@ export function App() {
         key={activeLessonId}
         lessonId={activeLessonId}
         onBack={pop}
-        onChat={openInstrChat}
+        onChat={() => openStudentChat(activeLessonId)}
         onCancel={pop}
+        onComplete={() => { completeBooking(activeLessonId); pop(); }}
       />
     );
   }
@@ -369,7 +370,7 @@ export function App() {
         key={activeRequestId}
         requestId={activeRequestId}
         onBack={pop}
-        onChat={openInstrChat}
+        onChat={() => openStudentChat(activeRequestId)}
         onAccepted={pop}
       />
     );

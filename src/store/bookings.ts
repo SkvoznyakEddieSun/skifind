@@ -385,3 +385,8 @@ export function declineBooking(id: string): void {
   const b = BOOKINGS.find(b => b.id === id);
   if (b) b.status = 'declined';
 }
+
+export function completeBooking(id: string): void {
+  const b = BOOKINGS.find(b => b.id === id);
+  if (b) b.status = 'completed';
+}

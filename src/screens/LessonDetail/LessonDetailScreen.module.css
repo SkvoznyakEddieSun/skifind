@@ -190,8 +190,9 @@
   font-size: 12px;
   font-weight: 600;
 }
-.statusConfirmed { background: var(--mint); color: var(--mint-text); }
-.statusPending   { background: var(--straw); color: var(--straw-text); }
+.statusConfirmed  { background: var(--mint);  color: var(--mint-text);  }
+.statusPending    { background: var(--straw); color: var(--straw-text); }
+.statusCompleted  { background: var(--border); color: var(--text-dim); }
 
 /* ── Action buttons ── */
 .actions {
@@ -243,3 +244,18 @@
   font-family: var(--ff);
   cursor: pointer;
 }
+
+.btnComplete {
+  flex: 1;
+  padding: 14px;
+  background: #1a3d2b;
+  color: #4ade80;
+  border: 1px solid #2d6a45;
+  border-radius: var(--r12);
+  font-size: 15px;
+  font-weight: 600;
+  font-family: var(--ff);
+  cursor: pointer;
+  transition: opacity .15s;
+}
+.btnComplete:active { opacity: .8; }
