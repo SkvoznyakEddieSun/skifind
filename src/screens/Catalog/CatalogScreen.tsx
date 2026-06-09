@@ -374,7 +374,7 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onMasterClas
   const [type, setType]               = useState<SportType>('all');
   const [level, setLevel]             = useState<Level>('all');
   const [sort, setSort]               = useState<SortKey>('rating');
-  const [onlyFreeToday] = useState(false);
+  const [onlyFreeToday, setOnlyFreeToday] = useState(false);
   const [localFavorites, setLocalFavorites] = useState<Set<string>>(new Set());
   const favorites = favoritesProp ?? localFavorites;
   const contentRef                    = useRef<HTMLDivElement>(null);
@@ -383,7 +383,17 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onMasterClas
     contentRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
 
-
+  /** Реальная проверка свободного времени на сегодня по weekSchedule */
+  function hasFreeToday(instr: Instructor): boolean {
+    const dow = new Date().getDay();
+    const key = (['sun','mon','tue','wed','thu','fri','sat'] as WeekDay[])[dow];
+    const sched = instr.weekSchedule[key];
+    if (!sched) return false;
+    const now = new Date();
+    const nowMin = now.getHours() * 60 + now.getMinutes();
+    const [h, m] = sched.end.split(':').map(Number);
+    return (h * 60 + m) > nowMin + 60; // хотя бы 1 ч до конца рабочего дня
+  }
 
   function toggleFav(id: string) {
     if (onToggleFavorite) {
@@ -400,12 +410,19 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onMasterClas
   const filtered = INSTRUCTORS
     .filter(i => {
       if (blockedIds?.has(i.id)) return false;
-      if (onlyFreeToday && !i.hasFreeSlotsToday) return false;
+      if (onlyFreeToday && !hasFreeToday(i)) return false;
       if (type !== 'all' && !i.type.some(t => t === type)) return false;
       if (level !== 'all' && !i.level.includes(level)) return false;
       if (search) {
         const q = search.toLowerCase();
-        if (!i.name.toLowerCase().includes(q) && !i.resort.toLowerCase().includes(q)) return false;
+        const sports = i.type.map(s => s === 'ski' ? 'горные лыжи' : 'сноуборд').join(' ');
+        const tags   = i.tags.map(tag => tag.label.toLowerCase()).join(' ');
+        if (
+          !i.name.toLowerCase().includes(q) &&
+          !i.resort.toLowerCase().includes(q) &&
+          !sports.includes(q) &&
+          !tags.includes(q)
+        ) return false;
       }
       return true;
     })
@@ -498,6 +515,12 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onMasterClas
                 {label}
               </button>
             ))}
+            <button
+              className={`${styles.chip} ${onlyFreeToday ? styles.chipActive : ''}`}
+              onClick={() => { setOnlyFreeToday(v => !v); scrollToTop(); }}
+            >
+              🟢 Сегодня
+            </button>
           </div>
 
           {/* ── Баннер мастер-классов ── */}

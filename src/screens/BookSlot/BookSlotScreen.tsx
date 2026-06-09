@@ -102,9 +102,20 @@ export function BookSlotScreen({ onBack, onBooked, instructor }: BookSlotScreenP
   const selectedDayKey      = selectedDay ? WEEKDAY_KEY[selectedDay.getDay()] : null;
   const selectedDaySchedule = selectedDayKey ? instructor.weekSchedule[selectedDayKey] : undefined;
 
-  const slots: string[] = (selectedDaySchedule && duration)
+  const rawSlots: string[] = (selectedDaySchedule && duration)
     ? generateSlots(selectedDaySchedule, duration, duration === 45 ? 45 : 60)
     : [];
+
+  // Для сегодняшнего дня фильтруем уже прошедшие слоты
+  const slots: string[] = (() => {
+    if (dayIdx !== 0) return rawSlots;
+    const now = new Date();
+    const nowMin = now.getHours() * 60 + now.getMinutes();
+    return rawSlots.filter(t => timeToMin(t) > nowMin);
+  })();
+
+  // Есть ли хоть один доступный день в ближайшие 7 дней
+  const hasAnyDay = DAYS.some(d => !!instructor.weekSchedule[WEEKDAY_KEY[d.getDay()]]);
 
   function getPrice(): number {
     if (!format || !duration) return 0;
@@ -195,7 +206,7 @@ export function BookSlotScreen({ onBack, onBooked, instructor }: BookSlotScreenP
           <div className={styles.instrInfo}>
             <div className={styles.instrName}>{instructor.name}</div>
             <div className={styles.instrSub}>
-              {instructor.type.includes('ski') ? 'Горные лыжи' : 'Сноуборд'} · от {instructor.pricing.individual.h1.toLocaleString('ru')} ₽/ч
+              {instructor.type.includes('ski') ? 'Горные лыжи' : 'Сноуборд'} · от {(instructor.pricing?.individual?.h1 ?? 0).toLocaleString('ru')} ₽/ч
             </div>
           </div>
           <div className={styles.instrRating}>★ {instructor.rating.toFixed(1)}</div>
@@ -250,25 +261,29 @@ export function BookSlotScreen({ onBack, onBooked, instructor }: BookSlotScreenP
           <div className={`${styles.stepNum} ${dayIdx !== null ? styles.stepDone : ''}`}>3</div>
           <div className={styles.sectionLabel}>Выберите день</div>
         </div>
-        <div className={`${styles.dayStrip} ${!duration ? styles.stepDisabled : ''}`}>
-          {DAYS.map((d, i) => {
-            const key         = WEEKDAY_KEY[d.getDay()];
-            const hasSchedule = !!instructor.weekSchedule[key];
-            const isSelected  = i === dayIdx;
-            const isDisabled  = !duration || !hasSchedule;
-            return (
-              <button
-                key={i}
-                disabled={isDisabled}
-                className={`${styles.dayChip} ${isSelected ? styles.dayChipActive : ''} ${!hasSchedule ? styles.dayChipEmpty : ''}`}
-                onClick={() => handleDayChange(i)}
-              >
-                <span className={styles.dayChipDate}>{DAY_SHORT[d.getDay()]} {d.getDate()}</span>
-                <span className={styles.dayChipSub}>{hasSchedule ? 'есть' : '—'}</span>
-              </button>
-            );
-          })}
-        </div>
+        {!hasAnyDay ? (
+          <div className={styles.noSlots}>Нет доступных дней — инструктор не работает в ближайшие 7 дней</div>
+        ) : (
+          <div className={`${styles.dayStrip} ${!duration ? styles.stepDisabled : ''}`}>
+            {DAYS.map((d, i) => {
+              const key         = WEEKDAY_KEY[d.getDay()];
+              const hasSchedule = !!instructor.weekSchedule[key];
+              const isSelected  = i === dayIdx;
+              const isDisabled  = !duration || !hasSchedule;
+              return (
+                <button
+                  key={i}
+                  disabled={isDisabled}
+                  className={`${styles.dayChip} ${isSelected ? styles.dayChipActive : ''} ${!hasSchedule ? styles.dayChipEmpty : ''}`}
+                  onClick={() => handleDayChange(i)}
+                >
+                  <span className={styles.dayChipDate}>{DAY_SHORT[d.getDay()]} {d.getDate()}</span>
+                  <span className={styles.dayChipSub}>{hasSchedule ? 'есть' : '—'}</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
 
         {/* ── STEP 4 — Time ── */}
         <div className={styles.divider} />
