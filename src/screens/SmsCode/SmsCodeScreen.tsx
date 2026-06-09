@@ -1,31 +1,27 @@
 import { useEffect, useRef, useState } from 'react';
 import styles from './SmsCodeScreen.module.css';
-import { useTranslation } from '@/i18n/useTranslation';
 
 interface SmsCodeScreenProps {
-  phone: string;
-  onBack: () => void;
+  phone:      string;
+  onBack:     () => void;
   onVerified: (code: string) => void;
 }
 
-const CODE_LENGTH = 4;
+const CODE_LENGTH    = 4;
 const RESEND_SECONDS = 59;
 
 /**
- * authStep3 — ввод 4-значного SMS-кода.
- * 1-в-1 копия из прототипа PROTOTYPE.html, секция authStep3.
- * НИКАКИХ изменений дизайна без согласования.
+ * Шаг 2 входа инструктора: 4-значный SMS-код.
+ * Любой корректно заполненный 4-значный код принимается (имитация SMS).
+ * Кнопка «Войти» активируется после ввода всех 4 цифр.
  */
 export function SmsCodeScreen({ phone, onBack, onVerified }: SmsCodeScreenProps) {
-  const { t } = useTranslation();
-  const [digits, setDigits] = useState<string[]>(Array(CODE_LENGTH).fill(''));
+  const [digits,  setDigits]  = useState<string[]>(Array(CODE_LENGTH).fill(''));
   const [seconds, setSeconds] = useState(RESEND_SECONDS);
   const inputRefs = useRef<Array<HTMLInputElement | null>>([]);
 
   // Auto-focus first input
-  useEffect(() => {
-    inputRefs.current[0]?.focus();
-  }, []);
+  useEffect(() => { inputRefs.current[0]?.focus(); }, []);
 
   // Countdown timer
   useEffect(() => {
@@ -39,13 +35,8 @@ export function SmsCodeScreen({ phone, onBack, onVerified }: SmsCodeScreenProps)
     const next = [...digits];
     next[idx] = char;
     setDigits(next);
-
     if (char && idx < CODE_LENGTH - 1) {
       inputRefs.current[idx + 1]?.focus();
-    }
-
-    if (next.every(d => d) && next.join('').length === CODE_LENGTH) {
-      onVerified(next.join(''));
     }
   }
 
@@ -61,6 +52,13 @@ export function SmsCodeScreen({ phone, onBack, onVerified }: SmsCodeScreenProps)
     inputRefs.current[0]?.focus();
   }
 
+  const codeComplete = digits.every(d => d !== '');
+
+  function handleLogin() {
+    if (!codeComplete) return;
+    onVerified(digits.join(''));
+  }
+
   const timerLabel = `0:${String(seconds).padStart(2, '0')}`;
 
   return (
@@ -69,9 +67,9 @@ export function SmsCodeScreen({ phone, onBack, onVerified }: SmsCodeScreenProps)
         ‹
       </button>
 
-      <h1 className={styles.title}>{t('auth.step3Title')}</h1>
+      <h1 className={styles.title}>Введите код из SMS</h1>
       <p className={styles.subtitle}>
-        {t('auth.step3Sub')} <strong className={styles.phoneHighlight}>{phone}</strong>
+        Код отправлен на <strong className={styles.phoneHighlight}>{phone}</strong>
       </p>
 
       <div className={styles.digits}>
@@ -82,7 +80,7 @@ export function SmsCodeScreen({ phone, onBack, onVerified }: SmsCodeScreenProps)
             type="text"
             inputMode="numeric"
             maxLength={1}
-            className={styles.digit}
+            className={`${styles.digit} ${d ? styles.digitFilled : ''}`}
             value={d}
             onChange={e => handleChange(i, e.target.value)}
             onKeyDown={e => handleKeyDown(i, e)}
@@ -91,12 +89,21 @@ export function SmsCodeScreen({ phone, onBack, onVerified }: SmsCodeScreenProps)
         ))}
       </div>
 
+      <button
+        type="button"
+        className={styles.submitBtn}
+        onClick={handleLogin}
+        disabled={!codeComplete}
+      >
+        Войти
+      </button>
+
       <div className={styles.timer}>
         {seconds > 0 ? (
-          <span>{t('auth.resendCodeTimer').replace('{time}', timerLabel)}</span>
+          <span>Отправить код повторно через {timerLabel}</span>
         ) : (
           <button type="button" className={styles.resendBtn} onClick={handleResend}>
-            {t('auth.resendCode')}
+            Отправить код повторно
           </button>
         )}
       </div>

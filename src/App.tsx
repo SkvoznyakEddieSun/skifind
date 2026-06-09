@@ -78,6 +78,12 @@ const shellStyle: React.CSSProperties = {
   display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden',
 };
 
+// ── Part 1: Сессионный ID гостя ────────────────────────────────────────────
+// Генерируется при первом открытии и сохраняется навсегда (до явного логаута).
+void (localStorage.getItem('guestId') ?? (() => {
+  localStorage.setItem('guestId', crypto.randomUUID());
+})());
+
 // ── App ─────────────────────────────────────────────────────────────────────
 
 export function App() {
@@ -190,13 +196,13 @@ export function App() {
 
   // Auth
   if (s === 'auth') {
-    return <AuthScreen onSelectRole={r => goHome(r as Role)} onLoginByPhone={() => push('phone')} />;
+    return <AuthScreen onGuest={() => goHome('guest')} onLoginByPhone={() => push('phone')} />;
   }
   else if (s === 'phone') {
-    return <PhoneAuthScreen onBack={pop} onSubmit={({ phone: p }) => { setPhone(p); push('sms'); }} />;
+    return <PhoneAuthScreen onBack={pop} onSubmit={p => { setPhone(p); push('sms'); }} />;
   }
   else if (s === 'sms') {
-    return <SmsCodeScreen phone={phone} onBack={pop} onVerified={() => goHome(role)} />;
+    return <SmsCodeScreen phone={phone} onBack={pop} onVerified={() => goHome('instructor')} />;
   }
 
   // Overlays
@@ -633,7 +639,12 @@ export function App() {
           onBack={() => switchGuestTab('catalog')}
           onBecomeInstructor={() => push('register')}
           onBookings={() => switchGuestTab('bookings')}
-          onLogout={() => setStack(['auth'])}
+          onLogout={() => {
+            localStorage.removeItem('guestId');
+            localStorage.removeItem('guestName');
+            localStorage.removeItem('guestPhone');
+            setStack(['auth']);
+          }}
           favorites={favorites}
           onUnfavorite={handleToggleFavorite}
           blockedIds={blockedIds}

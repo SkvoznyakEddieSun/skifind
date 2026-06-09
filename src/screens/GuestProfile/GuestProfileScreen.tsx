@@ -16,6 +16,12 @@ interface GuestProfileScreenProps {
   onViewProfile?: (id: string) => void;
 }
 
+// Инициалы из имени: «Иван Петров» → «ИП»
+function nameToInitials(name: string): string {
+  return name.trim().split(/\s+/).slice(0, 2)
+    .map(w => w[0]?.toUpperCase() ?? '').join('') || 'Г';
+}
+
 export function GuestProfileScreen({
   onBack: _onBack,
   onBookings,
@@ -28,6 +34,11 @@ export function GuestProfileScreen({
   allInstructors = [],
   onViewProfile,
 }: GuestProfileScreenProps) {
+  // Читаем данные гостя из localStorage (обновляется при каждом монтировании)
+  const guestName  = localStorage.getItem('guestName')  ?? 'Гость';
+  const guestPhone = localStorage.getItem('guestPhone') ?? '';
+  const initials   = nameToInitials(guestName);
+
   const [darkTheme, setDarkTheme] = useState(
     document.documentElement.getAttribute('data-theme') !== 'light'
   );
@@ -55,10 +66,10 @@ export function GuestProfileScreen({
       {/* Topbar */}
       <div className={styles.topbar}>
         <div className={styles.tbRow}>
-          <div className={styles.av}>ИП</div>
+          <div className={styles.av}>{initials}</div>
           <div>
-            <div className={styles.tbName}>Иван Петров</div>
-            <div className={styles.tbPhone}>+7 909 ••• ••67</div>
+            <div className={styles.tbName}>{guestName}</div>
+            <div className={styles.tbPhone}>{guestPhone || 'Телефон не указан'}</div>
           </div>
         </div>
       </div>

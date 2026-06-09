@@ -97,3 +97,25 @@
   font-weight: 500;
   padding: 0;
 }
+
+.digitFilled {
+  border-color: var(--accent);
+}
+
+.submitBtn {
+  width: 100%;
+  padding: 14px;
+  margin: 20px 0 0;
+  background: var(--accent);
+  color: var(--accent-text);
+  border: none;
+  border-radius: var(--r12);
+  font-size: 15px;
+  font-weight: 600;
+  font-family: var(--ff);
+  cursor: pointer;
+  transition: opacity .2s;
+}
+
+.submitBtn:active   { opacity: .85; }
+.submitBtn:disabled { opacity: .4; cursor: not-allowed; }

@@ -1,38 +1,34 @@
 import styles from './AuthScreen.module.css';
-import { useTranslation } from '@/i18n/useTranslation';
 import { Icon } from '@/components/Icon/Icon';
 
 interface AuthScreenProps {
-  onSelectRole: (role: 'guest' | 'instructor') => void;
-  onLoginByPhone: () => void;
+  onGuest:        () => void;   // «Я ученик» → сразу в каталог
+  onLoginByPhone: () => void;   // «Я инструктор» и «Войти по номеру» → PhoneScreen
 }
 
 /**
- * Стартовый экран — выбор роли (гость / инструктор) или вход по номеру.
- * 1-в-1 копия из прототипа index.html, секция scr-auth → authStep1.
- *
- * НИКАКИХ изменений дизайна без согласования.
+ * Стартовый экран — выбор роли.
+ * «Я ученик» → гостевой каталог без регистрации.
+ * «Я инструктор» / «Войти по номеру» → двухшаговый вход (телефон + SMS).
  */
-export function AuthScreen({ onSelectRole, onLoginByPhone }: AuthScreenProps) {
-  const { t } = useTranslation();
-
+export function AuthScreen({ onGuest, onLoginByPhone }: AuthScreenProps) {
   return (
     <div className={styles.screen}>
       <div className={styles.hero}>
-        <h1 className={styles.title}>{t('auth.greeting')}</h1>
-        <p className={styles.subtitle}>{t('auth.intro')}</p>
+        <h1 className={styles.title}>Добро пожаловать</h1>
+        <p className={styles.subtitle}>Найдите инструктора по горным лыжам или сноуборду в Шерегеше</p>
       </div>
 
       <div className={styles.roleSelect}>
         <button
           type="button"
           className={styles.roleCard}
-          onClick={() => onSelectRole('guest')}
+          onClick={onGuest}
         >
-          <div className={styles.roleIcon} aria-hidden><Icon name="mountain" size={32} /></div>
+          <div className={styles.roleIcon} aria-hidden><Icon name="mountain" size={26} /></div>
           <div className={styles.roleInfo}>
-            <div className={styles.roleTitle}>{t('auth.iAmStudent')}</div>
-            <div className={styles.roleSub}>{t('auth.studentDescription')}</div>
+            <div className={styles.roleTitle}>Я ученик</div>
+            <div className={styles.roleSub}>Найти инструктора и записаться</div>
           </div>
           <span className={styles.roleArrow} aria-hidden>›</span>
         </button>
@@ -40,19 +36,19 @@ export function AuthScreen({ onSelectRole, onLoginByPhone }: AuthScreenProps) {
         <button
           type="button"
           className={styles.roleCard}
-          onClick={() => onSelectRole('instructor')}
+          onClick={onLoginByPhone}
         >
-          <div className={styles.roleIcon} aria-hidden><Icon name="ski" size={32} /></div>
+          <div className={styles.roleIcon} aria-hidden><Icon name="ski" size={26} /></div>
           <div className={styles.roleInfo}>
-            <div className={styles.roleTitle}>{t('auth.iAmInstructor')}</div>
-            <div className={styles.roleSub}>{t('auth.instructorDescription')}</div>
+            <div className={styles.roleTitle}>Я инструктор</div>
+            <div className={styles.roleSub}>Управлять расписанием и заявками</div>
           </div>
           <span className={styles.roleArrow} aria-hidden>›</span>
         </button>
       </div>
 
       <div className={styles.divider}>
-        <span>{t('auth.or')}</span>
+        <span>или</span>
       </div>
 
       <button
@@ -60,10 +56,12 @@ export function AuthScreen({ onSelectRole, onLoginByPhone }: AuthScreenProps) {
         className={styles.loginLink}
         onClick={onLoginByPhone}
       >
-        {t('auth.haveAccount')} <strong>{t('auth.loginByPhone')}</strong>
+        Уже есть аккаунт? <strong>Войдите по номеру</strong>
       </button>
 
-      <p className={styles.legal}>{t('auth.legal')}</p>
+      <p className={styles.legal}>
+        Продолжая, вы принимаете условия использования и политику конфиденциальности
+      </p>
     </div>
   );
 }

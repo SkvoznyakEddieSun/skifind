@@ -1,35 +1,37 @@
 import { useState } from 'react';
 import styles from './PhoneAuthScreen.module.css';
-import { useTranslation } from '@/i18n/useTranslation';
 import { applyPhoneMask } from '@/utils/phoneMask';
 
 interface PhoneAuthScreenProps {
-  onBack: () => void;
-  onSubmit: (data: { firstName: string; lastName: string; phone: string }) => void;
+  onBack:   () => void;
+  onSubmit: (phone: string) => void;
 }
 
 /**
- * authStep2 — регистрация гостя: имя, фамилия, телефон.
- * 1-в-1 копия из прототипа PROTOTYPE.html, секция authStep2.
- * НИКАКИХ изменений дизайна без согласования.
+ * Шаг 1 входа инструктора: ввод номера телефона.
+ * Любой полный номер (+7 XXX XXX-XX-XX) принимается → переход к SMS-коду.
  */
 export function PhoneAuthScreen({ onBack, onSubmit }: PhoneAuthScreenProps) {
-  const { t } = useTranslation();
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName]   = useState('');
-  const [phone, setPhone]         = useState('');
+  const [phone, setPhone] = useState('');
 
-  function handlePhoneChange(e: React.ChangeEvent<HTMLInputElement>) {
+  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     setPhone(applyPhoneMask(e.target.value));
   }
 
-  function handlePhoneFocus(e: React.FocusEvent<HTMLInputElement>) {
+  function handleFocus(e: React.FocusEvent<HTMLInputElement>) {
     if (!e.target.value) setPhone('+7');
   }
 
+  // +7 (XXX) XXX-XX-XX → 18 символов
+  const canSubmit = phone.length >= 18;
+
   function handleSubmit() {
-    if (!firstName.trim() || !lastName.trim() || phone.length < 18) return;
-    onSubmit({ firstName: firstName.trim(), lastName: lastName.trim(), phone });
+    if (!canSubmit) return;
+    onSubmit(phone);
+  }
+
+  function handleKeyDown(e: React.KeyboardEvent) {
+    if (e.key === 'Enter') handleSubmit();
   }
 
   return (
@@ -38,45 +40,24 @@ export function PhoneAuthScreen({ onBack, onSubmit }: PhoneAuthScreenProps) {
         ‹
       </button>
 
-      <h1 className={styles.title}>{t('auth.step2Greeting')}</h1>
-      <p className={styles.subtitle}>{t('auth.step2Sub')}</p>
+      <h1 className={styles.title}>Вход для инструкторов</h1>
+      <p className={styles.subtitle}>Введите номер телефона — отправим SMS с кодом подтверждения</p>
 
       <div className={styles.form}>
         <div className={styles.field}>
-          <label className={styles.label}>{t('auth.firstName')}</label>
+          <label className={styles.label} htmlFor="phone-input">Номер телефона</label>
           <input
-            type="text"
-            className={styles.input}
-            placeholder={t('auth.firstNamePlaceholder')}
-            value={firstName}
-            onChange={e => setFirstName(e.target.value)}
-            autoComplete="given-name"
-          />
-        </div>
-
-        <div className={styles.field}>
-          <label className={styles.label}>{t('auth.lastName')}</label>
-          <input
-            type="text"
-            className={styles.input}
-            placeholder={t('auth.lastNamePlaceholder')}
-            value={lastName}
-            onChange={e => setLastName(e.target.value)}
-            autoComplete="family-name"
-          />
-        </div>
-
-        <div className={styles.field}>
-          <label className={styles.label}>{t('auth.phoneLabel')}</label>
-          <input
+            id="phone-input"
             type="tel"
             className={styles.input}
-            placeholder={t('auth.phonePlaceholder')}
+            placeholder="+7 (000) 000-00-00"
             value={phone}
-            onChange={handlePhoneChange}
-            onFocus={handlePhoneFocus}
+            onChange={handleChange}
+            onFocus={handleFocus}
+            onKeyDown={handleKeyDown}
             maxLength={18}
             autoComplete="tel"
+            autoFocus
           />
         </div>
       </div>
@@ -85,11 +66,14 @@ export function PhoneAuthScreen({ onBack, onSubmit }: PhoneAuthScreenProps) {
         type="button"
         className={styles.submitBtn}
         onClick={handleSubmit}
+        disabled={!canSubmit}
       >
-        {t('auth.getSmsCode')}
+        Получить код
       </button>
 
-      <p className={styles.legal}>{t('auth.step2Legal')}</p>
+      <p className={styles.legal}>
+        Нажимая кнопку, вы соглашаетесь с условиями использования и политикой конфиденциальности
+      </p>
     </div>
   );
 }

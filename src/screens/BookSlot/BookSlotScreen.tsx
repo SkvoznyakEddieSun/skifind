@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import styles from './BookSlotScreen.module.css';
 import type { Instructor, WeekDay, DayAvailability } from '../Catalog/CatalogScreen';
 import { addBooking } from '@/store/bookings';
+import { RegistrationBottomSheet } from './RegistrationBottomSheet';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -94,8 +95,9 @@ export function BookSlotScreen({ onBack, onBooked, instructor }: BookSlotScreenP
   const [timeStart, setTimeStart] = useState<string | null>(null);
   const [groupSize, setGroupSize] = useState(2);
   const [message,   setMessage]   = useState('');
-  const [submitted, setSubmitted] = useState(false);
-  const [showToast, setShowToast] = useState(false);
+  const [submitted,    setSubmitted]    = useState(false);
+  const [showToast,    setShowToast]    = useState(false);
+  const [showRegSheet, setShowRegSheet] = useState(false);
 
   // ── Derived ──────────────────────────────────────────────────────────────
 
@@ -175,6 +177,16 @@ export function BookSlotScreen({ onBack, onBooked, instructor }: BookSlotScreenP
   }
 
   function handleSubmit() {
+    if (!format || (!duration && !isFullDay) || dayIdx === null || !timeStart || submitted) return;
+    // Если гость ещё не зарегистрирован — показываем BottomSheet
+    if (!localStorage.getItem('guestName')) {
+      setShowRegSheet(true);
+      return;
+    }
+    doSubmit();
+  }
+
+  function doSubmit() {
     if (!format || (!duration && !isFullDay) || dayIdx === null || !timeStart || submitted) return;
     const date    = DAYS[dayIdx];
     const timeEnd = isFullDay && selectedDaySchedule
@@ -452,6 +464,14 @@ export function BookSlotScreen({ onBack, onBooked, instructor }: BookSlotScreenP
       {/* ── Toast ── */}
       {showToast && (
         <div className={styles.toast}>✓ Заявка отправлена! Инструктор ответит в течение 12 часов.</div>
+      )}
+
+      {/* ── Регистрация при первой записи ── */}
+      {showRegSheet && (
+        <RegistrationBottomSheet
+          onDismiss={() => setShowRegSheet(false)}
+          onSaved={() => { setShowRegSheet(false); doSubmit(); }}
+        />
       )}
     </div>
   );
