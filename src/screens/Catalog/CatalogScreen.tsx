@@ -4,7 +4,7 @@ import { useTranslation } from '@/i18n/useTranslation';
 import { Icon } from '@/components/Icon/Icon';
 
 type SportType = 'all' | 'ski' | 'board';
-type Level = 'all' | 'beginner' | 'advanced' | 'kids' | 'freeride';
+type Level = 'all' | 'beginner' | 'intermediate' | 'advanced' | 'kids' | 'freeride';
 type SortKey = 'rating' | 'price-asc' | 'price-desc' | 'experience';
 
 export type WeekDay = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun';
@@ -90,6 +90,10 @@ export interface Instructor {
   reviews?: InstructorReview[];
   students?: number;
   reviewsCount?: number;
+  // Дополнительные поля (заполняются при регистрации/редактировании)
+  certificates?: string;
+  photoUrl?: string;
+  worksWithGroups?: boolean;
 }
 
 export const ACTIVE_RESORTS = ['Шерегеш'] as const;

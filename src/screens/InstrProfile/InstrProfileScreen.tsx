@@ -135,7 +135,14 @@ export function InstrProfileScreen({ onBalance, onMyProfile, onLogout }: InstrPr
       {/* Topbar */}
       <div className={styles.topbar}>
         <div className={styles.tbRow}>
-          <div className={`${styles.av} ${styles.avMd} ${styles.avBlue}`}>{INSTRUCTORS[0].initials}</div>
+          {INSTRUCTORS[0].photoUrl ? (
+            <div
+              className={`${styles.av} ${styles.avMd}`}
+              style={{ backgroundImage: `url(${INSTRUCTORS[0].photoUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
+            />
+          ) : (
+            <div className={`${styles.av} ${styles.avMd} ${styles.avBlue}`}>{INSTRUCTORS[0].initials}</div>
+          )}
           <div className={styles.tbInfo}>
             <div className={styles.tbName}>{INSTRUCTORS[0].name}</div>
             <div className={styles.tbRole}>Инструктор · {INSTRUCTORS[0].type.map(t => t === 'ski' ? 'Горные лыжи' : 'Сноуборд').join(', ')}</div>
