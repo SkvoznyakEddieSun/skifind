@@ -37,7 +37,7 @@ import { MasterClassDetailScreen }  from './screens/MasterClass/MasterClassDetai
 import { MasterClassCreateScreen }  from './screens/MasterClass/MasterClassCreateScreen';
 import { GroupChatScreen }          from './screens/GroupChat/GroupChatScreen';
 import { MASTER_CLASSES }           from './screens/MasterClass/masterClassData';
-import { getPendingRequests, getBookingById, acceptBooking, declineBooking, completeBooking } from './store/bookings';
+import { getPendingRequests, getBookingById, acceptBooking, declineBooking, completeBooking, getGuestBookings } from './store/bookings';
 import { StudentProfileScreen }     from './screens/StudentProfile/StudentProfileScreen';
 import { getStudentProfileByName }  from './screens/StudentProfile/studentData';
 
@@ -315,7 +315,14 @@ export function App() {
             setActiveInstructor(instr);
             setChatPersonName(instr.name); setChatPersonInitials(instr.initials); setChatPersonAvColor(instr.avatarColor);
             setChatPersonHasProfile(true);
+            setChatPersonProfileType('instructor');
             setChatIsInstructor(false);
+            const bk = getGuestBookings().find(b => b.instructorId === instructorId);
+            setChatBookingStatus(
+              bk?.status === 'accepted'  ? 'ACCEPTED' :
+              bk?.status === 'declined'  ? 'DECLINED' :
+              bk?.status === 'completed' ? 'ACCEPTED' : 'PENDING'
+            );
             push('chat');
           }}
           onBookAgain={instructorId => {
@@ -604,7 +611,14 @@ export function App() {
             setChatPersonInitials(instr.initials);
             setChatPersonAvColor(instr.avatarColor);
             setChatPersonHasProfile(true);
+            setChatPersonProfileType('instructor');
             setChatIsInstructor(false);
+            const bk = getGuestBookings().find(b => b.instructorId === instructorId);
+            setChatBookingStatus(
+              bk?.status === 'accepted'  ? 'ACCEPTED' :
+              bk?.status === 'declined'  ? 'DECLINED' :
+              bk?.status === 'completed' ? 'ACCEPTED' : 'PENDING'
+            );
             push('chat');
           }}
           onBookAgain={instructorId => {

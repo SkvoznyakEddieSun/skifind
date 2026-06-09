@@ -326,7 +326,7 @@ export function ChatScreen({
                 return (
                   <div key={msg.id} className={`${styles.mrow} ${cardDir === 'out' ? styles.mrowOut : ''}`}>
                     {cardDir === 'in' && (
-                      <div className={`${styles.av} ${styles.avSm} ${styles['av-ice']}`}>АМ</div>
+                      <div className={`${styles.av} ${styles.avSm} ${styles[`av-${personAvColor}`]}`}>{personInitials}</div>
                     )}
                     <div>
                       <div className={styles.cardBubble}>
@@ -393,10 +393,9 @@ export function ChatScreen({
                 <div key={msg.id} className={`${styles.mrow} ${dir === 'out' ? styles.mrowOut : ''}`}>
                   {dir === 'in' && (
                     // Входящее сообщение: аватар собеседника.
-                    // Для гостя — это инструктор (АМ / ice).
-                    // Для инструктора — это ученик (personInitials / personAvColor).
-                    <div className={`${styles.av} ${styles.avSm} ${isInstructor ? styles[`av-${personAvColor}`] : styles['av-ice']}`}>
-                      {isInstructor ? personInitials : 'АМ'}
+                    // personInitials / personAvColor всегда содержат данные собеседника.
+                    <div className={`${styles.av} ${styles.avSm} ${styles[`av-${personAvColor}`]}`}>
+                      {personInitials}
                     </div>
                   )}
                   <div>
@@ -412,8 +411,8 @@ export function ChatScreen({
             {/* Typing indicator */}
             {typing && !previewExhausted && (
               <div className={styles.mrow}>
-                <div className={`${styles.av} ${styles.avSm} ${isInstructor ? styles[`av-${personAvColor}`] : styles['av-ice']}`}>
-                  {isInstructor ? personInitials : 'АМ'}
+                <div className={`${styles.av} ${styles.avSm} ${styles[`av-${personAvColor}`]}`}>
+                  {personInitials}
                 </div>
                 <div className={styles.typingBubble}>
                   <div className={styles.td} /><div className={styles.td} /><div className={styles.td} />

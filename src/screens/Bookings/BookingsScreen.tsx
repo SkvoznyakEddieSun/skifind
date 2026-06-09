@@ -184,7 +184,7 @@ export function BookingsScreen({ onChat, onCancel, onBookAgain, onBack }: Bookin
                     <button
                       className={`${styles.btn} ${styles.btnSecondary} ${styles.btnSm}`}
                       style={{ flex: 1 }}
-                      onClick={() => onChat(b.id)}
+                      onClick={() => onChat(b.instructorId)}
                     >
                       💬 {t('bookings.chat')}
                     </button>
@@ -247,7 +247,7 @@ export function BookingsScreen({ onChat, onCancel, onBookAgain, onBack }: Bookin
                 <div className={styles.bcActions}>
                   {b.status === 'confirmed' && (
                     <>
-                      <button className={`${styles.btn} ${styles.btnSecondary} ${styles.btnSm}`} style={{ flex: 1 }} onClick={() => onChat(b.id)}>
+                      <button className={`${styles.btn} ${styles.btnSecondary} ${styles.btnSm}`} style={{ flex: 1 }} onClick={() => onChat(b.instructorId)}>
                         💬 {t('bookings.chat')}
                       </button>
                       <button className={`${styles.btn} ${styles.btnPrimary} ${styles.btnSm}`} style={{ flex: 1 }} onClick={() => showToast('📞 Номер инструктора отправлен в чат')}>
