@@ -65,12 +65,13 @@ function hasPhone(text: string): boolean {
 }
 
 /**
- * История переписки.
+ * Истории переписки по chatId.
  * sender: INSTR_ID = инструктор отправил, STUDENT_ID = гость отправил.
- * Направление сообщения определяется сравнением sender с currentUserId
- * — никакой «перспективы» не нужно.
+ * Направление определяется сравнением sender с currentUserId.
  */
-const INITIAL: ChatItem[] = [
+
+// ── Чат с Алексеем (сноуборд, мини-группа, заявка принята) ─────────────────
+const ALEKSEY_INITIAL: ChatItem[] = [
   { kind: 'sep', label: '25 апреля', id: 'sep1' },
   { id: 'm1', sender: INSTR_ID,   type: 'text', text: 'Привет! Увидел вашу заявку — рад помочь с обучением 🏂 Расскажите о себе — вы совсем новичок или уже пробовали кататься?', time: '14:12' },
   { id: 'm2', sender: STUDENT_ID, type: 'text', text: 'Привет! Мы с женой абсолютные новички, никогда не стояли на доске.', time: '14:15', ticks: '✓✓' },
@@ -84,6 +85,37 @@ const INITIAL: ChatItem[] = [
   { id: 'm6', sender: STUDENT_ID, type: 'text', text: 'Алексей, добрый день! Напоминаю — завтра в 10:00. Подтверждаете?', time: '09:14', ticks: '✓✓' },
 ];
 
+// ── Чат с Натальей (горные лыжи, детское занятие, ожидает подтверждения) ────
+const NATALYA_INITIAL: ChatItem[] = [
+  { kind: 'sep', label: 'Сегодня', id: 'sep1' },
+  { id: 'n1', sender: STUDENT_ID, type: 'text', text: 'Здравствуйте! Хотим записать дочку на лыжное занятие 3 мая.', time: '10:00', ticks: '✓✓' },
+  { id: 'n2', sender: INSTR_ID,   type: 'text', text: 'Добрый день! Вижу вашу заявку — всё отлично. Сколько лет ребёнку?', time: '10:12' },
+];
+
+// ── Чат с Мариной (горные лыжи, продвинутый, занятие завершено) ─────────────
+const MARINA_INITIAL: ChatItem[] = [
+  { kind: 'sep', label: '15 марта', id: 'sep1' },
+  { id: 'ma1', sender: STUDENT_ID, type: 'text', text: 'Марина, спасибо за занятие! Очень полезно поработали над техникой карвинга.', time: '15:20', ticks: '✓✓' },
+  { id: 'ma2', sender: INSTR_ID,   type: 'text', text: 'Рада была помочь! Прогресс очень заметен — красные трассы уже без страха. Жду в следующем сезоне!', time: '15:35' },
+];
+
+// ── Кэш историй (живёт всю сессию) ─────────────────────────────────────────
+// Ключ: chatId (instructorId для гостя, bookingId для инструктора).
+// При первом открытии чата инициализируется из соответствующего INITIAL-массива.
+const HISTORY_CACHE = new Map<string, ChatItem[]>();
+
+function getOrInitHistory(chatId?: string): ChatItem[] {
+  const key = chatId ?? '__default';
+  if (!HISTORY_CACHE.has(key)) {
+    let initial: ChatItem[];
+    if (key === 'natalya') initial = [...NATALYA_INITIAL];
+    else if (key === 'marina') initial = [...MARINA_INITIAL];
+    else initial = [...ALEKSEY_INITIAL]; // aleksey, bookingIds, default
+    HISTORY_CACHE.set(key, initial);
+  }
+  return HISTORY_CACHE.get(key)!;
+}
+
 const QUICK_REPLIES = [
   'Аренда снаряжения?',
   'Как добраться?',
@@ -93,7 +125,7 @@ const QUICK_REPLIES = [
 
 // ── Props ──────────────────────────────────────────────────────────────────
 
-export type BookingStatus = 'NONE' | 'PENDING' | 'ACCEPTED' | 'DECLINED';
+export type BookingStatus = 'NONE' | 'PENDING' | 'ACCEPTED' | 'DECLINED' | 'CANCELLED';
 
 interface ChatScreenProps {
   onBack: () => void;
@@ -108,6 +140,8 @@ interface ChatScreenProps {
   role?: 'instructor' | 'guest';  // default: 'guest'
   onAcceptBooking?: () => void;    // инструктор принимает заявку из чата
   onDeclineBooking?: () => void;   // инструктор отклоняет заявку из чата
+  /** Ключ истории в HISTORY_CACHE: instructorId (гость) или bookingId (инструктор). */
+  chatId?: string;
 }
 
 // ── Component ──────────────────────────────────────────────────────────────
@@ -136,6 +170,7 @@ export function ChatScreen({
   role = 'guest',
   onAcceptBooking,
   onDeclineBooking,
+  chatId,
 }: ChatScreenProps) {
   const { t } = useTranslation();
 
@@ -149,7 +184,7 @@ export function ChatScreen({
   const currentUserId = role === 'instructor' ? INSTR_ID : STUDENT_ID;
   const isInstructor  = role === 'instructor';
 
-  const [items, setItems] = useState<ChatItem[]>(INITIAL);
+  const [items, setItems] = useState<ChatItem[]>(() => getOrInitHistory(chatId));
   const [inputVal, setInputVal] = useState('');
   const [bookingVisible, setBookingVisible] = useState(true);
   const [typing, setTyping] = useState(false);
@@ -167,8 +202,11 @@ export function ChatScreen({
 
   const isAccepted = bookingStatus === 'ACCEPTED';
   const isDeclined = bookingStatus === 'DECLINED';
+  // PENDING значит заявка уже отправлена — превью не исчерпывается, гость может писать свободно.
+  // CANCELLED — гость отменил заявку: превью возобновляется как при NONE.
+  const hasActiveBooking = isAccepted || bookingStatus === 'PENDING';
   // Preview restrictions apply only to guest side; instructors always have full access
-  const previewExhausted = !isInstructor && !isAccepted && outMsgCount >= PREVIEW_LIMIT;
+  const previewExhausted = !isInstructor && !hasActiveBooking && outMsgCount >= PREVIEW_LIMIT;
   const remaining = Math.max(0, PREVIEW_LIMIT - outMsgCount);
 
   function fireToast(msg: string) {
@@ -184,6 +222,11 @@ export function ChatScreen({
     const phone = instructorPhone ?? '+79000000000';
     window.location.href = phone.startsWith('tel:') ? phone : `tel:${phone}`;
   }
+
+  // Синхронизируем кэш истории при каждом изменении items
+  useEffect(() => {
+    HISTORY_CACHE.set(chatId ?? '__default', items);
+  }, [chatId, items]);
 
   // Scroll to bottom
   useEffect(() => {
@@ -278,8 +321,8 @@ export function ChatScreen({
         </div>
       )}
 
-      {/* ── Preview banner (while not exhausted and not accepted) ── */}
-      {!isAccepted && !isDeclined && !previewExhausted && outMsgCount > 0 && (
+      {/* ── Preview banner (while not exhausted and not accepted/pending) ── */}
+      {!hasActiveBooking && !isDeclined && !previewExhausted && outMsgCount > 0 && (
         <div className={styles.previewBanner}>
           <span className={styles.previewBannerText}>
             Предпросмотр: осталось {remaining} {remaining === 1 ? 'сообщение' : 'сообщения'}

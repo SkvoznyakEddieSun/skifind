@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import styles from './BookingsScreen.module.css';
 import { useTranslation } from '@/i18n/useTranslation';
 import { Icon } from '@/components/Icon/Icon';
-import { getGuestBookings, declineBooking } from '@/store/bookings';
+import { getGuestBookings, guestCancelBooking } from '@/store/bookings';
 import type { Booking as StoreBooking } from '@/store/bookings';
 
 type BookingStatus = 'confirmed' | 'pending' | 'completed' | 'cancelled';
@@ -28,6 +28,7 @@ const STATUS_MAP: Record<StoreBooking['status'], BookingStatus> = {
   pending:   'pending',
   accepted:  'confirmed',
   declined:  'cancelled',
+  cancelled: 'cancelled',
   completed: 'completed',
 };
 
@@ -104,7 +105,7 @@ export function BookingsScreen({ onChat, onCancel, onBookAgain, onBack }: Bookin
   }
 
   function handleCancel(bookingId: string) {
-    declineBooking(bookingId); // обновляем хранилище
+    guestCancelBooking(bookingId); // гость отменяет — не инструктор
     setBookings(prev => prev.map(b =>
       b.id === bookingId ? { ...b, status: 'cancelled' as const } : b
     ));

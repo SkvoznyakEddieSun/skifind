@@ -260,14 +260,13 @@
   stroke-linejoin: round;
 }
 
-/* ── Phone button in header ── */
+/* ── Phone button in header (matches ChatScreen .ctBtn) ── */
 .phoneBtn {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  border: none;
-  background: var(--accent-soft);
-  font-size: 16px;
+  border: 1px solid var(--border);
+  background: var(--surface-1);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -277,6 +276,14 @@
 }
 
 .phoneBtn:active { opacity: .7; }
+
+.phoneBtn svg {
+  stroke: var(--accent);
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
 
 .phoneBtnLocked {
   opacity: 0.3;

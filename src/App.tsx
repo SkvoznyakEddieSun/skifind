@@ -226,6 +226,7 @@ export function App() {
         personInitials={chatPersonInitials || undefined}
         personAvColor={chatPersonAvColor || undefined}
         role={chatIsInstructor ? 'instructor' : 'guest'}
+        chatId={chatIsInstructor ? activeChatBookingId : activeInstructor.id}
         onAcceptBooking={chatIsInstructor && activeChatBookingId ? () => {
           acceptBooking(activeChatBookingId);
           setChatBookingStatus('ACCEPTED');
@@ -319,9 +320,10 @@ export function App() {
             setChatIsInstructor(false);
             const bk = getGuestBookings().find(b => b.instructorId === instructorId);
             setChatBookingStatus(
-              bk?.status === 'accepted'  ? 'ACCEPTED' :
-              bk?.status === 'declined'  ? 'DECLINED' :
-              bk?.status === 'completed' ? 'ACCEPTED' : 'PENDING'
+              bk?.status === 'accepted'  ? 'ACCEPTED'   :
+              bk?.status === 'declined'  ? 'DECLINED'   :
+              bk?.status === 'cancelled' ? 'CANCELLED'  :
+              bk?.status === 'completed' ? 'ACCEPTED'   : 'PENDING'
             );
             push('chat');
           }}
@@ -615,9 +617,10 @@ export function App() {
             setChatIsInstructor(false);
             const bk = getGuestBookings().find(b => b.instructorId === instructorId);
             setChatBookingStatus(
-              bk?.status === 'accepted'  ? 'ACCEPTED' :
-              bk?.status === 'declined'  ? 'DECLINED' :
-              bk?.status === 'completed' ? 'ACCEPTED' : 'PENDING'
+              bk?.status === 'accepted'  ? 'ACCEPTED'   :
+              bk?.status === 'declined'  ? 'DECLINED'   :
+              bk?.status === 'cancelled' ? 'CANCELLED'  :
+              bk?.status === 'completed' ? 'ACCEPTED'   : 'PENDING'
             );
             push('chat');
           }}

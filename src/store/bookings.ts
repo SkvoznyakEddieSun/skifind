@@ -9,7 +9,7 @@ import { pushNotification } from './notifications';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
-export type BookingStatus  = 'pending' | 'accepted' | 'declined' | 'completed';
+export type BookingStatus  = 'pending' | 'accepted' | 'declined' | 'cancelled' | 'completed';
 export type BookingFormat  = 'individual' | 'miniGroup' | 'kids';
 export type BookingDiscipline = 'ski' | 'board';
 
@@ -385,6 +385,12 @@ export function acceptBooking(id: string): void {
 export function declineBooking(id: string): void {
   const b = BOOKINGS.find(b => b.id === id);
   if (b) b.status = 'declined';
+}
+
+/** Отмена бронирования гостем (отличается от declineBooking — инструктором) */
+export function guestCancelBooking(id: string): void {
+  const b = BOOKINGS.find(b => b.id === id);
+  if (b) b.status = 'cancelled';
 }
 
 export function completeBooking(id: string): void {
