@@ -226,7 +226,7 @@
 .btnPrimary  { background: var(--accent);    color: var(--accent-text); }
 .btnSecondary { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); }
 .btnDanger   { color: var(--red); }
-.btnSm       { padding: 8px 14px; font-size: 13px; }
+.btnSm       { padding: 8px 14px; font-size: 13px; white-space: nowrap; }
 
 /* ── Pending section ── */
 .pendingSection {

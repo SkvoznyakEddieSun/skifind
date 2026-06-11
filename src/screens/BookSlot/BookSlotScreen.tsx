@@ -312,7 +312,15 @@ export function BookSlotScreen({ onBack, onBooked, instructor }: BookSlotScreenP
           <div className={`${styles.dayStrip} ${(!duration && !isFullDay) ? styles.stepDisabled : ''}`}>
             {DAYS.map((d, i) => {
               const key         = WEEKDAY_KEY[d.getDay()];
-              const hasSchedule = !!instructor.weekSchedule[key];
+              const sched       = instructor.weekSchedule[key];
+              // На сегодня учитываем текущее время: если рабочий день уже закончился
+              // (нет места хотя бы для минимального 45-мин слота) — день недоступен.
+              let hasSchedule   = !!sched;
+              if (hasSchedule && i === 0) {
+                const now    = new Date();
+                const nowMin = now.getHours() * 60 + now.getMinutes();
+                hasSchedule  = timeToMin(sched!.end) - 45 > nowMin;
+              }
               const isSelected  = i === dayIdx;
               const isDisabled  = (!duration && !isFullDay) || !hasSchedule;
               return (

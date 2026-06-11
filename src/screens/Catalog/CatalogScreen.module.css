@@ -125,18 +125,6 @@
   border: 2px solid var(--surface-1);
 }
 
-.becomeBtn {
-  padding: 5px 10px;
-  border-radius: 20px;
-  background: var(--surface-1);
-  border: 1px solid var(--border);
-  color: var(--accent);
-  font-size: 11px;
-  white-space: nowrap;
-  font-family: var(--ff);
-  cursor: pointer;
-}
-
 /* Search */
 .searchBox {
   display: flex;
@@ -464,6 +452,7 @@
 .tag-mint   { background: var(--mint); color: var(--mint-text); }
 .tag-straw  { background: var(--straw); color: var(--straw-text); }
 .tag-purple { background: rgba(124,58,237,.15); color: #A78BFA; }
+.tag-cyan   { background: rgba(45,150,165,.14); color: #2596a5; }
 .tag-gray   { background: var(--surface-2); color: var(--text-dim); }
 
 /* On mountain badge */

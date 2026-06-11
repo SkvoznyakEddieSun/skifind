@@ -4,8 +4,15 @@ import { useTranslation } from '@/i18n/useTranslation';
 import { Icon } from '@/components/Icon/Icon';
 
 type SportType = 'all' | 'ski' | 'board';
-type Level = 'all' | 'beginner' | 'intermediate' | 'advanced' | 'kids' | 'freeride';
-type SortKey = 'rating' | 'price-asc' | 'price-desc' | 'experience';
+type Level = 'all' | 'beginner' | 'intermediate' | 'advanced' | 'kids' | 'freeride' | 'freestyle';
+type SortKey = 'random' | 'rating' | 'price-asc' | 'price-desc' | 'experience';
+
+/** Фиксированный порядок тегов на карточке: дисциплина → уровень → стиль → Дети.
+ *  straw = Фрирайд, cyan = Фристайл (оба относятся к «стилю»). */
+const TAG_ORDER: Record<string, number> = { blue: 0, mint: 1, straw: 2, cyan: 3, purple: 4, gray: 5 };
+function orderedTags(tags: Instructor['tags']): Instructor['tags'] {
+  return [...tags].sort((a, b) => (TAG_ORDER[a.color] ?? 9) - (TAG_ORDER[b.color] ?? 9));
+}
 
 export type WeekDay = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun';
 
@@ -82,7 +89,7 @@ export interface Instructor {
   gender: 'male' | 'female';
   busyUntil?: string;
   nextSlot?: string;
-  tags: { label: string; color: 'blue' | 'mint' | 'straw' | 'purple' | 'gray' }[];
+  tags: { label: string; color: 'blue' | 'mint' | 'straw' | 'cyan' | 'purple' | 'gray' }[];
   // Расширенные данные профиля
   skills?: InstructorSkill[];
   schedule?: InstructorScheduleDay[];
@@ -101,7 +108,7 @@ export const ACTIVE_RESORTS = ['Шерегеш'] as const;
 export const INSTRUCTORS: Instructor[] = [
   {
     id: 'aleksey', name: 'Алексей Морозов', initials: 'АМ', avatarColor: 'ice',
-    resort: 'Шерегеш', type: ['board'], level: ['beginner', 'advanced'],
+    resort: 'Шерегеш', type: ['board'], level: ['beginner', 'advanced', 'freestyle'],
     rating: 4.9, price: 3500,
     weekSchedule: {
       mon: { start: '09:00', end: '17:00', breaks: [{ start: '13:00', end: '14:00' }] },
@@ -119,12 +126,12 @@ export const INSTRUCTORS: Instructor[] = [
     bio: 'Катаюсь с 14 лет, преподаю с 2016 года. Специализируюсь на обучении взрослых с нуля и улучшении техники. Умею объяснить сложное просто — каждому подбираю свой темп.',
     exp: 8, onMountain: true, hasFreeSlotsToday: true,
     gender: 'male', nextSlot: 'сегодня 14:00',
-    tags: [{ label: 'Сноуборд', color: 'blue' }, { label: 'Новички', color: 'mint' }],
+    tags: [{ label: 'Сноуборд', color: 'blue' }, { label: 'Новички', color: 'mint' }, { label: 'Фристайл', color: 'cyan' }],
     students: 127, reviewsCount: 48,
     skills: [
       { name: 'Новички',     pct: 100, color: 'steel' },
       { name: 'Продвинутые', pct: 85,  color: 'steel' },
-      { name: 'Фрирайд',     pct: 72,  color: 'leaf'  },
+      { name: 'Фристайл',    pct: 80,  color: 'leaf'  },
       { name: 'Психология',  pct: 90,  color: 'leaf'  },
     ],
     schedule: [
@@ -374,13 +381,25 @@ interface CatalogScreenProps {
  *
  * Никакого JS для анимации — только CSS sticky.
  */
-export function CatalogScreen({ onProfile, onBook, onNotifications, onBecomeInstructor, onMasterClasses, blockedIds, favorites: favoritesProp, onToggleFavorite }: CatalogScreenProps) {
+export function CatalogScreen({ onProfile, onBook, onNotifications, onMasterClasses, blockedIds, favorites: favoritesProp, onToggleFavorite }: CatalogScreenProps) {
   const { t } = useTranslation();
   const [search, setSearch]           = useState('');
   const [type, setType]               = useState<SportType>('all');
   const [level, setLevel]             = useState<Level>('all');
-  const [sort, setSort]               = useState<SortKey>('rating');
+  const [sort, setSort]               = useState<SortKey>('random');
   const [onlyFreeToday, setOnlyFreeToday] = useState(false);
+
+  /** Случайный порядок (Fisher-Yates), зафиксированный при открытии каталога.
+   *  Карта id → позиция, чтобы никто не оказывался всегда наверху. */
+  const randomOrder = useRef<Record<string, number>>({});
+  if (Object.keys(randomOrder.current).length === 0) {
+    const ids = INSTRUCTORS.map(i => i.id);
+    for (let k = ids.length - 1; k > 0; k--) {
+      const j = Math.floor(Math.random() * (k + 1));
+      [ids[k], ids[j]] = [ids[j], ids[k]];
+    }
+    randomOrder.current = Object.fromEntries(ids.map((id, idx) => [id, idx]));
+  }
   const [localFavorites, setLocalFavorites] = useState<Set<string>>(new Set());
   const favorites = favoritesProp ?? localFavorites;
   const contentRef                    = useRef<HTMLDivElement>(null);
@@ -436,7 +455,8 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onBecomeInst
       if (sort === 'rating') return b.rating - a.rating;
       if (sort === 'price-asc') return a.price - b.price;
       if (sort === 'price-desc') return b.price - a.price;
-      return b.exp - a.exp;
+      if (sort === 'experience') return b.exp - a.exp;
+      return (randomOrder.current[a.id] ?? 0) - (randomOrder.current[b.id] ?? 0);
     });
 
   const LEVELS: { key: Level; label: string }[] = [
@@ -445,6 +465,7 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onBecomeInst
     { key: 'advanced',  label: t('catalog.levelAdvanced') },
     { key: 'kids',      label: t('catalog.levelKids') },
     { key: 'freeride',  label: t('catalog.levelFreeride') },
+    { key: 'freestyle', label: t('catalog.levelFreestyle') },
   ];
 
   return (
@@ -459,9 +480,6 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onBecomeInst
             </h1>
           </div>
           <div className={styles.topActions}>
-            <button className={styles.becomeBtn} onClick={onBecomeInstructor}>
-              Стать инструктором
-            </button>
             <button className={styles.bellBtn} onClick={onNotifications} aria-label="Уведомления">
               <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
               <div className={styles.notifDot} />
@@ -496,7 +514,7 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onBecomeInst
                 </button>
               ))}
             </div>
-            <div className={`${styles.sortIconBtn} ${sort !== 'rating' ? styles.sortIconBtnActive : ''}`}>
+            <div className={`${styles.sortIconBtn} ${sort !== 'random' ? styles.sortIconBtnActive : ''}`}>
               <svg viewBox="0 0 16 16">
                 <line x1="2" y1="4" x2="14" y2="4"/>
                 <line x1="4" y1="8" x2="12" y2="8"/>
@@ -506,6 +524,7 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onBecomeInst
                 value={sort}
                 onChange={e => { setSort(e.target.value as SortKey); scrollToTop(); }}
               >
+                <option value="random">По умолчанию</option>
                 <option value="rating">{t('catalog.sortByRating')}</option>
                 <option value="price-asc">{t('catalog.sortByPriceAsc')}</option>
                 <option value="price-desc">{t('catalog.sortByPriceDesc')}</option>
@@ -574,7 +593,7 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onBecomeInst
                   <div className={styles.icName}>{instr.name}</div>
                   <div className={styles.icResort}><Icon name="map-pin" size={11} /> {instr.resort}</div>
                   <div className={styles.icTags}>
-                    {instr.tags.map(tag => (
+                    {orderedTags(instr.tags).map(tag => (
                       <span key={tag.label} className={`${styles.tag} ${styles[`tag-${tag.color}`]}`}>
                         {tag.label}
                       </span>
