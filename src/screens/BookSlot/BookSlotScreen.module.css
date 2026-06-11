@@ -555,6 +555,25 @@
   font-style: italic;
 }
 
+/* Плашка о мастер-классе, блокирующем индивидуальную запись */
+.mcNote {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 16px 10px;
+  padding: 9px 12px;
+  background: var(--accent-soft);
+  border-radius: var(--r8);
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--accent);
+}
+
+.mcNote svg {
+  flex-shrink: 0;
+  stroke: var(--accent);
+}
+
 /* ── Summary bar ── */
 .summaryBar {
   flex-shrink: 0;

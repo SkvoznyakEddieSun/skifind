@@ -93,6 +93,11 @@
   background: var(--success-on-light);
 }
 
+.tabBadgeAccent {
+  background: var(--accent);
+  color: var(--accent-text);
+}
+
 /* ── Scroll area ── */
 .scroll {
   flex: 1;
@@ -374,6 +379,88 @@
 .stActive  { background: var(--mint); color: var(--success-on-light); }
 .stPending { background: var(--straw); color: var(--warn-on-light); }
 .stInactive{ background: var(--surface-2); color: var(--text-dim); }
+
+/* ── My Master Classes tab ── */
+.mcList {
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mcCard {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--r12);
+  padding: 12px 14px;
+  cursor: pointer;
+  transition: transform .1s;
+}
+
+.mcCard:active { transform: scale(.99); }
+
+.mcCardTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.mcTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.mcStatus {
+  font-size: 10px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 8px;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.mcStatusOk   { background: var(--mint);  color: var(--success-on-light); }
+.mcStatusWait { background: var(--straw); color: var(--warn-on-light); }
+
+.mcMeta {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-bottom: 2px;
+}
+
+.mcBar {
+  height: 6px;
+  background: var(--surface-2);
+  border-radius: 3px;
+  overflow: hidden;
+  margin: 10px 0 6px;
+}
+
+.mcBarFill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 3px;
+  transition: width .3s ease;
+}
+
+.mcStats {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-bottom: 10px;
+}
+
+.mcActions {
+  display: flex;
+  gap: 6px;
+}
+
+.mcActions .btn { flex: 1; }
 
 .toast {
   position: absolute;

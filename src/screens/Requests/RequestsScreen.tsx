@@ -12,6 +12,10 @@ import {
 import type { Booking } from '@/store/bookings';
 import { addInstrRecentChat } from '@/screens/ChatList/ChatListScreen';
 import { getStudentProfileByName } from '@/screens/StudentProfile/studentData';
+import { MASTER_CLASSES } from '@/screens/MasterClass/masterClassData';
+
+// Текущий залогиненный инструктор (демо) — совпадает с источником заявок
+const CURRENT_INSTRUCTOR_ID = 'aleksey';
 
 // ── Pre-existing "own" students (без комиссии, добавлены до платформы) ──────
 
@@ -109,17 +113,19 @@ interface RequestsScreenProps {
   onBack:    () => void;
   onChat:    (id: string) => void;
   onRequest: (id: string) => void;
+  onMasterClass: (id: string) => void;
+  onMcGroupChat: (id: string) => void;
 }
 
 // ── Component ──────────────────────────────────────────────────────────────
 
-export function RequestsScreen({ onBack, onChat, onRequest }: RequestsScreenProps) {
-  const [tab, setTab] = useState<'new' | 'mine'>('new');
+export function RequestsScreen({ onBack, onChat, onRequest, onMasterClass, onMcGroupChat }: RequestsScreenProps) {
+  const [tab, setTab] = useState<'new' | 'mine' | 'mc'>('new');
   const [toast, setToast] = useState<string | null>(null);
   const [tabAnimDir, setTabAnimDir] = useState<'left' | 'right' | null>(null);
   const [tabAnimKey, setTabAnimKey] = useState(0);
 
-  const REQ_TABS = ['new', 'mine'] as const;
+  const REQ_TABS = ['new', 'mine', 'mc'] as const;
   const { onTouchStart: swipeTouchStart, onTouchEnd: swipeTouchEnd } = useTabSwipe(
     REQ_TABS, tab,
     (t, dir) => { setTabAnimDir(dir); setTabAnimKey(k => k + 1); setTab(t); },
@@ -210,6 +216,9 @@ export function RequestsScreen({ onBack, onChat, onRequest }: RequestsScreenProp
 
   const totalStudents = OWN_STUDENTS.length + OWN_STUDENTS_INACTIVE.length + acceptedStudents.length;
 
+  // Мастер-классы текущего инструктора
+  const myMasterClasses = MASTER_CLASSES.filter(mc => mc.instructorId === CURRENT_INSTRUCTOR_ID);
+
   return (
     <div className={styles.screen}>
       {/* Topbar */}
@@ -238,6 +247,12 @@ export function RequestsScreen({ onBack, onChat, onRequest }: RequestsScreenProp
           onClick={() => setTab('mine')}
         >
           Мои<span className={`${styles.tabBadge} ${styles.tabBadgeGreen}`}>{totalStudents}</span>
+        </button>
+        <button
+          className={`${styles.tab} ${tab === 'mc' ? styles.tabActive : ''}`}
+          onClick={() => setTab('mc')}
+        >
+          Мои МК<span className={`${styles.tabBadge} ${styles.tabBadgeAccent}`}>{myMasterClasses.length}</span>
         </button>
       </div>
 
@@ -411,6 +426,69 @@ export function RequestsScreen({ onBack, onChat, onRequest }: RequestsScreenProp
                 </span>
               </div>
             ))}
+          </>
+          </div>
+        )}
+
+        {/* ── MY MASTER CLASSES ── */}
+        {tab === 'mc' && (
+          <div
+            key={tabAnimKey}
+            style={{ animation: tabAnimDir ? `${tabAnimDir === 'left' ? 'tabSlideLeft' : 'tabSlideRight'} 200ms cubic-bezier(0.25,0.46,0.45,0.94) both` : undefined }}
+          >
+          <>
+            <div className={`${styles.infoBanner} ${styles.infoBannerIce}`}>
+              Ваши мастер-классы — групповые занятия с фиксированной датой
+            </div>
+
+            {myMasterClasses.length === 0 ? (
+              <div style={{ padding: '40px 20px', textAlign: 'center', color: 'var(--text-dim)', fontSize: 14 }}>
+                У вас пока нет мастер-классов
+              </div>
+            ) : (
+              <div className={styles.mcList}>
+                {myMasterClasses.map(mc => {
+                  const count     = mc.participants.length;
+                  const pct       = Math.round((count / mc.maxParticipants) * 100);
+                  const confirmed = count >= mc.minParticipants;
+                  return (
+                    <div key={mc.id} className={styles.mcCard} onClick={() => onMasterClass(mc.id)}>
+                      <div className={styles.mcCardTop}>
+                        <div className={styles.mcTitle}>{mc.title}</div>
+                        <span className={`${styles.mcStatus} ${confirmed ? styles.mcStatusOk : styles.mcStatusWait}`}>
+                          {confirmed ? 'Группа набрана' : 'Идёт набор'}
+                        </span>
+                      </div>
+                      <div className={styles.mcMeta}>{mc.weekday}, {mc.date} · {mc.time}</div>
+                      <div className={styles.mcMeta}>{mc.location}</div>
+
+                      <div className={styles.mcBar}>
+                        <div className={styles.mcBarFill} style={{ width: `${pct}%` }} />
+                      </div>
+                      <div className={styles.mcStats}>
+                        <span>{count} / {mc.maxParticipants} участников</span>
+                        <span>{confirmed ? '✓ минимум набран' : `минимум ${mc.minParticipants}`}</span>
+                      </div>
+
+                      <div className={styles.mcActions}>
+                        <button
+                          className={`${styles.btn} ${styles.btnSecondary}`}
+                          onClick={e => { e.stopPropagation(); onMcGroupChat(mc.id); }}
+                        >
+                          Чат группы
+                        </button>
+                        <button
+                          className={`${styles.btn} ${styles.btnPrimary}`}
+                          onClick={e => { e.stopPropagation(); onMasterClass(mc.id); }}
+                        >
+                          Подробнее
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </>
           </div>
         )}

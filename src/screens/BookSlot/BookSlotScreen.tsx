@@ -2,6 +2,8 @@ import { useState, useRef } from 'react';
 import styles from './BookSlotScreen.module.css';
 import type { Instructor, WeekDay, DayAvailability } from '../Catalog/CatalogScreen';
 import { addBooking } from '@/store/bookings';
+import { MASTER_CLASSES } from '@/screens/MasterClass/masterClassData';
+import { Icon } from '@/components/Icon/Icon';
 import { RegistrationBottomSheet } from './RegistrationBottomSheet';
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -29,6 +31,29 @@ function minToTime(m: number): string {
 
 function addMinutes(time: string, min: number): string {
   return minToTime(timeToMin(time) + min);
+}
+
+/** Парсит строку времени МК ('11:00 — 13:00') в минуты от начала суток */
+function parseMcTimeRange(time: string): { start: number; end: number } | null {
+  const m = time.match(/(\d{1,2}:\d{2})\D+(\d{1,2}:\d{2})/);
+  if (!m) return null;
+  return { start: timeToMin(m[1]), end: timeToMin(m[2]) };
+}
+
+/** Временные окна мастер-классов инструктора, попадающие на конкретную дату.
+ *  В эти интервалы индивидуальная запись недоступна — инструктор ведёт группу. */
+function mcWindowsForDay(instructorId: string, day: Date): { start: string; end: string }[] {
+  const dayStart = new Date(day); dayStart.setHours(0, 0, 0, 0);
+  const nextDay  = new Date(dayStart); nextDay.setDate(dayStart.getDate() + 1);
+  return MASTER_CLASSES
+    .filter(mc => mc.instructorId === instructorId)
+    .filter(mc => {
+      const t = new Date(mc.eventDateISO).getTime();
+      return t >= dayStart.getTime() && t < nextDay.getTime();
+    })
+    .map(mc => parseMcTimeRange(mc.time))
+    .filter((r): r is { start: number; end: number } => r !== null)
+    .map(r => ({ start: minToTime(r.start), end: minToTime(r.end) }));
 }
 
 function generateSlots(day: DayAvailability, durationMin: number, stepMin: number): string[] {
@@ -105,8 +130,14 @@ export function BookSlotScreen({ onBack, onBooked, instructor }: BookSlotScreenP
   const selectedDayKey      = selectedDay ? WEEKDAY_KEY[selectedDay.getDay()] : null;
   const selectedDaySchedule = selectedDayKey ? instructor.weekSchedule[selectedDayKey] : undefined;
 
-  const rawSlots: string[] = (selectedDaySchedule && duration)
-    ? generateSlots(selectedDaySchedule, duration, duration === 45 ? 45 : 60)
+  // Мастер-классы инструктора на выбранный день блокируют индивидуальную запись
+  const mcWindows = selectedDay ? mcWindowsForDay(instructor.id, selectedDay) : [];
+  const scheduleWithMc: DayAvailability | undefined = selectedDaySchedule
+    ? { ...selectedDaySchedule, breaks: [...(selectedDaySchedule.breaks ?? []), ...mcWindows] }
+    : undefined;
+
+  const rawSlots: string[] = (scheduleWithMc && duration)
+    ? generateSlots(scheduleWithMc, duration, duration === 45 ? 45 : 60)
     : [];
 
   // Для сегодняшнего дня фильтруем уже прошедшие слоты
@@ -348,9 +379,22 @@ export function BookSlotScreen({ onBack, onBooked, instructor }: BookSlotScreenP
               : 'Время начала'}
           </div>
         </div>
+        {dayIdx !== null && mcWindows.length > 0 && (
+          <div className={styles.mcNote}>
+            <Icon name="ski" size={14} />
+            <span>
+              {mcWindows.map(w => `${w.start}–${w.end}`).join(', ')} — мастер-класс,
+              индивидуальная запись в это время недоступна
+            </span>
+          </div>
+        )}
         {isFullDay ? (
           dayIdx === null ? (
             <div className={styles.noSlots}>Выберите день</div>
+          ) : mcWindows.length > 0 ? (
+            <div className={styles.noSlots}>
+              В этот день инструктор ведёт мастер-класс — «Весь день» недоступен, выберите другой день
+            </div>
           ) : (
             <div className={styles.timeList}>
               <div className={`${styles.timeBtn} ${styles.timeBtnActive}`} style={{ cursor: 'default' }}>

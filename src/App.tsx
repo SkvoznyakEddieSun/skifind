@@ -301,6 +301,8 @@ export function App() {
           onBack={pop}
           onChat={openStudentChat}
           onRequest={id => { setActiveRequestId(id); push('request-detail'); }}
+          onMasterClass={id => { setActiveMcId(id); push('mc-detail'); }}
+          onMcGroupChat={id => { setActiveMcId(id); push('mc-group-chat'); }}
         />
         <BottomNav items={instrNavLive} active={instrTab} onTab={t => switchInstrTab(t as InstrTab)} />
       </div>
@@ -489,7 +491,7 @@ export function App() {
           setAnimDir('pop');
           setAnimKey(k => k + 1);
           if (idx >= 0) setStack(stack.slice(0, idx + 1));
-          else setStack(['guest']);
+          else setStack(role === 'instructor' ? ['instr'] : ['guest']);
         }}
       />
     );
@@ -527,6 +529,8 @@ export function App() {
           onBack={() => switchInstrTab('dashboard')}
           onChat={openStudentChat}
           onRequest={id => { setActiveRequestId(id); push('request-detail'); }}
+          onMasterClass={id => { setActiveMcId(id); push('mc-detail'); }}
+          onMcGroupChat={id => { setActiveMcId(id); push('mc-group-chat'); }}
         />
       );
     } else if (instrTab === 'chat') {
