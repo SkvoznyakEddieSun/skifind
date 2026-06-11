@@ -71,6 +71,22 @@ function toMin(t: string): number {
 }
 
 /**
+ * Русское склонение существительного по числу.
+ * forms = [одно (1, 21…), два-четыре (2-4, 22-24…), много (0, 5-20, 25-30…)]
+ *   plural(1,  …) → forms[0]   ·  plural(2,  …) → forms[1]
+ *   plural(0,  …) → forms[2]   ·  plural(5,  …) → forms[2]
+ *   plural(11, …) → forms[2]   ·  plural(21, …) → forms[0]
+ */
+function plural(n: number, forms: [string, string, string]): string {
+  const abs = Math.abs(n) % 100;
+  const d = abs % 10;
+  if (abs > 10 && abs < 20) return forms[2];
+  if (d === 1) return forms[0];
+  if (d >= 2 && d <= 4) return forms[1];
+  return forms[2];
+}
+
+/**
  * Истории переписки по chatId.
  * sender: INSTR_ID = инструктор отправил, STUDENT_ID = гость отправил.
  * Направление определяется сравнением sender с currentUserId.
@@ -207,11 +223,15 @@ export function ChatScreen({
     i => !('kind' in i) && (i as Message).sender === currentUserId
   ).length;
 
-  const isAccepted = bookingStatus === 'ACCEPTED';
+  // ── Единственный источник истины для «Подтверждено» ──────────────────────
+  // confirmed === true → превью завершено, замок звонка снят, контакт открыт.
+  // Учитывает и проп bookingStatus (гость), и локальное принятие инструктором
+  // (cardAccepted), чтобы обе стороны разблокировались без рассинхрона.
+  const confirmed = bookingStatus === 'ACCEPTED' || cardAccepted;
   const isDeclined = bookingStatus === 'DECLINED';
   // PENDING значит заявка уже отправлена — превью не исчерпывается, гость может писать свободно.
   // CANCELLED — гость отменил заявку: превью возобновляется как при NONE.
-  const hasActiveBooking = isAccepted || bookingStatus === 'PENDING';
+  const hasActiveBooking = confirmed || bookingStatus === 'PENDING';
   // Preview restrictions apply only to guest side; instructors always have full access
   const previewExhausted = !isInstructor && !hasActiveBooking && outMsgCount >= PREVIEW_LIMIT;
   const remaining = Math.max(0, PREVIEW_LIMIT - outMsgCount);
@@ -235,7 +255,7 @@ export function ChatScreen({
   }
 
   function handleCall() {
-    if (!isAccepted) {
+    if (!confirmed) {
       fireToast('📞 Звонок откроется после подтверждения заявки');
       return;
     }
@@ -320,7 +340,7 @@ export function ChatScreen({
             className={styles.ctBtn}
             aria-label="Позвонить"
             onClick={handleCall}
-            style={!isAccepted ? { opacity: 0.3 } : undefined}
+            style={!confirmed ? { opacity: 0.3 } : undefined}
           >
             <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 10.8 19.79 19.79 0 01.22 2.18 2 2 0 012.18 0h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L6.91 7.09a16 16 0 006 6l.46-.46a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 14.92z"/></svg>
           </button>
@@ -345,7 +365,7 @@ export function ChatScreen({
       {!hasActiveBooking && !isDeclined && !previewExhausted && outMsgCount > 0 && (
         <div className={styles.previewBanner}>
           <span className={styles.previewBannerText}>
-            Предпросмотр: осталось {remaining} {remaining === 1 ? 'сообщение' : 'сообщения'}
+            Предпросмотр: осталось {remaining} {plural(remaining, ['сообщение', 'сообщения', 'сообщений'])}
           </span>
         </div>
       )}
@@ -422,7 +442,7 @@ export function ChatScreen({
                         </div>
                         {isInstructor ? (
                           // ── Инструктор: принять / отклонить ──────────────
-                          cardAccepted ? (
+                          confirmed ? (
                             <div className={`${styles.cbActions} ${styles.cbAcceptedLabel}`}>
                               ✓ {t('chat.accepted')}
                             </div>
@@ -454,7 +474,7 @@ export function ChatScreen({
                           // ── Гость: только статус, без кнопок действий ────
                           // (DECLINED уже перехвачен внешним баннером выше)
                           <div className={styles.cbGuestStatus}>
-                            {bookingStatus === 'ACCEPTED'
+                            {confirmed
                               ? <span className={styles.cbStatusOk}>✓ Подтверждено</span>
                               : <span className={styles.cbStatusWait}>⏳ Ожидает подтверждения</span>
                             }

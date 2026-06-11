@@ -546,20 +546,24 @@
 }
 
 /* ── Preview banner (remaining counter) ── */
+/* Закреплённая плашка: непрозрачный фон + нижняя граница, чтобы не наезжать
+   на первое сообщение и читаться при любом контенте под ней. */
 .previewBanner {
-  background: var(--straw-soft, rgba(200,160,60,.12));
+  background: var(--surface-2);
   border-bottom: 1px solid var(--border);
-  padding: 7px 16px;
+  padding: 9px 16px;
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 6px;
   flex-shrink: 0;
+  margin-bottom: 4px;
 }
 
 .previewBannerText {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
-  color: var(--straw, #c8a03c);
+  color: var(--straw-text, #92400E);
   letter-spacing: .2px;
 }
 
