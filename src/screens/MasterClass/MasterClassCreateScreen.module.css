@@ -174,7 +174,8 @@
   border-radius: 50%;
   border: 1.5px solid var(--border-strong);
   background: var(--bg);
-  font-size: 22px;
+  font-size: 20px;
+  line-height: 1;
   font-weight: 300;
   color: var(--text);
   display: flex;

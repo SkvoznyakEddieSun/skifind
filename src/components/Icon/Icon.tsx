@@ -23,7 +23,13 @@ export type IconName =
   | 'dollar-sign'
   | 'file-text'
   | 'clock'
-  | 'search';
+  | 'search'
+  | 'phone'
+  | 'x'
+  | 'hourglass'
+  | 'arrow-down'
+  | 'check-double'
+  | 'slash';
 
 const paths: Record<IconName, React.ReactNode> = {
   'check-circle': (
@@ -171,6 +177,12 @@ const paths: Record<IconName, React.ReactNode> = {
       <line x1="21" y1="21" x2="16.65" y2="16.65"/>
     </>
   ),
+  'phone': <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 3.07 10.8 19.79 19.79 0 0 1 .22 2.18 2 2 0 0 1 2.18 0h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L6.91 7.09a16 16 0 0 0 6 6l.46-.46a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 14.92z"/>,
+  'x': <><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></>,
+  'hourglass': <><path d="M5 2h14M5 22h14M5 2v4l5 5-5 5v4M19 2v4l-5 5 5 5v4"/></>,
+  'arrow-down': <><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></>,
+  'check-double': <><polyline points="20 6 9 17 4 12"/><polyline points="14 6 9 11"/></>,
+  'slash': <><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></>,
 };
 
 export function Icon({ name, size = 18 }: { name: IconName; size?: number }) {

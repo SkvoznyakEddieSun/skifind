@@ -16,6 +16,12 @@
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bot: env(safe-area-inset-bottom, 0px);
 
+  /* Typography scale */
+  --font-screen-title:   28px;
+  --font-section-title:  20px;
+  --font-body:           16px;
+  --font-caption:        13px;
+
   /* Brand accent (одинаковый ice-blue family в обеих темах) */
   --accent-on-dark: #7DD3FC;       /* light ice-blue для тёмной темы */
   --accent-on-light: #0284C7;      /* deep sky-600 для светлой темы */

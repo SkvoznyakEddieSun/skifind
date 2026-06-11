@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import styles from './BookingsScreen.module.css';
 import { useTranslation } from '@/i18n/useTranslation';
+import { Icon } from '@/components/Icon/Icon';
 import { getGuestBookings, declineBooking } from '@/store/bookings';
 import type { Booking as StoreBooking } from '@/store/bookings';
 
@@ -186,7 +187,7 @@ export function BookingsScreen({ onChat, onCancel, onBookAgain, onBack }: Bookin
                       style={{ flex: 1 }}
                       onClick={() => onChat(b.instructorId)}
                     >
-                      💬 {t('bookings.chat')}
+                      <Icon name="chat" size={14} /> {t('bookings.chat')}
                     </button>
                     <button
                       className={`${styles.btn} ${styles.btnSecondary} ${styles.btnSm} ${styles.btnDanger}`}
@@ -248,10 +249,10 @@ export function BookingsScreen({ onChat, onCancel, onBookAgain, onBack }: Bookin
                   {b.status === 'confirmed' && (
                     <>
                       <button className={`${styles.btn} ${styles.btnSecondary} ${styles.btnSm}`} style={{ flex: 1 }} onClick={() => onChat(b.instructorId)}>
-                        💬 {t('bookings.chat')}
+                        <Icon name="chat" size={14} /> {t('bookings.chat')}
                       </button>
-                      <button className={`${styles.btn} ${styles.btnPrimary} ${styles.btnSm}`} style={{ flex: 1 }} onClick={() => showToast('📞 Номер инструктора отправлен в чат')}>
-                        📞 {t('bookings.call')}
+                      <button className={`${styles.btn} ${styles.btnPrimary} ${styles.btnSm}`} style={{ flex: 1 }} onClick={() => onChat(b.instructorId)}>
+                        <Icon name="phone" size={14} /> {t('bookings.call')}
                       </button>
                     </>
                   )}

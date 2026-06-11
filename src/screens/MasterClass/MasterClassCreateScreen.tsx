@@ -190,7 +190,7 @@ export function MasterClassCreateScreen({ onBack, onPublished }: MasterClassCrea
                   className={`${styles.chip} ${sport === s ? styles.chipActive : ''}`}
                   onClick={() => setSport(s)}
                 >
-                  {s === 'ski' ? '🎿 Горные лыжи' : '🏂 Сноуборд'}
+                  {s === 'ski' ? 'Горные лыжи' : 'Сноуборд'}
                 </button>
               ))}
             </div>
@@ -291,7 +291,7 @@ export function MasterClassCreateScreen({ onBack, onPublished }: MasterClassCrea
             <input
               type="number"
               inputMode="numeric"
-              className={`input-field input-field--right${priceError ? ' input-field--error' : ''}`}
+              className={`input-field input-field--left${priceError ? ' input-field--error' : ''}`}
               placeholder={`от ${PRICE_MIN.toLocaleString('ru')}`}
               value={price}
               onChange={e => setPrice(e.target.value)}

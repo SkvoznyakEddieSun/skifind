@@ -528,7 +528,7 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onBecomeInst
               className={`${styles.chip} ${onlyFreeToday ? styles.chipActive : ''}`}
               onClick={() => { setOnlyFreeToday(v => !v); scrollToTop(); }}
             >
-              🟢 Сегодня
+              Сегодня
             </button>
           </div>
 

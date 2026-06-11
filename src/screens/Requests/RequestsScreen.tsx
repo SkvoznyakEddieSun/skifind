@@ -251,7 +251,7 @@ export function RequestsScreen({ onBack, onChat, onRequest }: RequestsScreenProp
           >
           <>
             <div className={`${styles.infoBanner} ${styles.infoBannerIce}`}>
-              ⚡ Заявки с платформы — комиссия 5% при подтверждении
+              Заявки с платформы — комиссия 5% при подтверждении
             </div>
 
             {pending.length === 0 && (
@@ -266,7 +266,7 @@ export function RequestsScreen({ onBack, onChat, onRequest }: RequestsScreenProp
                   <div className={styles.rcTop}>
                     <div>
                       <div className={styles.rcName}>{r.studentName}</div>
-                      <span className={styles.lsPlat}>⚡ С платформы</span>
+                      <span className={styles.lsPlat}>С платформы</span>
                     </div>
                     <div className={styles.rcTime}>{r.createdAt}</div>
                   </div>
@@ -291,7 +291,7 @@ export function RequestsScreen({ onBack, onChat, onRequest }: RequestsScreenProp
                     <span className={styles.rcFeeAmt}>
                       Стоимость: <strong>{r.price.toLocaleString('ru')} ₽</strong>
                     </span>
-                    <span className={styles.rcFeeComm}>⚡ Комиссия {getCommission(r.price).toLocaleString('ru')} ₽</span>
+                    <span className={styles.rcFeeComm}>Комиссия {getCommission(r.price).toLocaleString('ru')} ₽</span>
                   </div>
 
                   <div className={styles.rcActions}>
@@ -299,13 +299,13 @@ export function RequestsScreen({ onBack, onChat, onRequest }: RequestsScreenProp
                       className={`${styles.btn} ${styles.btnPrimary}`}
                       onClick={e => { e.stopPropagation(); handleAccept(r.id); }}
                     >
-                      ✓ Принять
+                      Принять
                     </button>
                     <button
                       className={`${styles.btn} ${styles.btnSecondary}`}
                       onClick={e => { e.stopPropagation(); onChat(r.id); }}
                     >
-                      💬 Написать
+                      Написать
                     </button>
                     <button
                       className={`${styles.btn} ${styles.btnSecondary}`}
@@ -329,7 +329,7 @@ export function RequestsScreen({ onBack, onChat, onRequest }: RequestsScreenProp
           >
           <>
             <div className={`${styles.infoBanner} ${styles.infoBannerMint}`}>
-              ★ Свои ученики — без комиссии. Не публикуются в каталоге, отзывы видите только вы
+              Свои ученики — без комиссии. Не публикуются в каталоге, отзывы видите только вы
             </div>
 
             <div className={styles.msaWrap} onClick={() => setShowInvite(true)}>
@@ -468,7 +468,7 @@ export function RequestsScreen({ onBack, onChat, onRequest }: RequestsScreenProp
               disabled={!invitePhone.trim()}
               onClick={() => {
                 closeInvite();
-                showToast('📲 Приглашение отправлено по SMS');
+                showToast('Приглашение отправлено по SMS');
               }}
             >Отправить</button>
             <button className={styles.inviteBtnSecondary} onClick={closeInvite}>

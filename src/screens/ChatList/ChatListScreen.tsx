@@ -12,7 +12,6 @@ interface ChatItem {
   role: 'ученик' | 'ученица' | 'коллега' | 'инструктор';
   online?: boolean;
   time: string;
-  muted?: boolean;
   msg: string;
   myMsg?: boolean;
   unread?: number;
@@ -64,8 +63,8 @@ let INSTR_RECENT: ChatItem[] = [
   {
     id: 'kirill',
     initials: 'КВ', avClass: 'avIce', name: 'Кирилл Волков', role: 'ученик',
-    time: 'вчера', muted: true,
-    msg: 'Тогда увидимся в понедельник 🏂',
+    time: 'вчера',
+    msg: 'Тогда увидимся в понедельник',
     myMsg: true,
     bookingStatus: 'ACCEPTED',
     instructorPhone: '+7 916 234 56 78',
@@ -213,7 +212,6 @@ function ChatRow({ item, onClick }: { item: ChatItem; onClick?: () => void }) {
             </span>
           </div>
           <div className={styles.ciTime}>
-            {item.muted && <span style={{ opacity: .5 }}>🔕</span>}
             {item.time}
           </div>
         </div>
@@ -279,7 +277,7 @@ export function ChatListScreen({ onBack, onChat, onCommunity, joinedMcIds, onGro
         {/* Community banner — только для инструкторов */}
         {onCommunity && (
           <div className={styles.communityBanner} onClick={onCommunity} style={{ cursor: 'pointer' }}>
-            <div className={styles.cbIcon}>⛰</div>
+            <div className={styles.cbIcon}><Icon name="mountain" size={22} /></div>
             <div className={styles.cbText}>
               <div className={styles.cbTitle}>Сообщество инструкторов</div>
               <div className={styles.cbSub}>Чат всех инструкторов SkiFind. Делитесь опытом, обсуждайте снег, помогайте друг другу</div>
