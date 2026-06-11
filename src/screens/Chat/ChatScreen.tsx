@@ -64,6 +64,12 @@ function hasPhone(text: string): boolean {
   });
 }
 
+/** Парсит "14:35" → минуты от полуночи (для группировки сообщений). */
+function toMin(t: string): number {
+  const m = /(\d{1,2}):(\d{2})/.exec(t);
+  return m ? (+m[1]) * 60 + (+m[2]) : 0;
+}
+
 /**
  * Истории переписки по chatId.
  * sender: INSTR_ID = инструктор отправил, STUDENT_ID = гость отправил.
@@ -192,6 +198,7 @@ export function ChatScreen({
   const [cardAccepted, setCardAccepted] = useState(() => bookingStatus === 'ACCEPTED');
   const [phoneBlocked, setPhoneBlocked] = useState(false);
   const [showToast, setShowToast] = useState<string | null>(null);
+  const [showScrollBtn, setShowScrollBtn] = useState(false);
   const messagesRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -212,6 +219,19 @@ export function ChatScreen({
   function fireToast(msg: string) {
     setShowToast(msg);
     setTimeout(() => setShowToast(null), 2500);
+  }
+
+  // Кнопка «вниз» появляется, когда прокрутили вверх больше чем на один экран
+  function handleScroll() {
+    const el = messagesRef.current;
+    if (!el) return;
+    const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+    setShowScrollBtn(distanceFromBottom > el.clientHeight);
+  }
+
+  function scrollToBottom() {
+    const el = messagesRef.current;
+    if (el) el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
   }
 
   function handleCall() {
@@ -345,11 +365,13 @@ export function ChatScreen({
       ) : (
         <>
           {/* ── Messages ── */}
-          <div className={styles.messages} ref={messagesRef}>
-            {items.map(item => {
+          <div className={styles.messages} ref={messagesRef} onScroll={handleScroll}>
+            {items.map((item, idx) => {
               if ('kind' in item) {
                 return (
-                  <div key={item.id} className={styles.daySep}>{item.label}</div>
+                  <div key={item.id} className={styles.daySepWrap}>
+                    <span className={styles.daySep}>{item.label}</span>
+                  </div>
                 );
               }
 
@@ -360,6 +382,19 @@ export function ChatScreen({
                * Нет никакого «переворота» — каждый видит своё справа.
                */
               const dir: 'in' | 'out' = msg.sender === currentUserId ? 'out' : 'in';
+
+              // ── Группировка: одинаковый отправитель в пределах 5 минут ──
+              const prev = items[idx - 1];
+              const next = items[idx + 1];
+              const prevMsg = prev && !('kind' in prev) ? prev as Message : undefined;
+              const nextMsg = next && !('kind' in next) ? next as Message : undefined;
+              const isText = msg.type !== 'card';
+              const groupWith = (o?: Message) =>
+                !!o && isText && o.type !== 'card' &&
+                o.sender === msg.sender &&
+                Math.abs(toMin(o.time) - toMin(msg.time)) <= 5;
+              const groupedPrev   = groupWith(prevMsg);
+              const isLastInGroup = !groupWith(nextMsg);
 
               if (msg.type === 'card' && msg.card) {
                 // Карточка от инструктора (sender === INSTR_ID).
@@ -433,19 +468,23 @@ export function ChatScreen({
               }
 
               return (
-                <div key={msg.id} className={`${styles.mrow} ${dir === 'out' ? styles.mrowOut : ''}`}>
+                <div key={msg.id} className={`${styles.mrow} ${dir === 'out' ? styles.mrowOut : ''} ${groupedPrev ? styles.mrowGrouped : ''}`}>
                   {dir === 'in' && (
-                    // Входящее сообщение: аватар собеседника.
-                    // personInitials / personAvColor всегда содержат данные собеседника.
-                    <div className={`${styles.av} ${styles.avSm} ${styles[`av-${personAvColor}`]}`}>
-                      {personInitials}
-                    </div>
+                    // Аватар собеседника — только у последнего сообщения в группе.
+                    // У сгруппированных сверху — невидимый спейсер для выравнивания.
+                    isLastInGroup ? (
+                      <div className={`${styles.av} ${styles.avSm} ${styles[`av-${personAvColor}`]}`}>
+                        {personInitials}
+                      </div>
+                    ) : (
+                      <div className={styles.avSpacer} />
+                    )
                   )}
                   <div>
-                    <div className={`${styles.bubble} ${dir === 'in' ? styles.bubbleIn : styles.bubbleOut}`}>
+                    <div className={`${styles.bubble} ${dir === 'in' ? styles.bubbleIn : styles.bubbleOut} ${isLastInGroup ? styles.bubbleTail : ''}`}>
                       {msg.text}
+                      <span className={styles.bubbleTime}>{msg.time}{msg.ticks ? ` ${msg.ticks}` : ''}</span>
                     </div>
-                    <span className={styles.mt}>{msg.time}{msg.ticks ? ` ${msg.ticks}` : ''}</span>
                   </div>
                 </div>
               );
@@ -479,6 +518,17 @@ export function ChatScreen({
               </div>
             )}
           </div>
+
+          {/* ── Scroll-to-bottom button ── */}
+          {showScrollBtn && !previewExhausted && (
+            <button
+              className={styles.scrollBtn}
+              onClick={scrollToBottom}
+              aria-label="Вниз"
+            >
+              <Icon name="arrow-down" size={18} />
+            </button>
+          )}
 
           {/* ── Quick replies ── */}
           {!previewExhausted && (

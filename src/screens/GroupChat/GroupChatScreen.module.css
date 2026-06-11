@@ -6,11 +6,48 @@
 }
 
 .screen {
+  position: relative;
   flex: 1;
   display: flex;
   flex-direction: column;
   background: var(--bg);
   overflow: hidden;
+}
+
+/* Кнопка прокрутки вниз */
+.scrollBtn {
+  position: absolute;
+  right: 14px;
+  bottom: 78px;
+  z-index: 5;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-dim);
+  transition: transform .15s;
+  animation: scrollBtnIn .18s ease both;
+}
+
+.scrollBtn:active { transform: scale(.92); }
+
+.scrollBtn svg {
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+@keyframes scrollBtnIn {
+  from { opacity: 0; transform: translateY(8px) scale(.9); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 /* ── Header ── */
@@ -98,23 +135,20 @@
   background: var(--bg);
 }
 
-.daySep {
-  text-align: center;
-  font-size: 11px;
-  color: var(--text-dim);
+/* Date separator — centered capsule */
+.daySepWrap {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  font-weight: 500;
+  justify-content: center;
   margin: 4px 0;
 }
 
-.daySep::before,
-.daySep::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: var(--border);
+.daySep {
+  background: var(--surface-2);
+  color: var(--text-dim);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 12px;
+  border-radius: 12px;
 }
 
 .mrow {
@@ -124,14 +158,25 @@
   width: 100%;
 }
 
+/* Сгруппированное сообщение — меньший отступ */
+.mrowGrouped {
+  margin-top: -6px;
+}
+
 .mrowOut {
   justify-content: flex-end;
+}
+
+/* Спейсер вместо аватара у сгруппированных входящих */
+.avSpacer {
+  width: 32px;
+  flex-shrink: 0;
 }
 
 .mrow > div:not(.av) {
   display: flex;
   flex-direction: column;
-  max-width: 78%;
+  max-width: 75%;
   align-items: flex-start;
 }
 
@@ -160,25 +205,36 @@
 
 /* ── Sender name ── */
 .senderName {
-  font-size: 11px;
-  color: var(--text-dim);
-  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
   padding: 0 6px;
   margin-bottom: 2px;
 }
 
-.senderInstr {
-  color: var(--accent);
+/* «инструктор» — серая капсула рядом с именем */
+.instrBadge {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-dim);
+  background: var(--surface-3);
+  padding: 1px 7px;
+  border-radius: 8px;
+  white-space: nowrap;
 }
 
 /* ── Bubbles ── */
 .bubble {
-  padding: 9px 13px;
+  position: relative;
+  padding: 7px 12px;
   border-radius: 16px;
   font-size: 14px;
   line-height: 1.45;
   color: var(--text);
   word-wrap: break-word;
+  overflow-wrap: anywhere;
   display: inline-block;
   max-width: 100%;
 }
@@ -186,23 +242,31 @@
 .bubbleIn {
   background: var(--surface-1);
   border: 1px solid var(--border);
-  border-bottom-left-radius: 4px;
 }
 
 .bubbleOut {
   background: var(--accent);
   color: var(--accent-text);
-  border-bottom-right-radius: 4px;
 }
 
-.mt {
+/* Хвостик — только у последнего сообщения в группе */
+.bubbleIn.bubbleTail  { border-bottom-left-radius: 5px; }
+.bubbleOut.bubbleTail { border-bottom-right-radius: 5px; }
+
+/* Время внутри пузыря, снизу-справа */
+.bubbleTime {
+  float: right;
   font-size: 10px;
+  line-height: 1;
+  margin: 7px -2px -1px 10px;
   color: var(--text-faint);
-  margin-top: 3px;
-  padding: 0 6px;
+  white-space: nowrap;
+  user-select: none;
 }
 
-.mrowOut .mt { text-align: right; }
+.bubbleOut .bubbleTime {
+  color: rgba(14, 14, 16, .45);
+}
 
 /* ── Input ── */
 .inputWrap {

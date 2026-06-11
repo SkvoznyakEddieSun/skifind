@@ -6,11 +6,48 @@
 }
 
 .screen {
+  position: relative;
   flex: 1;
   display: flex;
   flex-direction: column;
   background: var(--bg);
   overflow: hidden;
+}
+
+/* Кнопка прокрутки вниз */
+.scrollBtn {
+  position: absolute;
+  right: 14px;
+  bottom: 84px;
+  z-index: 5;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-dim);
+  transition: opacity .15s, transform .15s;
+  animation: scrollBtnIn .18s ease both;
+}
+
+.scrollBtn:active { transform: scale(.92); }
+
+.scrollBtn svg {
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+@keyframes scrollBtnIn {
+  from { opacity: 0; transform: translateY(8px) scale(.9); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 /* ── Top bar ── */
@@ -154,23 +191,20 @@
   background: var(--bg);
 }
 
-.daySep {
-  text-align: center;
-  font-size: 11px;
-  color: var(--text-dim);
+/* Date separator — centered capsule (Telegram-style) */
+.daySepWrap {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  font-weight: 500;
+  justify-content: center;
   margin: 6px 0;
 }
 
-.daySep::before,
-.daySep::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: var(--border);
+.daySep {
+  background: var(--surface-2);
+  color: var(--text-dim);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 12px;
+  border-radius: 12px;
 }
 
 .mrow {
@@ -178,6 +212,11 @@
   gap: 8px;
   align-items: flex-end;
   width: 100%;
+}
+
+/* Сгруппированное сообщение (тот же отправитель ≤5 мин) — меньший отступ */
+.mrowGrouped {
+  margin-top: -8px;
 }
 
 .mrowOut {
@@ -188,10 +227,16 @@
   display: none;
 }
 
+/* Спейсер вместо аватара у сгруппированных входящих — держит выравнивание */
+.avSpacer {
+  width: 36px;
+  flex-shrink: 0;
+}
+
 .mrow > div:not(.av):not([class*="typing"]) {
   display: flex;
   flex-direction: column;
-  max-width: 78%;
+  max-width: 75%;
   align-items: flex-start;
 }
 
@@ -201,12 +246,14 @@
 
 /* Bubbles */
 .bubble {
-  padding: 10px 14px;
+  position: relative;
+  padding: 7px 12px;
   border-radius: 18px;
   font-size: 14px;
   line-height: 1.45;
   color: var(--text);
   word-wrap: break-word;
+  overflow-wrap: anywhere;
   display: inline-block;
   max-width: 100%;
 }
@@ -214,15 +261,33 @@
 .bubbleIn {
   background: var(--surface-1);
   border: 1px solid var(--border);
-  border-bottom-left-radius: 4px;
 }
 
 .bubbleOut {
   background: var(--accent);
   color: var(--accent-text);
-  border-bottom-right-radius: 4px;
 }
 
+/* Хвостик — только у последнего сообщения в группе */
+.bubbleIn.bubbleTail  { border-bottom-left-radius: 5px; }
+.bubbleOut.bubbleTail { border-bottom-right-radius: 5px; }
+
+/* Время внутри пузыря, снизу-справа (float, чтобы текст обтекал) */
+.bubbleTime {
+  float: right;
+  font-size: 10px;
+  line-height: 1;
+  margin: 7px -2px -1px 10px;
+  color: var(--text-faint);
+  white-space: nowrap;
+  user-select: none;
+}
+
+.bubbleOut .bubbleTime {
+  color: rgba(14, 14, 16, .45);
+}
+
+/* Время под карточкой-предложением (карточки не группируются) */
 .mt {
   font-size: 10px;
   color: var(--text-faint);

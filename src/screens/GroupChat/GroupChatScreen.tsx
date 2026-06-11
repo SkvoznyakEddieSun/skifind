@@ -40,6 +40,33 @@ function hasPhone(text: string): boolean {
   });
 }
 
+// ── Группировка и цвет имени отправителя ───────────────────────────────────
+
+/** Парсит "14:35" → минуты от полуночи. */
+function toMin(t: string): number {
+  const m = /(\d{1,2}):(\d{2})/.exec(t);
+  return m ? (+m[1]) * 60 + (+m[2]) : 0;
+}
+
+/** Стабильный цвет имени по хешу — одинаковый у одного участника. */
+const NAME_COLORS = ['#3B9EF5', '#22B07D', '#E0A93B', '#E0625F', '#9B72E0', '#E08542', '#3BB6C4'];
+function nameColor(name: string): string {
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
+  return NAME_COLORS[h % NAME_COLORS.length];
+}
+
+/** Идентификатор отправителя для группировки. */
+function senderKey(m: GMessage): string {
+  return m.from === 'self' ? 'self' : (m.name ?? m.from);
+}
+
+/** Два сообщения в одной группе: тот же отправитель в пределах 5 минут. */
+function sameGroup(a?: GMessage, b?: GMessage): boolean {
+  if (!a || !b || a.from === 'system' || b.from === 'system') return false;
+  return senderKey(a) === senderKey(b) && Math.abs(toMin(a.time) - toMin(b.time)) <= 5;
+}
+
 // ── Mock chat messages ─────────────────────────────────────────────────────
 
 const CHAT_MSGS: GMessage[] = [
@@ -124,6 +151,7 @@ export function GroupChatScreen({
   const [msgs, setMsgs]           = useState<GMessage[]>([sysMsg, ...CHAT_MSGS]);
   const [inputVal, setInputVal]   = useState('');
   const [phoneWarning, setPhoneWarning] = useState(false);
+  const [showScrollBtn, setShowScrollBtn] = useState(false);
   const messagesRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -131,6 +159,18 @@ export function GroupChatScreen({
     const el = messagesRef.current;
     if (el) el.scrollTop = el.scrollHeight;
   }, [msgs]);
+
+  // Кнопка «вниз» появляется при прокрутке вверх больше чем на один экран
+  function handleScroll() {
+    const el = messagesRef.current;
+    if (!el) return;
+    setShowScrollBtn(el.scrollHeight - el.scrollTop - el.clientHeight > el.clientHeight);
+  }
+
+  function scrollToBottom() {
+    const el = messagesRef.current;
+    if (el) el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
+  }
 
   /**
    * Исходящее сообщение:
@@ -208,10 +248,12 @@ export function GroupChatScreen({
       </div>
 
       {/* Messages */}
-      <div className={styles.messages} ref={messagesRef}>
-        <div className={styles.daySep}>Сегодня</div>
+      <div className={styles.messages} ref={messagesRef} onScroll={handleScroll}>
+        <div className={styles.daySepWrap}>
+          <span className={styles.daySep}>Сегодня</span>
+        </div>
 
-        {msgs.map(msg => {
+        {msgs.map((msg, idx) => {
           // System message — centered notice
           if (msg.from === 'system') {
             return (
@@ -221,13 +263,21 @@ export function GroupChatScreen({
             );
           }
 
+          // ── Группировка ──
+          const prev = msgs[idx - 1];
+          const next = msgs[idx + 1];
+          const groupedPrev   = sameGroup(prev, msg);
+          const isLastInGroup = !sameGroup(next, msg);
+
           // Исходящее сообщение (текущий пользователь) — справа, без аватара
           if (isOutgoing(msg)) {
             return (
-              <div key={msg.id} className={`${styles.mrow} ${styles.mrowOut}`}>
+              <div key={msg.id} className={`${styles.mrow} ${styles.mrowOut} ${groupedPrev ? styles.mrowGrouped : ''}`}>
                 <div>
-                  <div className={`${styles.bubble} ${styles.bubbleOut}`}>{msg.text}</div>
-                  <span className={styles.mt}>{msg.time}{msg.ticks ? ` ${msg.ticks}` : ''}</span>
+                  <div className={`${styles.bubble} ${styles.bubbleOut} ${isLastInGroup ? styles.bubbleTail : ''}`}>
+                    {msg.text}
+                    <span className={styles.bubbleTime}>{msg.time}{msg.ticks ? ` ${msg.ticks}` : ''}</span>
+                  </div>
                 </div>
               </div>
             );
@@ -235,23 +285,41 @@ export function GroupChatScreen({
 
           // Входящее: instr / other — фильтруем номера телефонов только у других участников
           const safeText = msg.from === 'other' ? filterPhone(msg.text) : msg.text;
+          const isInstr  = msg.from === 'instr';
 
           return (
-            <div key={msg.id} className={styles.mrow}>
-              <div className={`${styles.av} ${styles[`av-${msg.avatarColor}`]}`}>
-                {msg.initials}
-              </div>
-              <div>
-                <div className={`${styles.senderName} ${msg.from === 'instr' ? styles.senderInstr : ''}`}>
-                  {msg.name}
+            <div key={msg.id} className={`${styles.mrow} ${groupedPrev ? styles.mrowGrouped : ''}`}>
+              {isLastInGroup ? (
+                <div className={`${styles.av} ${styles[`av-${msg.avatarColor}`]}`}>
+                  {msg.initials}
                 </div>
-                <div className={`${styles.bubble} ${styles.bubbleIn}`}>{safeText}</div>
-                <span className={styles.mt}>{msg.time}</span>
+              ) : (
+                <div className={styles.avSpacer} />
+              )}
+              <div>
+                {/* Имя отправителя — только у первого сообщения в группе */}
+                {!groupedPrev && (
+                  <div className={styles.senderName}>
+                    <span style={{ color: nameColor(msg.name ?? '') }}>{msg.name}</span>
+                    {isInstr && <span className={styles.instrBadge}>инструктор</span>}
+                  </div>
+                )}
+                <div className={`${styles.bubble} ${styles.bubbleIn} ${isLastInGroup ? styles.bubbleTail : ''}`}>
+                  {safeText}
+                  <span className={styles.bubbleTime}>{msg.time}</span>
+                </div>
               </div>
             </div>
           );
         })}
       </div>
+
+      {/* Scroll-to-bottom button */}
+      {showScrollBtn && (
+        <button className={styles.scrollBtn} onClick={scrollToBottom} aria-label="Вниз">
+          <Icon name="arrow-down" size={18} />
+        </button>
+      )}
 
       {/* Input */}
       {/* Phone warning */}
