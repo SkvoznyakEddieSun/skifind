@@ -87,55 +87,205 @@ function plural(n: number, forms: [string, string, string]): string {
 }
 
 /**
- * Истории переписки по chatId.
- * sender: INSTR_ID = инструктор отправил, STUDENT_ID = гость отправил.
- * Направление определяется сравнением sender с currentUserId.
+ * Истории переписки по chatId — у каждого собеседника свой диалог.
+ *
+ * sender: INSTR_ID = реплика инструктора, STUDENT_ID = реплика ученика/гостя.
+ * Направление в UI определяется сравнением sender с currentUserId, поэтому
+ * один и тот же массив корректно отображается с обеих сторон.
+ *
+ * Имена собеседников НЕ хардкодятся в тексте — обращения нейтральные/безымянные,
+ * чтобы реплики оставались валидными для любого участника диалога.
+ *
+ * Содержание подобрано под дисциплину инструктора: сноубордисты говорят о доске
+ * и парке, лыжники — о трассах, карвинге и детских занятиях.
  */
 
-// ── Чат с Алексеем (сноуборд, мини-группа, заявка принята) ─────────────────
-const ALEKSEY_INITIAL: ChatItem[] = [
+// ── Истории на стороне ГОСТЯ (собеседник = инструктор) ─────────────────────
+
+// Алексей Морозов — сноуборд, мини-группа, заявка принята (ACCEPTED).
+const HIST_ALEKSEY: ChatItem[] = [
   { kind: 'sep', label: '25 апреля', id: 'sep1' },
-  { id: 'm1', sender: INSTR_ID,   type: 'text', text: 'Привет! Увидел вашу заявку — рад помочь с обучением 🏂 Расскажите о себе — вы совсем новичок или уже пробовали кататься?', time: '14:12' },
-  { id: 'm2', sender: STUDENT_ID, type: 'text', text: 'Привет! Мы с женой абсолютные новички, никогда не стояли на доске.', time: '14:15', ticks: '✓✓' },
+  { id: 'al1', sender: INSTR_ID,   type: 'text', text: 'Привет! Увидел вашу заявку — рад помочь с обучением 🏂 Вы совсем новички или уже пробовали кататься?', time: '14:12' },
+  { id: 'al2', sender: STUDENT_ID, type: 'text', text: 'Привет! Мы с женой абсолютные новички, никогда не стояли на доске.', time: '14:15', ticks: '✓✓' },
   {
-    id: 'm3', sender: INSTR_ID, type: 'card', time: '14:18',
+    id: 'al3', sender: INSTR_ID, type: 'card', time: '14:18',
     card: { date: '28 апреля, 10:00–12:00', format: 'Мини-группа (2 чел.)', place: 'Касса Шерегеш, вход А', price: '7 000 ₽' },
   },
-  { id: 'm4', sender: STUDENT_ID, type: 'text', text: 'Отлично! Снаряжение нам нужно брать в аренду?', time: '14:31', ticks: '✓✓' },
-  { id: 'm5', sender: INSTR_ID,   type: 'text', text: 'Да, помогу подобрать в прокате прямо на месте. Приходите за 20 минут до начала.', time: '14:35' },
+  { id: 'al4', sender: STUDENT_ID, type: 'text', text: 'Отлично! Снаряжение нам нужно брать в аренду?', time: '14:31', ticks: '✓✓' },
+  { id: 'al5', sender: INSTR_ID,   type: 'text', text: 'Да, помогу подобрать доску и ботинки в прокате на месте. Приходите за 20 минут до начала.', time: '14:35' },
   { kind: 'sep', label: 'Сегодня', id: 'sep2' },
-  { id: 'm6', sender: STUDENT_ID, type: 'text', text: 'Алексей, добрый день! Напоминаю — завтра в 10:00. Подтверждаете?', time: '09:14', ticks: '✓✓' },
+  { id: 'al6', sender: STUDENT_ID, type: 'text', text: 'Добрый день! Всё в силе на завтра, 10:00?', time: '09:14', ticks: '✓✓' },
 ];
 
-// ── Чат с Натальей (горные лыжи, детское занятие, ожидает подтверждения) ────
-const NATALYA_INITIAL: ChatItem[] = [
+// Наталья Петрова — горные лыжи, детское занятие, заявка принята (ACCEPTED).
+const HIST_NATALYA: ChatItem[] = [
   { kind: 'sep', label: 'Сегодня', id: 'sep1' },
-  { id: 'n1', sender: STUDENT_ID, type: 'text', text: 'Здравствуйте! Хотим записать дочку на лыжное занятие 3 мая.', time: '10:00', ticks: '✓✓' },
-  { id: 'n2', sender: INSTR_ID,   type: 'text', text: 'Добрый день! Вижу вашу заявку — всё отлично. Сколько лет ребёнку?', time: '10:12' },
+  { id: 'na1', sender: STUDENT_ID, type: 'text', text: 'Здравствуйте! Хотим записать дочку на лыжное занятие в четверг.', time: '10:00', ticks: '✓✓' },
+  { id: 'na2', sender: INSTR_ID,   type: 'text', text: 'Добрый день! Беру с радостью. Сколько лет ребёнку и есть ли опыт на лыжах?', time: '10:12' },
+  { id: 'na3', sender: STUDENT_ID, type: 'text', text: 'Шесть лет, на лыжах первый раз.', time: '10:15', ticks: '✓✓' },
+  { id: 'na4', sender: INSTR_ID,   type: 'text', text: 'Прекрасный возраст для старта! Начнём с пологого учебного склона, всё снаряжение поможем подобрать. 🎿', time: '10:18' },
 ];
 
-// ── Чат с Мариной (горные лыжи, продвинутый, занятие завершено) ─────────────
-const MARINA_INITIAL: ChatItem[] = [
-  { kind: 'sep', label: '15 марта', id: 'sep1' },
-  { id: 'ma1', sender: STUDENT_ID, type: 'text', text: 'Марина, спасибо за занятие! Очень полезно поработали над техникой карвинга.', time: '15:20', ticks: '✓✓' },
-  { id: 'ma2', sender: INSTR_ID,   type: 'text', text: 'Рада была помочь! Прогресс очень заметен — красные трассы уже без страха. Жду в следующем сезоне!', time: '15:35' },
+// Дмитрий Захаров — инструктор, заявки нет (NONE) → режим превью.
+const HIST_DMITRY_GUEST: ChatItem[] = [
+  { kind: 'sep', label: '20 апреля', id: 'sep1' },
+  { id: 'dg1', sender: STUDENT_ID, type: 'text', text: 'Здравствуйте! Подскажите, вы работаете с детьми? Сыну 7 лет, очень активный.', time: '11:05', ticks: '✓✓' },
+  { id: 'dg2', sender: INSTR_ID,   type: 'text', text: 'Да, работаю с детьми от 6 лет, в том числе с гиперактивными — строю занятие через игру. Пишите, подберём время. 🎿', time: '11:20' },
 ];
+
+// Марина Волкова — инструктор, заявки нет (NONE) → режим превью.
+const HIST_MARINA_GUEST: ChatItem[] = [
+  { kind: 'sep', label: '14 апреля', id: 'sep1' },
+  { id: 'mg1', sender: STUDENT_ID, type: 'text', text: 'Добрый день! Хотела записаться на карвинг в эти выходные.', time: '16:40', ticks: '✓✓' },
+  { id: 'mg2', sender: INSTR_ID,   type: 'text', text: 'Здравствуйте! К сожалению, эта дата уже занята. Могу предложить следующую субботу — напишите, подойдёт ли.', time: '17:02' },
+];
+
+// Сергей Лебедев — горные лыжи, фрирайд, заявка принята (ACCEPTED).
+const HIST_SERGEY: ChatItem[] = [
+  { kind: 'sep', label: '8 апреля', id: 'sep1' },
+  { id: 'sg1', sender: STUDENT_ID, type: 'text', text: 'Добрый день! Хочу подтянуть технику на красных трассах, присматриваюсь к фрирайду.', time: '09:30', ticks: '✓✓' },
+  { id: 'sg2', sender: INSTR_ID,   type: 'text', text: 'Отлично! Поработаем над ведением и закантовкой, потом выйдем на целину. Снаряжение своё или аренда?', time: '09:41' },
+  { id: 'sg3', sender: STUDENT_ID, type: 'text', text: 'Своё, всё есть.', time: '09:44', ticks: '✓✓' },
+  { id: 'sg4', sender: INSTR_ID,   type: 'text', text: 'Супер. Тогда жду вас в субботу у канатки! 🎿', time: '09:46' },
+];
+
+// ── Истории на стороне ИНСТРУКТОРА (собеседник = ученик/коллега) ───────────
+
+// Роман Ефимов — ученик, сноуборд-фристайл, заявка ожидает (PENDING).
+const HIST_ROMAN: ChatItem[] = [
+  { kind: 'sep', label: 'Сегодня', id: 'sep1' },
+  { id: 'rm1', sender: STUDENT_ID, type: 'text', text: 'Здравствуйте! Катаюсь второй сезон на сноуборде, хочу освоить прыжки в парке.', time: '13:50', ticks: '✓✓' },
+  {
+    id: 'rm2', sender: INSTR_ID, type: 'card', time: '14:05',
+    card: { date: '28 апреля, 11:00–13:00', format: 'Индивидуально', place: 'Сектор Е, вход в парк', price: '5 000 ₽' },
+  },
+  { id: 'rm3', sender: STUDENT_ID, type: 'text', text: 'Подтверждаете завтра в 10:00?', time: '14:35', ticks: '✓✓' },
+];
+
+// Анна Белова — ученица, сноуборд, занятие подтверждено (ACCEPTED).
+const HIST_ANNA: ChatItem[] = [
+  { kind: 'sep', label: '12 апреля', id: 'sep1' },
+  { id: 'an1', sender: STUDENT_ID, type: 'text', text: 'Спасибо за прошлое занятие! Хочу закрепить повороты на заднем канте.', time: '11:50', ticks: '✓✓' },
+  { id: 'an2', sender: INSTR_ID,   type: 'text', text: 'Отлично, продолжим с этого. В четверг в 10:00 на том же месте?', time: '12:00' },
+  { id: 'an3', sender: STUDENT_ID, type: 'text', text: 'Да, всё отлично! Жду четверга 🏂', time: '12:08', ticks: '✓✓' },
+];
+
+// Михаил Орлов — ученик, сноуборд, заявка отклонена (DECLINED).
+const HIST_MIKHAIL: ChatItem[] = [
+  { kind: 'sep', label: 'вчера', id: 'sep1' },
+  { id: 'mk1', sender: STUDENT_ID, type: 'text', text: 'Здравствуйте! Возьмёте ребёнка 5 лет на сноуборд?', time: '18:20', ticks: '✓✓' },
+  { id: 'mk2', sender: INSTR_ID,   type: 'text', text: 'К сожалению, на сноуборд беру детей с 8 лет. Для пятилетки безопаснее начать с лыж.', time: '18:35' },
+];
+
+// Кирилл Волков — ученик, сноуборд, занятие подтверждено (ACCEPTED).
+const HIST_KIRILL: ChatItem[] = [
+  { kind: 'sep', label: '10 апреля', id: 'sep1' },
+  { id: 'kr1', sender: STUDENT_ID, type: 'text', text: 'Можем перенести занятие на понедельник? В выходные не получается.', time: '19:10', ticks: '✓✓' },
+  { id: 'kr2', sender: INSTR_ID,   type: 'text', text: 'Конечно, понедельник 14:00 свободен — записал вас.', time: '19:22' },
+  { id: 'kr3', sender: STUDENT_ID, type: 'text', text: 'Тогда увидимся в понедельник 👍', time: '19:25', ticks: '✓✓' },
+];
+
+// Дмитрий Захаров — коллега-инструктор (NONE).
+const HIST_DMITRY_COLL: ChatItem[] = [
+  { kind: 'sep', label: 'Сегодня', id: 'sep1' },
+  { id: 'dc1', sender: STUDENT_ID, type: 'text', text: 'Кинул методичку по работе с СДВГ, посмотри на досуге.', time: '13:20', ticks: '✓✓' },
+  { id: 'dc2', sender: INSTR_ID,   type: 'text', text: 'О, спасибо! Как раз есть пара таких ребят в группе — изучу.', time: '13:31' },
+];
+
+// Марина Волкова — коллега-инструктор (NONE).
+const HIST_MARINA_COLL: ChatItem[] = [
+  { kind: 'sep', label: 'вчера', id: 'sep1' },
+  { id: 'mc1', sender: STUDENT_ID, type: 'text', text: 'Как успехи с тем сложным учеником?', time: '16:00', ticks: '✓✓' },
+  { id: 'mc2', sender: INSTR_ID,   type: 'text', text: 'Спасибо большое за совет — стало гораздо лучше, заходит через боковое соскальзывание.', time: '16:12' },
+];
+
+// Татьяна Новикова — ученица, детское занятие (ACCEPTED).
+const HIST_TATYANA: ChatItem[] = [
+  { kind: 'sep', label: '22 апреля', id: 'sep1' },
+  { id: 'ta1', sender: STUDENT_ID, type: 'text', text: 'Дочка в восторге от занятия, спасибо большое!', time: '17:40', ticks: '✓✓' },
+  { id: 'ta2', sender: INSTR_ID,   type: 'text', text: 'Очень рад! Равновесие держит уже уверенно — приходите ещё. 🏂', time: '17:52' },
+];
+
+// Игорь Соколов — коллега-инструктор (NONE).
+const HIST_IGOR: ChatItem[] = [
+  { kind: 'sep', label: '21 апреля', id: 'sep1' },
+  { id: 'ig1', sender: STUDENT_ID, type: 'text', text: 'Привет! Можешь поделиться шаблоном программы для новичков?', time: '12:15', ticks: '✓✓' },
+  { id: 'ig2', sender: INSTR_ID,   type: 'text', text: 'Привет! Конечно, скину вечером свой план на первые три занятия.', time: '12:28' },
+];
+
+// Елена Соболева — ученица (ACCEPTED).
+const HIST_ELENA: ChatItem[] = [
+  { kind: 'sep', label: '19 апреля', id: 'sep1' },
+  { id: 'el1', sender: STUDENT_ID, type: 'text', text: 'Очень понравилось занятие, запишусь ещё!', time: '15:30', ticks: '✓✓' },
+  { id: 'el2', sender: INSTR_ID,   type: 'text', text: 'Спасибо! Буду рад продолжить — напишите, когда удобно.', time: '15:41' },
+];
+
+// Андрей Павлов — ученик (ACCEPTED).
+const HIST_ANDREY: ChatItem[] = [
+  { kind: 'sep', label: '15 апреля', id: 'sep1' },
+  { id: 'ad1', sender: STUDENT_ID, type: 'text', text: 'Можем в субботу утром?', time: '09:50', ticks: '✓✓' },
+  { id: 'ad2', sender: INSTR_ID,   type: 'text', text: 'Хорошо, тогда жду в субботу в 10:00.', time: '10:03' },
+];
+
+// Ольга Кузнецова — коллега-инструктор (NONE).
+const HIST_OLGA: ChatItem[] = [
+  { kind: 'sep', label: '12 апреля', id: 'sep1' },
+  { id: 'ol1', sender: STUDENT_ID, type: 'text', text: 'Можешь подменить меня в субботу? У меня клиент сорвался.', time: '14:20', ticks: '✓✓' },
+  { id: 'ol2', sender: INSTR_ID,   type: 'text', text: 'Посмотрю расписание и отпишусь к вечеру.', time: '14:35' },
+];
+
+// Виктор Соколов — ученик (ACCEPTED).
+const HIST_VIKTOR: ChatItem[] = [
+  { kind: 'sep', label: '10 апреля', id: 'sep1' },
+  { id: 'vk1', sender: STUDENT_ID, type: 'text', text: 'Отличное занятие, спасибо!', time: '13:00', ticks: '✓✓' },
+  { id: 'vk2', sender: INSTR_ID,   type: 'text', text: 'Спасибо вам! Прогресс заметный — до встречи на следующем. 🏂', time: '13:14' },
+];
+
+// Запасной диалог для новых/неизвестных чатов (нейтральный, безымянный).
+const HIST_DEFAULT: ChatItem[] = [
+  { kind: 'sep', label: 'Сегодня', id: 'sep1' },
+  { id: 'df1', sender: STUDENT_ID, type: 'text', text: 'Здравствуйте! Хотел бы записаться на занятие.', time: '10:00', ticks: '✓✓' },
+  { id: 'df2', sender: INSTR_ID,   type: 'text', text: 'Добрый день! Конечно — расскажите про ваш уровень, подберём программу.', time: '10:11' },
+];
+
+const GUEST_HISTORIES: Record<string, ChatItem[]> = {
+  aleksey: HIST_ALEKSEY,
+  natalya: HIST_NATALYA,
+  dmitry:  HIST_DMITRY_GUEST,
+  marina:  HIST_MARINA_GUEST,
+  sergey:  HIST_SERGEY,
+};
+
+const INSTR_HISTORIES: Record<string, ChatItem[]> = {
+  roman:   HIST_ROMAN,
+  anna:    HIST_ANNA,
+  mikhail: HIST_MIKHAIL,
+  kirill:  HIST_KIRILL,
+  dmitry:  HIST_DMITRY_COLL,
+  marina:  HIST_MARINA_COLL,
+  tatyana: HIST_TATYANA,
+  igor:    HIST_IGOR,
+  elena:   HIST_ELENA,
+  andrey:  HIST_ANDREY,
+  olga:    HIST_OLGA,
+  viktor:  HIST_VIKTOR,
+};
 
 // ── Кэш историй (живёт всю сессию) ─────────────────────────────────────────
-// Ключ: chatId (instructorId для гостя, bookingId для инструктора).
-// При первом открытии чата инициализируется из соответствующего INITIAL-массива.
+// Ключ: `${role}:${chatId}` — один и тот же id (например, dmitry/marina)
+// может встречаться и у гостя (как инструктор), и у инструктора (как коллега),
+// поэтому роль входит в ключ, чтобы истории не пересекались.
 const HISTORY_CACHE = new Map<string, ChatItem[]>();
 
-function getOrInitHistory(chatId?: string): ChatItem[] {
-  const key = chatId ?? '__default';
-  if (!HISTORY_CACHE.has(key)) {
-    let initial: ChatItem[];
-    if (key === 'natalya') initial = [...NATALYA_INITIAL];
-    else if (key === 'marina') initial = [...MARINA_INITIAL];
-    else initial = [...ALEKSEY_INITIAL]; // aleksey, bookingIds, default
-    HISTORY_CACHE.set(key, initial);
+function getOrInitHistory(chatId?: string, role: 'instructor' | 'guest' = 'guest'): ChatItem[] {
+  const id = chatId ?? '__default';
+  const cacheKey = `${role}:${id}`;
+  if (!HISTORY_CACHE.has(cacheKey)) {
+    const table = role === 'instructor' ? INSTR_HISTORIES : GUEST_HISTORIES;
+    const initial = table[id] ?? HIST_DEFAULT;
+    HISTORY_CACHE.set(cacheKey, [...initial]);
   }
-  return HISTORY_CACHE.get(key)!;
+  return HISTORY_CACHE.get(cacheKey)!;
 }
 
 const QUICK_REPLIES = [
@@ -206,7 +356,7 @@ export function ChatScreen({
   const currentUserId = role === 'instructor' ? INSTR_ID : STUDENT_ID;
   const isInstructor  = role === 'instructor';
 
-  const [items, setItems] = useState<ChatItem[]>(() => getOrInitHistory(chatId));
+  const [items, setItems] = useState<ChatItem[]>(() => getOrInitHistory(chatId, role));
   const [inputVal, setInputVal] = useState('');
   const [bookingVisible, setBookingVisible] = useState(true);
   const [typing, setTyping] = useState(false);
@@ -265,8 +415,8 @@ export function ChatScreen({
 
   // Синхронизируем кэш истории при каждом изменении items
   useEffect(() => {
-    HISTORY_CACHE.set(chatId ?? '__default', items);
-  }, [chatId, items]);
+    HISTORY_CACHE.set(`${role}:${chatId ?? '__default'}`, items);
+  }, [chatId, role, items]);
 
   // Scroll to bottom
   useEffect(() => {
