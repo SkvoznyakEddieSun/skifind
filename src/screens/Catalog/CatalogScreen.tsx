@@ -385,7 +385,8 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onMasterClas
   const { t } = useTranslation();
   const [search, setSearch]           = useState('');
   const [type, setType]               = useState<SportType>('all');
-  const [level, setLevel]             = useState<Level>('all');
+  // Теги-специализации — multi-select. Пустой набор = «Все» (показать всех).
+  const [levels, setLevels]           = useState<Set<Level>>(new Set());
   const [sort, setSort]               = useState<SortKey>('random');
   const [onlyFreeToday, setOnlyFreeToday] = useState(false);
 
@@ -437,7 +438,8 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onMasterClas
       if (blockedIds?.has(i.id)) return false;
       if (onlyFreeToday && !hasFreeToday(i)) return false;
       if (type !== 'all' && !i.type.some(t => t === type)) return false;
-      if (level !== 'all' && !i.level.includes(level)) return false;
+      // ИЛИ-семантика: инструктор проходит, если у него есть хотя бы один из выбранных тегов.
+      if (levels.size > 0 && !i.level.some(l => levels.has(l))) return false;
       if (search) {
         const q = search.toLowerCase();
         const sports = i.type.map(s => s === 'ski' ? 'горные лыжи' : 'сноуборд').join(' ');
@@ -508,7 +510,12 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onMasterClas
                 <button
                   key={tab}
                   className={`${styles.typeTab} ${type === tab ? styles.typeTabActive : ''}`}
-                  onClick={() => { setType(tab); scrollToTop(); }}
+                  onClick={() => {
+                    // Повторный тап по активной дисциплине сбрасывает к «Все».
+                    // «Все» — состояние «без фильтра», снять нельзя (тап по активному «Все» = no-op).
+                    setType(prev => (prev === tab && tab !== 'all') ? 'all' : tab);
+                    scrollToTop();
+                  }}
                 >
                   {tab === 'all' ? t('catalog.filterAll') : tab === 'ski' ? t('catalog.filterAlpine') : t('catalog.filterSnowboard')}
                 </button>
@@ -534,15 +541,28 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onMasterClas
           </div>
 
           <div className={styles.levelChips}>
-            {LEVELS.map(({ key, label }) => (
-              <button
-                key={key}
-                className={`${styles.chip} ${level === key ? styles.chipActive : ''}`}
-                onClick={() => { setLevel(key); scrollToTop(); }}
-              >
-                {label}
-              </button>
-            ))}
+            {LEVELS.map(({ key, label }) => {
+              const isAll = key === 'all';
+              // «Все» подсвечен, когда не выбрано ни одного тега.
+              const active = isAll ? levels.size === 0 : levels.has(key);
+              return (
+                <button
+                  key={key}
+                  className={`${styles.chip} ${active ? styles.chipActive : ''}`}
+                  onClick={() => {
+                    setLevels(prev => {
+                      if (isAll) return new Set();        // «Все» очищает набор
+                      const next = new Set(prev);
+                      next.has(key) ? next.delete(key) : next.add(key); // независимый тоггл
+                      return next;
+                    });
+                    scrollToTop();
+                  }}
+                >
+                  {label}
+                </button>
+              );
+            })}
             <button
               className={`${styles.chip} ${onlyFreeToday ? styles.chipActive : ''}`}
               onClick={() => { setOnlyFreeToday(v => !v); scrollToTop(); }}
