@@ -418,6 +418,12 @@ export function ChatScreen({
     HISTORY_CACHE.set(`${role}:${chatId ?? '__default'}`, items);
   }, [chatId, role, items]);
 
+  // После подтверждения заявки снимаем плашку-предупреждение об обмене контактами.
+  // (сам hasPhone-фильтр отправки не трогаем — политика контактов решается отдельно)
+  useEffect(() => {
+    if (confirmed) setPhoneBlocked(false);
+  }, [confirmed]);
+
   // Scroll to bottom
   useEffect(() => {
     const el = messagesRef.current;
@@ -512,7 +518,7 @@ export function ChatScreen({
       )}
 
       {/* ── Preview banner (while not exhausted and not accepted/pending) ── */}
-      {!hasActiveBooking && !isDeclined && !previewExhausted && outMsgCount > 0 && (
+      {!isInstructor && !hasActiveBooking && !isDeclined && !previewExhausted && outMsgCount > 0 && (
         <div className={styles.previewBanner}>
           <span className={styles.previewBannerText}>
             Предпросмотр: осталось {remaining} {plural(remaining, ['сообщение', 'сообщения', 'сообщений'])}

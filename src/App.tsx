@@ -266,6 +266,7 @@ export function App() {
             setChatBookingStatus(status === 'DECLINED' ? 'NONE' : status);
             setChatInstructorPhone(phone);
             setChatPersonName(name ?? ''); setChatPersonInitials(initials ?? ''); setChatPersonAvColor(avColor ?? 'ice');
+            setActiveChatBookingId(id);   // ← без этого chatId/onAcceptBooking приходят пустыми
             setChatIsInstructor(true);
             push('chat');
           }}
@@ -555,6 +556,7 @@ export function App() {
             setChatPersonName(name ?? '');
             setChatPersonInitials(initials ?? '');
             setChatPersonAvColor(avColor ?? 'ice');
+            setActiveChatBookingId(id);   // ← без этого chatId/onAcceptBooking приходят пустыми
             setChatIsInstructor(true);
             push('chat');
           }}
