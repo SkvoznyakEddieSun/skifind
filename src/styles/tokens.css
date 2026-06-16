@@ -131,6 +131,12 @@
   overscroll-behavior: none;
 }
 
+/* iOS Safari: не увеличивать текст при повороте экрана (100%, НЕ none — none ломает зум/доступность) */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
 html, body {
   height: 100%;
   background: var(--bg);
