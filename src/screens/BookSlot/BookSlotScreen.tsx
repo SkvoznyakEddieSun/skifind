@@ -128,7 +128,7 @@ export function BookSlotScreen({ onBack, onBooked, instructor }: BookSlotScreenP
 
   const selectedDay         = dayIdx !== null ? DAYS[dayIdx] : null;
   const selectedDayKey      = selectedDay ? WEEKDAY_KEY[selectedDay.getDay()] : null;
-  const selectedDaySchedule = selectedDayKey ? instructor.weekSchedule[selectedDayKey] : undefined;
+  const selectedDaySchedule = selectedDayKey ? instructor.weekSchedule?.[selectedDayKey] : undefined;
 
   // Мастер-классы инструктора на выбранный день блокируют индивидуальную запись
   const mcWindows = selectedDay ? mcWindowsForDay(instructor.id, selectedDay) : [];
@@ -149,9 +149,10 @@ export function BookSlotScreen({ onBack, onBooked, instructor }: BookSlotScreenP
   })();
 
   // Есть ли хоть один доступный день в ближайшие 7 дней
-  const hasAnyDay = DAYS.some(d => !!instructor.weekSchedule[WEEKDAY_KEY[d.getDay()]]);
+  const hasAnyDay = DAYS.some(d => !!instructor.weekSchedule?.[WEEKDAY_KEY[d.getDay()]]);
 
   function getPrice(): number {
+    if (!instructor.pricing) return 0;
     if (isFullDay && format && format !== 'kids') {
       return instructor.pricing[format as 'individual' | 'miniGroup']?.fullDay ?? 0;
     }
@@ -161,11 +162,11 @@ export function BookSlotScreen({ onBack, onBooked, instructor }: BookSlotScreenP
     }
     const hKey = `h${duration / 60}` as 'h1' | 'h2' | 'h3' | 'h4';
     if (format === 'individual' || format === 'kids') {
-      return instructor.pricing.individual[hKey];
+      return instructor.pricing.individual?.[hKey] ?? 0;
     }
     // miniGroup
-    const base = instructor.pricing.miniGroup[hKey];
-    return base + instructor.pricing.miniGroup.extraPersonPrice * (groupSize - 2);
+    const base = instructor.pricing.miniGroup?.[hKey] ?? 0;
+    return base + (instructor.pricing.miniGroup?.extraPersonPrice ?? 0) * (groupSize - 2);
   }
 
   // ── Handlers ─────────────────────────────────────────────────────────────
@@ -193,14 +194,14 @@ export function BookSlotScreen({ onBack, onBooked, instructor }: BookSlotScreenP
     // Если день уже выбран — сразу проставляем время начала
     if (dayIdx !== null) {
       const key   = WEEKDAY_KEY[DAYS[dayIdx].getDay()];
-      const sched = instructor.weekSchedule[key];
+      const sched = instructor.weekSchedule?.[key];
       setTimeStart(sched?.start ?? null);
     }
   }
 
   function handleDayChange(i: number) {
     const key   = WEEKDAY_KEY[DAYS[i].getDay()];
-    const sched = instructor.weekSchedule[key];
+    const sched = instructor.weekSchedule?.[key];
     if (!sched) return;
     setDayIdx(i);
     // При «Весь день» время начала = старт рабочего дня
@@ -321,7 +322,7 @@ export function BookSlotScreen({ onBack, onBooked, instructor }: BookSlotScreenP
             </button>
           ))}
           {/* «Весь день» — только если задан тариф и формат не «Дети» */}
-          {format && format !== 'kids' && !!instructor.pricing[format as 'individual' | 'miniGroup']?.fullDay && (
+          {format && format !== 'kids' && !!instructor.pricing?.[format as 'individual' | 'miniGroup']?.fullDay && (
             <button
               className={`${styles.durationBtn} ${isFullDay ? styles.durationBtnActive : ''}`}
               onClick={handleFullDay}
@@ -343,7 +344,7 @@ export function BookSlotScreen({ onBack, onBooked, instructor }: BookSlotScreenP
           <div className={`${styles.dayStrip} ${(!duration && !isFullDay) ? styles.stepDisabled : ''}`}>
             {DAYS.map((d, i) => {
               const key         = WEEKDAY_KEY[d.getDay()];
-              const sched       = instructor.weekSchedule[key];
+              const sched       = instructor.weekSchedule?.[key];
               // На сегодня учитываем текущее время: если рабочий день уже закончился
               // (нет места хотя бы для минимального 45-мин слота) — день недоступен.
               let hasSchedule   = !!sched;
@@ -442,10 +443,10 @@ export function BookSlotScreen({ onBack, onBooked, instructor }: BookSlotScreenP
               <span className={styles.stepperVal}>{groupSize}</span>
               <button
                 className={styles.stepperBtn}
-                onClick={() => setGroupSize(n => Math.min(instructor.pricing.miniGroup.maxParticipants, n + 1))}
-                disabled={groupSize >= instructor.pricing.miniGroup.maxParticipants}
+                onClick={() => setGroupSize(n => Math.min(instructor.pricing?.miniGroup?.maxParticipants ?? n, n + 1))}
+                disabled={groupSize >= (instructor.pricing?.miniGroup?.maxParticipants ?? 0)}
               >+</button>
-              <span className={styles.stepperLabel}>чел. · макс. {instructor.pricing.miniGroup.maxParticipants}</span>
+              <span className={styles.stepperLabel}>чел. · макс. {instructor.pricing?.miniGroup?.maxParticipants ?? '—'}</span>
             </div>
           </>
         )}

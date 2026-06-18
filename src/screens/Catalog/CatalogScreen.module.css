@@ -331,6 +331,13 @@
   padding: 0 22px 0;
 }
 
+.emptyState {
+  padding: 48px 22px;
+  text-align: center;
+  color: var(--text-dim);
+  font-size: var(--font-body);
+}
+
 .instrCard {
   background: var(--surface-1);
   border: 1px solid var(--border);

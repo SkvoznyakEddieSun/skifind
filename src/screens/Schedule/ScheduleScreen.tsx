@@ -278,6 +278,9 @@ export function ScheduleScreen({ onLesson, onChat, onCreateMasterClass }: Schedu
   const selectedDate    = days14[selectedDayIdx];
   const selectedDateKey = selectedDate.toISOString().slice(0, 10);
 
+  // Все ближайшие дни — выходные (расписание настроено, но ни одного рабочего дня)
+  const allDaysOff = templateApplied && days14.every(d => isOffDay(d));
+
   const slotsForSelectedDay = useMemo(() => {
     if (!templateApplied) return null;
     const ds = daySchedules.find(s => s.dow === selectedDate.getDay());
@@ -505,6 +508,10 @@ export function ScheduleScreen({ onLesson, onChat, onCreateMasterClass }: Schedu
                   <button className={styles.emptyBtn} onClick={() => setTab('settings')}>
                     Настроить →
                   </button>
+                </div>
+              ) : allDaysOff ? (
+                <div className={styles.emptyStateSm}>
+                  <div className={styles.emptyStatSmText}>Нет доступных дней — все дни отмечены выходными</div>
                 </div>
               ) : isOffDay(selectedDate) ? (
                 <div className={styles.emptyStateSm}>

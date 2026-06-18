@@ -413,7 +413,7 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onMasterClas
   function hasFreeToday(instr: Instructor): boolean {
     const dow = new Date().getDay();
     const key = (['sun','mon','tue','wed','thu','fri','sat'] as WeekDay[])[dow];
-    const sched = instr.weekSchedule[key];
+    const sched = instr.weekSchedule?.[key];
     if (!sched) return false;
     const now = new Date();
     const nowMin = now.getHours() * 60 + now.getMinutes();
@@ -586,6 +586,9 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onMasterClas
 
         {/* ── Карточки инструкторов ── */}
         <div className={styles.instrList}>
+          {filtered.length === 0 && (
+            <div className={styles.emptyState}>Никого не найдено</div>
+          )}
           {filtered.map(instr => (
             <div
               key={instr.id}
@@ -632,8 +635,14 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onMasterClas
               {/* Bottom */}
               <div className={styles.icBot}>
                 <div>
-                  <div className={styles.icPrice}>{instr.price.toLocaleString('ru')} ₽</div>
-                  <div className={styles.icPriceSub}>{t('catalog.perHour')}</div>
+                  {instr.price ? (
+                    <>
+                      <div className={styles.icPrice}>{instr.price.toLocaleString('ru')} ₽</div>
+                      <div className={styles.icPriceSub}>{t('catalog.perHour')}</div>
+                    </>
+                  ) : (
+                    <div className={styles.icPrice}>Цена не указана</div>
+                  )}
                 </div>
                 <div className={styles.icSlot}>
                   {instr.nextSlot ? (
