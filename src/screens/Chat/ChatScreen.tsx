@@ -288,6 +288,47 @@ function getOrInitHistory(chatId?: string, role: 'instructor' | 'guest' = 'guest
   return HISTORY_CACHE.get(cacheKey)!;
 }
 
+// ── Booking strip helpers ──────────────────────────────────────────────────
+// Верхняя полоса «Заявка на занятие» берёт данные из ТОЙ ЖЕ карточки-предложения
+// (msg.card), что и пузырь в ленте, — единый источник, чтобы дата/время/цена
+// не расходились. Нет карточки → нет полосы (не показываем заглушку).
+
+/** Первое card-сообщение в истории чата (или undefined). */
+function findCardMessage(items: ChatItem[]): Message | undefined {
+  return items.find(
+    (i): i is Message => !('kind' in i) && (i as Message).type === 'card' && !!(i as Message).card,
+  );
+}
+
+/** «2 ч» / «2,5 ч» из диапазона «11:00–13:00». Пустая строка, если не распарсить. */
+function durationLabel(start: string, end: string): string {
+  const toMinutes = (s: string) => {
+    const [h, m] = s.split(':').map(Number);
+    return Number.isFinite(h) && Number.isFinite(m) ? h * 60 + m : NaN;
+  };
+  const diff = toMinutes(end) - toMinutes(start);
+  if (!Number.isFinite(diff) || diff <= 0) return '';
+  const hours = diff / 60;
+  const txt = Number.isInteger(hours) ? String(hours) : String(hours).replace('.', ',');
+  return `${txt} ч`;
+}
+
+/** Строка полосы: «28 апреля · 11:00 · 2 ч · 5 000 ₽» — из тех же полей card. */
+function bookingStripText(card: NonNullable<Message['card']>): string {
+  const [datePart, timePart] = card.date.split(',').map(s => s.trim());
+  const parts: string[] = [datePart];
+  if (timePart) {
+    const [start, end] = timePart.split(/[–—-]/).map(s => s.trim());
+    if (start) parts.push(start);
+    if (start && end) {
+      const dur = durationLabel(start, end);
+      if (dur) parts.push(dur);
+    }
+  }
+  parts.push(card.price);
+  return parts.join(' · ');
+}
+
 const QUICK_REPLIES = [
   'Аренда снаряжения?',
   'Как добраться?',
@@ -372,6 +413,9 @@ export function ChatScreen({
   const outMsgCount = items.filter(
     i => !('kind' in i) && (i as Message).sender === currentUserId
   ).length;
+
+  // Карточка-предложение этого чата — единый источник для верхней полосы.
+  const cardMsg = findCardMessage(items);
 
   // ── Единственный источник истины для «Подтверждено» ──────────────────────
   // confirmed === true → превью завершено, замок звонка снят, контакт открыт.
@@ -504,13 +548,15 @@ export function ChatScreen({
       </div>
 
       {/* ── Booking strip ── */}
-      {bookingVisible && !isDeclined && (
+      {/* Полоса показывается только если в чате есть карточка-предложение,
+          и берёт дату/время/цену из неё же (никаких захардкоженных значений). */}
+      {bookingVisible && !isDeclined && cardMsg?.card && (
         <div className={styles.bookingStrip}>
           <div className={styles.bsLeft}>
             <div className={styles.bsIcon}><Icon name="calendar" /></div>
             <div>
               <div className={styles.bsTitle}>{t('chat.bookingRequest')}</div>
-              <div className={styles.bsSub}>28 апр · 10:00 · 2 ч · 7 000 ₽</div>
+              <div className={styles.bsSub}>{bookingStripText(cardMsg.card)}</div>
             </div>
           </div>
           <button className={styles.bsClose} onClick={() => setBookingVisible(false)}>✕</button>
