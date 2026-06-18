@@ -487,13 +487,10 @@ export function App() {
         date={activeMc?.date}
         location={activeMc?.location}
         role={role}
-        onBack={() => {
-          const idx = stack.lastIndexOf('mc-catalog');
-          setAnimDir('pop');
-          setAnimKey(k => k + 1);
-          if (idx >= 0) setStack(stack.slice(0, idx + 1));
-          else setStack(role === 'instructor' ? ['instr'] : ['guest']);
-        }}
+        // Кнопка «‹» = шаг назад по стеку (как свайп). Group-chat открывается
+        // из разных мест (чат-лист, детали МК) — поэтому именно pop, а не
+        // прыжок в фиксированный mc-catalog (он ломался при входе из чат-листа).
+        onBack={pop}
       />
     );
   }
