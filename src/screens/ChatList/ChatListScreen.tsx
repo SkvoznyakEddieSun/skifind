@@ -82,6 +82,17 @@ export function addInstrRecentChat(item: ChatItem): void {
   INSTR_RECENT = [item, ...INSTR_RECENT];
 }
 
+/**
+ * Единый сессионный источник статуса брони для чат-листа инструктора.
+ * Вызывается при accept/decline из ChatScreen, чтобы при повторном открытии
+ * чата статус читался отсюда (а не из захардкоженной константы) и не сбрасывался.
+ * Ищет в обоих списках (RECENT и OLDER), правит объект на месте.
+ */
+export function setInstrChatStatus(id: string, status: BookingStatus): void {
+  const item = INSTR_RECENT.find(c => c.id === id) ?? INSTR_OLDER.find(c => c.id === id);
+  if (item) item.bookingStatus = status;
+}
+
 const INSTR_OLDER: ChatItem[] = [
   {
     id: 'tatyana',

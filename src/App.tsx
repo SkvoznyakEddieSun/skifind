@@ -11,7 +11,7 @@ import { SmsCodeScreen }   from './screens/SmsCode/SmsCodeScreen';
 import { DashboardScreen }    from './screens/Dashboard/DashboardScreen';
 import { RequestsScreen }     from './screens/Requests/RequestsScreen';
 import { ScheduleScreen }     from './screens/Schedule/ScheduleScreen';
-import { ChatListScreen }     from './screens/ChatList/ChatListScreen';
+import { ChatListScreen, setInstrChatStatus } from './screens/ChatList/ChatListScreen';
 import { InstrProfileScreen } from './screens/InstrProfile/InstrProfileScreen';
 
 // Guest tabs
@@ -228,11 +228,13 @@ export function App() {
         role={chatIsInstructor ? 'instructor' : 'guest'}
         chatId={chatIsInstructor ? activeChatBookingId : activeInstructor.id}
         onAcceptBooking={chatIsInstructor && activeChatBookingId ? () => {
-          acceptBooking(activeChatBookingId);
+          acceptBooking(activeChatBookingId);            // стор броней (RequestsScreen-флоу)
+          setInstrChatStatus(activeChatBookingId, 'ACCEPTED'); // сессионный источник чат-листа
           setChatBookingStatus('ACCEPTED');
         } : undefined}
         onDeclineBooking={chatIsInstructor && activeChatBookingId ? () => {
           declineBooking(activeChatBookingId);
+          setInstrChatStatus(activeChatBookingId, 'DECLINED');
           setChatBookingStatus('DECLINED');
         } : undefined}
       />
@@ -263,7 +265,7 @@ export function App() {
             if (isStudent) { setActiveStudentId(id); setChatPersonHasProfile(true); setChatPersonProfileType('student'); }
             else if (instr) { setActiveInstructor(instr); setChatPersonHasProfile(true); setChatPersonProfileType('instructor'); }
             else { setChatPersonHasProfile(false); }
-            setChatBookingStatus(status === 'DECLINED' ? 'NONE' : status);
+            setChatBookingStatus(status);
             setChatInstructorPhone(phone);
             setChatPersonName(name ?? ''); setChatPersonInitials(initials ?? ''); setChatPersonAvColor(avColor ?? 'ice');
             setActiveChatBookingId(id);   // ← без этого chatId/onAcceptBooking приходят пустыми
@@ -548,7 +550,7 @@ export function App() {
             } else {
               setChatPersonHasProfile(false);
             }
-            setChatBookingStatus(status === 'DECLINED' ? 'NONE' : status);
+            setChatBookingStatus(status);
             setChatInstructorPhone(phone);
             setChatPersonName(name ?? '');
             setChatPersonInitials(initials ?? '');

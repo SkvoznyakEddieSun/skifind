@@ -532,11 +532,15 @@ export function ChatScreen({
           <div className={styles.declinedIcon}>✕</div>
           <div className={styles.declinedTitle}>Заявка отклонена</div>
           <div className={styles.declinedSub}>
-            Инструктор не смог принять запрос. Попробуйте найти другого специалиста в каталоге.
+            {isInstructor
+              ? 'Вы отклонили эту заявку.'
+              : 'Инструктор не смог принять запрос. Попробуйте найти другого специалиста в каталоге.'}
           </div>
-          <button className={styles.declinedBtn} onClick={onBack}>
-            Найти другого →
-          </button>
+          {!isInstructor && (
+            <button className={styles.declinedBtn} onClick={onBack}>
+              Найти другого →
+            </button>
+          )}
         </div>
       ) : (
         <>
