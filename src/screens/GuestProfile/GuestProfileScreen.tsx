@@ -2,6 +2,7 @@ import { useState } from 'react';
 import styles from './GuestProfileScreen.module.css';
 import type { Instructor } from '@/screens/Catalog/CatalogScreen';
 import { Icon } from '@/components/Icon/Icon';
+import { useTheme } from '@/hooks/useTheme';
 
 interface GuestProfileScreenProps {
   onBack: () => void;
@@ -39,9 +40,8 @@ export function GuestProfileScreen({
   const guestPhone = localStorage.getItem('guestPhone') ?? '';
   const initials   = nameToInitials(guestName);
 
-  const [darkTheme, setDarkTheme] = useState(
-    document.documentElement.getAttribute('data-theme') !== 'light'
-  );
+  // Единый источник темы — хук useTheme (localStorage + применение к DOM).
+  const { theme, toggleTheme } = useTheme();
   const [pushOn, setPushOn]     = useState(true);
   const [remindOn, setRemindOn] = useState(true);
   const [toast, setToast]       = useState<string | null>(null);
@@ -50,12 +50,6 @@ export function GuestProfileScreen({
   function showToast(msg: string) {
     setToast(msg);
     setTimeout(() => setToast(null), 2000);
-  }
-
-  function toggleTheme() {
-    const next = darkTheme ? 'light' : 'dark';
-    document.documentElement.setAttribute('data-theme', next);
-    setDarkTheme(!darkTheme);
   }
 
   const favoriteInstrs = allInstructors.filter(i => favorites.has(i.id));
@@ -133,10 +127,10 @@ export function GuestProfileScreen({
             <div className={styles.toggleRow}>
               <div className={styles.toggleBody}>
                 <div className={styles.rowTitle}>Оформление</div>
-                <div className={styles.rowSub}>{darkTheme ? 'Тёмная тема ☾' : 'Светлая тема ☀'}</div>
+                <div className={styles.rowSub}>{theme === 'dark' ? 'Тёмная тема ☾' : 'Светлая тема ☀'}</div>
               </div>
               <button
-                className={`${styles.toggleSw} ${darkTheme ? styles.toggleSwOn : ''}`}
+                className={`${styles.toggleSw} ${theme === 'dark' ? styles.toggleSwOn : ''}`}
                 onClick={toggleTheme}
                 aria-label="Переключить тему"
               />

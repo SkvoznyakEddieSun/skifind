@@ -9,6 +9,7 @@ import {
   updateInstrFlags,
 } from '@/store/instructorProfile';
 import { INSTRUCTORS } from '@/screens/Catalog/CatalogScreen';
+import { useTheme } from '@/hooks/useTheme';
 
 // ── Конфиг длительностей ────────────────────────────────────────────────────
 const DURATIONS = [
@@ -57,7 +58,9 @@ export function InstrProfileScreen({ onBalance, onMyProfile, onLogout }: InstrPr
   const lessonCount   = accepted.length;
   const avgCheck      = lessonCount > 0 ? Math.round(totalEarnings / lessonCount) : 0;
 
-  const [isDark, setIsDark]         = useState(true);
+  // Единый источник темы — хук useTheme (localStorage + применение к DOM).
+  // Раньше тут было useState(true), что затирало сохранённый выбор при загрузке.
+  const { theme, toggleTheme }      = useTheme();
   const [showShare, setShowShare]   = useState(false);
   const [toast, setToast]           = useState<string | null>(null);
   // Читаем из стора при маунте — подхватывает изменения из RegisterScreen
@@ -107,12 +110,6 @@ export function InstrProfileScreen({ onBalance, onMyProfile, onLogout }: InstrPr
 
   function toggleSetting(id: string) {
     setSettings(s => s.map(r => r.id === id ? { ...r, on: !r.on } : r));
-  }
-
-  function toggleTheme() {
-    const next = !isDark;
-    setIsDark(next);
-    document.documentElement.setAttribute('data-theme', next ? 'dark' : 'light');
   }
 
   function showToast(msg: string) {
@@ -396,9 +393,9 @@ export function InstrProfileScreen({ onBalance, onMyProfile, onLogout }: InstrPr
               <div className={styles.settingRow}>
                 <div className={styles.settingLabel}>
                   <div className={styles.settingTitle}>Оформление</div>
-                  <div className={styles.settingSub}>{isDark ? 'Тёмная тема ☾' : 'Светлая тема ☀️'}</div>
+                  <div className={styles.settingSub}>{theme === 'dark' ? 'Тёмная тема ☾' : 'Светлая тема ☀️'}</div>
                 </div>
-                <button className={`${styles.sw} ${isDark ? styles.swOn : ''}`} onClick={toggleTheme} />
+                <button className={`${styles.sw} ${theme === 'dark' ? styles.swOn : ''}`} onClick={toggleTheme} />
               </div>
             </div>
           </div>
