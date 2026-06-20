@@ -7,6 +7,8 @@ interface Sender {
   name: string;
   short: string;
   avClass: string;
+  /** true — участник онлайн; полоса «онлайн» строится фильтрацией SENDERS */
+  online: boolean;
 }
 
 interface Message {
@@ -21,15 +23,18 @@ interface Message {
 interface DaySep { kind: 'sep'; label: string; id: string; }
 type ChatItem = Message | DaySep;
 
+// Единый реестр участников. Поле online:true/false — единственный источник
+// для полосы «онлайн» и строк шита участников. Менять онлайн-статус здесь.
 const SENDERS: Record<string, Sender> = {
-  alex:   { id: 'alex',   name: 'Алексей М.',  short: 'АМ', avClass: 'avIce' },
-  nataly: { id: 'nataly', name: 'Наталья К.',  short: 'НК', avClass: 'avMint' },
-  sergey: { id: 'sergey', name: 'Сергей Б.',   short: 'СБ', avClass: 'avPurple' },
-  olga:   { id: 'olga',   name: 'Ольга Т.',    short: 'ОТ', avClass: 'avStraw' },
-  dima:   { id: 'dima',   name: 'Дмитрий Р.',  short: 'ДР', avClass: 'avCoral' },
+  alex:   { id: 'alex',   name: 'Алексей М.',  short: 'АМ', avClass: 'avIce',    online: true  },
+  nataly: { id: 'nataly', name: 'Наталья К.',  short: 'НК', avClass: 'avMint',   online: true  },
+  sergey: { id: 'sergey', name: 'Сергей Б.',   short: 'СБ', avClass: 'avPurple', online: true  },
+  olga:   { id: 'olga',   name: 'Ольга Т.',    short: 'ОТ', avClass: 'avStraw',  online: true  },
+  dima:   { id: 'dima',   name: 'Дмитрий Р.',  short: 'ДР', avClass: 'avCoral',  online: false },
 };
 
-const ONLINE_MEMBERS = ['alex', 'nataly', 'sergey', 'olga'];
+// Вычисляется из SENDERS — не нужно синхронизировать вручную.
+const ONLINE_MEMBERS = Object.values(SENDERS).filter(s => s.online).map(s => s.id);
 
 const INITIAL: ChatItem[] = [
   { kind: 'sep', label: '24 апреля', id: 'sep1' },
@@ -194,20 +199,26 @@ export function CommunityScreen({ onBack }: CommunityScreenProps) {
             <div className={styles.membersHandle} />
             <div className={styles.membersTitle}>Участники · 248</div>
             <div className={styles.membersList}>
+              {/* Известные участники — из SENDERS, онлайн-статус в одном месте */}
+              {Object.values(SENDERS).map(s => (
+                <div key={s.id} className={styles.memberRow}>
+                  <div className={`${styles.av} ${styles[s.avClass as keyof typeof styles]}`}>{s.short}</div>
+                  <div>
+                    <div className={styles.memberName}>{s.name}</div>
+                    <div className={styles.memberRole}>{s.online ? 'Инструктор · онлайн' : 'Инструктор'}</div>
+                  </div>
+                </div>
+              ))}
+              {/* Анонимные участники (не в SENDERS, нет истории сообщений) */}
               {[
-                { short: 'АМ', color: 'avIce',    name: 'Алексей М.',   role: 'Инструктор · онлайн' },
-                { short: 'НК', color: 'avMint',   name: 'Наталья К.',   role: 'Инструктор · онлайн' },
-                { short: 'СБ', color: 'avPurple', name: 'Сергей Б.',    role: 'Инструктор · онлайн' },
-                { short: 'ОТ', color: 'avStraw',  name: 'Ольга Т.',     role: 'Инструктор · онлайн' },
-                { short: 'ДР', color: 'avCoral',  name: 'Дмитрий Р.',   role: 'Инструктор' },
-                { short: 'ИМ', color: 'avIce',    name: 'Иван М.',      role: 'Инструктор' },
-                { short: 'КС', color: 'avMint',   name: 'Ксения С.',    role: 'Инструктор' },
+                { short: 'ИМ', color: 'avIce',  name: 'Иван М.'   },
+                { short: 'КС', color: 'avMint', name: 'Ксения С.' },
               ].map(m => (
                 <div key={m.name} className={styles.memberRow}>
                   <div className={`${styles.av} ${styles[m.color as keyof typeof styles]}`}>{m.short}</div>
                   <div>
                     <div className={styles.memberName}>{m.name}</div>
-                    <div className={styles.memberRole}>{m.role}</div>
+                    <div className={styles.memberRole}>Инструктор</div>
                   </div>
                 </div>
               ))}
