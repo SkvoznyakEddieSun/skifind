@@ -408,6 +408,10 @@ export function ChatScreen({
   const [showScrollBtn, setShowScrollBtn] = useState(false);
   const messagesRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  // Блокируем повторный вызов sendMsg в течение 300 мс после первого —
+  // защита от mobile-событий (touchstart → touchend → click → dblclick)
+  // и случайных двойных тапов, которые давали 4 одинаковых сообщения.
+  const sendingRef  = useRef(false);
 
   // Считаем только сообщения, отправленные текущим пользователем
   const outMsgCount = items.filter(
@@ -475,9 +479,13 @@ export function ChatScreen({
   }, [items, typing, previewExhausted]);
 
   function sendMsg(text?: string) {
+    // Идемпотентность: блокируем повторный вход в течение 300 мс.
+    if (sendingRef.current) return;
     if (previewExhausted || isDeclined) return;
     const msg = (text ?? inputVal).trim();
     if (!msg) return;
+    sendingRef.current = true;
+    setTimeout(() => { sendingRef.current = false; }, 300);
 
     // Phone filter
     if (hasPhone(msg)) {
