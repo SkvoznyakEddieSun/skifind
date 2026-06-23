@@ -196,6 +196,29 @@ CREATE OR REPLACE TRIGGER trg_masterclass_overlap
 -- ROW LEVEL SECURITY
 -- =============================================================================
 
+-- Сброс существующих политик перед созданием — делает миграцию идемпотентной
+-- (повторный прогон не падает с 42710 "policy already exists").
+DROP POLICY IF EXISTS "profiles: own row"                ON profiles;
+DROP POLICY IF EXISTS "profiles: instructor public read" ON profiles;
+DROP POLICY IF EXISTS "profiles: student via booking"    ON profiles;
+DROP POLICY IF EXISTS "instructors: public read"         ON instructors;
+DROP POLICY IF EXISTS "instructors: own write"           ON instructors;
+DROP POLICY IF EXISTS "bookings: participant"            ON bookings;  -- старое имя, на случай частичного прогона
+DROP POLICY IF EXISTS "bookings: select"                 ON bookings;
+DROP POLICY IF EXISTS "bookings: insert"                 ON bookings;
+DROP POLICY IF EXISTS "bookings: update"                 ON bookings;
+DROP POLICY IF EXISTS "masterclasses: public read"       ON masterclasses;
+DROP POLICY IF EXISTS "masterclasses: instructor write"  ON masterclasses;
+DROP POLICY IF EXISTS "mc_participants: own"             ON masterclass_participants;
+DROP POLICY IF EXISTS "mc_participants: instructor"      ON masterclass_participants;
+DROP POLICY IF EXISTS "chats: community read"            ON chats;
+DROP POLICY IF EXISTS "chats: direct"                    ON chats;
+DROP POLICY IF EXISTS "chats: masterclass"               ON chats;
+DROP POLICY IF EXISTS "messages: community"              ON messages;
+DROP POLICY IF EXISTS "messages: direct"                 ON messages;
+DROP POLICY IF EXISTS "messages: masterclass"            ON messages;
+DROP POLICY IF EXISTS "messages: sender insert"          ON messages;
+
 ALTER TABLE profiles                 ENABLE ROW LEVEL SECURITY;
 ALTER TABLE instructors              ENABLE ROW LEVEL SECURITY;
 ALTER TABLE bookings                 ENABLE ROW LEVEL SECURITY;
