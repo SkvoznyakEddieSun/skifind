@@ -148,6 +148,50 @@ CREATE OR REPLACE TRIGGER trg_booking_overlap
   BEFORE INSERT OR UPDATE ON bookings
   FOR EACH ROW EXECUTE FUNCTION check_booking_overlap();
 
+-- Симметричная защита на стороне masterclasses:
+-- при создании/изменении МК проверяем пересечение с бронями И другими МК.
+-- end_time МК = start_time + duration_minutes * interval '1 minute'.
+CREATE OR REPLACE FUNCTION check_masterclass_overlap()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $$
+DECLARE
+  new_end time := NEW.start_time + NEW.duration_minutes * interval '1 minute';
+BEGIN
+  -- а) Пересечение с существующими бронями того же инструктора
+  IF EXISTS (
+    SELECT 1
+    FROM   bookings b
+    WHERE  b.instructor_id = NEW.instructor_id
+      AND  b.date          = NEW.date
+      AND  b.status        IN ('PENDING', 'ACCEPTED')
+      AND  b.start_time    < new_end
+      AND  b.end_time      > NEW.start_time
+  ) THEN
+    RAISE EXCEPTION 'Этот интервал уже занят (пересечение с существующей бронью)';
+  END IF;
+
+  -- б) Пересечение с другими мастер-классами того же инструктора
+  IF EXISTS (
+    SELECT 1
+    FROM   masterclasses mc
+    WHERE  mc.instructor_id = NEW.instructor_id
+      AND  mc.date          = NEW.date
+      AND  mc.id           <> NEW.id          -- исключаем себя при UPDATE
+      AND  mc.start_time    < new_end
+      AND  (mc.start_time + mc.duration_minutes * interval '1 minute') > NEW.start_time
+  ) THEN
+    RAISE EXCEPTION 'Этот интервал уже занят (пересечение с другим мастер-классом)';
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+
+CREATE OR REPLACE TRIGGER trg_masterclass_overlap
+  BEFORE INSERT OR UPDATE ON masterclasses
+  FOR EACH ROW EXECUTE FUNCTION check_masterclass_overlap();
+
 -- =============================================================================
 -- ROW LEVEL SECURITY
 -- =============================================================================
@@ -204,11 +248,50 @@ CREATE POLICY "instructors: own write"
 
 -- ── bookings ─────────────────────────────────────────────────────────────────
 
-CREATE POLICY "bookings: participant"
+-- SELECT: оба участника читают свои брони
+CREATE POLICY "bookings: select"
   ON bookings
-  FOR ALL
+  FOR SELECT
+  USING (auth.uid() = instructor_id OR auth.uid() = student_id);
+
+-- INSERT: создающий должен быть одним из участников
+CREATE POLICY "bookings: insert"
+  ON bookings
+  FOR INSERT
+  WITH CHECK (auth.uid() = instructor_id OR auth.uid() = student_id);
+
+-- UPDATE: только участник брони, и только по строкам, где он участник.
+-- Заморозка instructor_id/student_id обеспечивается триггером ниже, а не здесь:
+-- RLS не может сравнивать OLD и NEW в одной политике — это ограничение Postgres.
+CREATE POLICY "bookings: update"
+  ON bookings
+  FOR UPDATE
   USING      (auth.uid() = instructor_id OR auth.uid() = student_id)
   WITH CHECK (auth.uid() = instructor_id OR auth.uid() = student_id);
+
+-- DELETE: политики нет → RLS запрещает физическое удаление для всех.
+-- Статус брони меняется через UPDATE (→ DECLINED), строка не удаляется.
+
+-- Триггер: запрещает менять instructor_id и student_id после создания брони.
+-- Нужен именно триггер, потому что RLS не имеет доступа к OLD в WITH CHECK.
+CREATE OR REPLACE FUNCTION prevent_booking_participant_change()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  IF OLD.instructor_id <> NEW.instructor_id THEN
+    RAISE EXCEPTION 'instructor_id cannot be changed after booking is created';
+  END IF;
+  IF OLD.student_id <> NEW.student_id THEN
+    RAISE EXCEPTION 'student_id cannot be changed after booking is created';
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+CREATE OR REPLACE TRIGGER trg_booking_immutable_participants
+  BEFORE UPDATE ON bookings
+  FOR EACH ROW EXECUTE FUNCTION prevent_booking_participant_change();
 
 -- ── masterclasses ────────────────────────────────────────────────────────────
 
