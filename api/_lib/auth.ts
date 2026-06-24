@@ -122,11 +122,11 @@ export async function verifyCode(rawPhone: string, inputCode: string): Promise<V
   if (existingProfile) {
     profile = existingProfile as Profile;
   } else {
-    // TODO (onboarding): role is null here; the frontend onboarding step will
-    //   PATCH /api/profile/role after the user picks instructor vs student.
+    // New users default to 'student' (DB column DEFAULT). 'instructor' is
+    // granted manually later — we don't pass role here so the default applies.
     const { data: created, error: insertErr } = await db
       .from('profiles')
-      .insert({ phone, role: null, name: null })
+      .insert({ phone, name: null })
       .select()
       .single();
 
