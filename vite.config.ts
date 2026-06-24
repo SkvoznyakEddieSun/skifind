@@ -40,6 +40,16 @@ export default defineConfig({
   resolve: {
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
   },
+  // Dev only — proxies /api/* to the local Node/Express api server (npm run dev:api).
+  // No effect on the production build; on Vercel the functions are served directly.
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+      },
+    },
+  },
   test: {
     globals: true,
     environment: 'jsdom',
