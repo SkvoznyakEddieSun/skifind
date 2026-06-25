@@ -37,6 +37,21 @@ export type MeResponse =
   | { ok: true; profile: SessionProfile }
   | { ok: false; reason: 'unauthorized' | 'network' | 'server' };
 
+/** Catalog DTO — flat shape from the server (JOIN profiles+instructors). */
+export interface InstructorDTO {
+  id: string;
+  name: string | null;
+  discipline: 'ski' | 'snowboard' | null;
+  tags: string[];
+  priceIndividual: number | null;
+  priceMiniGroupBase: number | null;
+  priceMiniGroupExtra: number | null;
+  miniGroupMax: number | null;
+  weekSchedule: Record<string, { start: string; end: string; breaks?: { start: string; end: string }[] }> | null;
+  bio: string | null;
+  photoUrl: string | null;
+}
+
 // ── Core ─────────────────────────────────────────────────────────────────────
 
 async function post<T>(path: string, body: unknown): Promise<T | ApiError> {
@@ -103,4 +118,27 @@ export async function me(): Promise<MeResponse> {
   const body = data as { ok?: boolean; profile?: SessionProfile };
   if (body?.ok && body.profile) return { ok: true, profile: body.profile };
   return { ok: false, reason: 'server' };
+}
+
+/**
+ * Catalog list. THROWS on failure (network / 401 / 5xx) so react-query can
+ * drive loading/error/retry — that's the react-query idiom, unlike the
+ * object-returning auth helpers above.
+ */
+export async function getInstructors(): Promise<InstructorDTO[]> {
+  const token = getToken();
+  const headers: Record<string, string> = {};
+  if (token) headers.Authorization = `Bearer ${token}`;
+
+  let res: Response;
+  try {
+    res = await fetch('/api/instructors', { headers });
+  } catch {
+    throw new Error('Нет связи с сервером');
+  }
+  if (!res.ok) throw new Error('Не удалось загрузить инструкторов');
+
+  const data = (await res.json()) as { ok?: boolean; instructors?: InstructorDTO[] };
+  if (!data?.ok || !data.instructors) throw new Error('Некорректный ответ сервера');
+  return data.instructors;
 }

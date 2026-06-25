@@ -17,3 +17,23 @@ export type VerifyResult =
 export type MeResult =
   | { ok: true; profile: Profile }
   | { ok: false; error: string; code: string };
+
+/** Catalog DTO — flat shape from JOIN profiles+instructors. The frontend maps
+ *  this into its richer Instructor view-model (initials/colors/level/etc.). */
+export interface InstructorDTO {
+  id: string;                          // = profiles.id / instructors.profile_id
+  name: string | null;
+  discipline: 'ski' | 'snowboard' | null;
+  tags: string[];
+  priceIndividual: number | null;
+  priceMiniGroupBase: number | null;
+  priceMiniGroupExtra: number | null;
+  miniGroupMax: number | null;
+  weekSchedule: Record<string, { start: string; end: string; breaks?: { start: string; end: string }[] }> | null;
+  bio: string | null;
+  photoUrl: string | null;
+}
+
+export type InstructorsResult =
+  | { ok: true; instructors: InstructorDTO[] }
+  | { ok: false; error: string; code: string };

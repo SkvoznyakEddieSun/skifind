@@ -661,13 +661,13 @@ export function App() {
     if (guestTab === 'catalog') {
       tabContent = (
         <CatalogScreen
-          onProfile={id => {
-            const instr = INSTRUCTORS.find(i => i.id === id) ?? INSTRUCTORS[0];
+          onProfile={instr => {
+            // Объект приходит из серверного каталога — деталь/бронь открываются
+            // с теми же данными (отдельный роут :id не нужен).
             setActiveInstructor(instr);
             push('instr-profile');
           }}
-          onBook={id => {
-            const instr = INSTRUCTORS.find(i => i.id === id) ?? INSTRUCTORS[0];
+          onBook={instr => {
             setActiveInstructor(instr);
             push('book-slot');
           }}

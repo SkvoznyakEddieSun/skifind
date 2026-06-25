@@ -151,6 +151,36 @@ export async function verifyCode(rawPhone: string, inputCode: string): Promise<V
 
 // ---------------------------------------------------------------------------
 
+export interface AuthPayload {
+  userId: string;
+  phone: string;
+  role: string | null;
+}
+
+/**
+ * Verify a `Authorization: Bearer <jwt>` header. Returns the payload on a valid
+ * signature+expiry, or null for missing/invalid/expired token. Shared by every
+ * route that needs auth — this is where "защита прав в коде сервера" lives.
+ * Throws only if JWT_SECRET is misconfigured (infra problem → 500 upstream).
+ */
+export function verifyToken(authHeader: string | undefined): AuthPayload | null {
+  const token = authHeader?.startsWith('Bearer ')
+    ? authHeader.slice('Bearer '.length).trim()
+    : null;
+  if (!token) return null;
+
+  const jwtSecret = process.env.JWT_SECRET;
+  if (!jwtSecret) throw new Error('JWT_SECRET env var is not set');
+
+  try {
+    const p = jwt.verify(token, jwtSecret) as { userId?: string; phone?: string; role?: string | null };
+    if (!p?.userId) return null;
+    return { userId: p.userId, phone: p.phone ?? '', role: p.role ?? null };
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Validate a session token and return the CURRENT profile from the DB.
  *
@@ -167,29 +197,14 @@ export async function verifyCode(rawPhone: string, inputCode: string): Promise<V
  * DB is picked up on the next start.
  */
 export async function getMe(authHeader: string | undefined): Promise<MeResult> {
-  const token = authHeader?.startsWith('Bearer ')
-    ? authHeader.slice('Bearer '.length).trim()
-    : null;
-  if (!token) return { ok: false, error: 'Нет токена', code: 'NO_TOKEN' };
-
-  const jwtSecret = process.env.JWT_SECRET;
-  if (!jwtSecret) throw new Error('JWT_SECRET env var is not set');
-
-  let payload: { userId?: string };
-  try {
-    payload = jwt.verify(token, jwtSecret) as { userId?: string };
-  } catch {
-    return { ok: false, error: 'Токен недействителен или истёк', code: 'INVALID_TOKEN' };
-  }
-  if (!payload.userId) {
-    return { ok: false, error: 'Токен недействителен', code: 'INVALID_TOKEN' };
-  }
+  const auth = verifyToken(authHeader);
+  if (!auth) return { ok: false, error: 'Токен недействителен или истёк', code: 'INVALID_TOKEN' };
 
   const db = getDb();
   const { data: profile, error } = await db
     .from('profiles')
     .select('*')
-    .eq('id', payload.userId)
+    .eq('id', auth.userId)
     .maybeSingle();
 
   if (error) {

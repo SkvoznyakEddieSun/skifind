@@ -338,6 +338,48 @@
   font-size: var(--font-body);
 }
 
+/* Состояния загрузки/ошибки каталога */
+.stateBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 48px 22px;
+  text-align: center;
+}
+
+.stateText {
+  color: var(--text-dim);
+  font-size: var(--font-body);
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  animation: catalogSpin 0.8s linear infinite;
+}
+
+@keyframes catalogSpin {
+  to { transform: rotate(360deg); }
+}
+
+.retryBtn {
+  padding: 10px 20px;
+  background: var(--accent);
+  color: var(--accent-text);
+  border: none;
+  border-radius: var(--r12);
+  font-size: 14px;
+  font-weight: 600;
+  font-family: var(--ff);
+  cursor: pointer;
+}
+
+.retryBtn:disabled { opacity: .5; cursor: not-allowed; }
+
 .instrCard {
   background: var(--surface-1);
   border: 1px solid var(--border);

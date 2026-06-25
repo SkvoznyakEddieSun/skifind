@@ -1,7 +1,9 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import styles from './CatalogScreen.module.css';
 import { useTranslation } from '@/i18n/useTranslation';
 import { Icon } from '@/components/Icon/Icon';
+import { getInstructors, type InstructorDTO } from '@/lib/api';
 
 type SportType = 'all' | 'ski' | 'board';
 type Level = 'all' | 'beginner' | 'intermediate' | 'advanced' | 'kids' | 'freeride' | 'freestyle';
@@ -104,6 +106,80 @@ export interface Instructor {
 }
 
 export const ACTIVE_RESORTS = ['Шерегеш'] as const;
+
+// ── Маппинг серверного DTO → view-model Instructor ───────────────────────────
+// БД хранит теги как человекочитаемые ярлыки; словарь связывает ярлык с ключом
+// фильтра (level) и цветом чипа. Ярлык на карточке = строка из БД как есть.
+type TagColor = Instructor['tags'][number]['color'];
+const TAG_DICT: Record<string, { level: Level; color: TagColor }> = {
+  'Новички':     { level: 'beginner',  color: 'mint'   },
+  'Продвинутые': { level: 'advanced',  color: 'gray'   },
+  'Дети':        { level: 'kids',      color: 'purple' },
+  'Фрирайд':     { level: 'freeride',  color: 'straw'  },
+  'Фристайл':    { level: 'freestyle', color: 'cyan'   },
+};
+
+const AVATAR_PALETTE: Instructor['avatarColor'][] = ['ice', 'mint', 'purple', 'straw', 'blue'];
+
+function initialsOf(name: string): string {
+  const p = name.trim().split(/\s+/);
+  return ((p[0]?.[0] ?? '') + (p[1]?.[0] ?? '')).toUpperCase() || '?';
+}
+function hashIdx(s: string, mod: number): number {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+  return h % mod;
+}
+
+/** DTO с сервера → Instructor. Поля, которых нет в БД (rating/exp/onMountain/
+ *  nextSlot), получают нейтральные дефолты — см. отчёт о пробелах. */
+export function mapApiInstructor(dto: InstructorDTO): Instructor {
+  const name = dto.name ?? 'Инструктор';
+  const type: ('ski' | 'board')[] =
+    dto.discipline === 'snowboard' ? ['board'] : dto.discipline === 'ski' ? ['ski'] : [];
+  const disciplineTag =
+    dto.discipline === 'snowboard' ? { label: 'Сноуборд', color: 'blue' as const }
+    : dto.discipline === 'ski'     ? { label: 'Горные лыжи', color: 'blue' as const }
+    : null;
+
+  const levels: Level[] = [];
+  const specTags = dto.tags.map(tag => {
+    const d = TAG_DICT[tag];
+    if (d) levels.push(d.level);
+    return { label: tag, color: (d?.color ?? 'gray') as TagColor };
+  });
+
+  const pricing: InstructorPricing = {
+    individual: { h1: dto.priceIndividual ?? 0, h2: 0, h3: 0, h4: 0 },
+    miniGroup: {
+      h1: dto.priceMiniGroupBase ?? 0, h2: 0, h3: 0, h4: 0,
+      extraPersonPrice: dto.priceMiniGroupExtra ?? 0,
+      maxParticipants: dto.miniGroupMax ?? 0,
+    },
+  };
+
+  return {
+    id: dto.id,
+    name,
+    initials: initialsOf(name),
+    avatarColor: AVATAR_PALETTE[hashIdx(dto.id, AVATAR_PALETTE.length)],
+    resort: ACTIVE_RESORTS[0],
+    type,
+    level: levels,
+    rating: 0,                  // нет в БД — карточка прячет рейтинг при 0
+    price: dto.priceIndividual ?? 0,
+    weekSchedule: (dto.weekSchedule ?? {}) as unknown as Instructor['weekSchedule'],
+    pricing,
+    worksWithKids: dto.tags.includes('Дети'),
+    bio: dto.bio ?? undefined,
+    exp: 0,                     // нет в БД
+    onMountain: false,          // нет в БД (live-статус)
+    hasFreeSlotsToday: false,   // фильтр «Сегодня» считает по weekSchedule
+    gender: 'male',
+    tags: disciplineTag ? [disciplineTag, ...specTags] : specTags,
+    photoUrl: dto.photoUrl ?? undefined,
+  };
+}
 
 export const INSTRUCTORS: Instructor[] = [
   {
@@ -361,8 +437,8 @@ export const INSTRUCTORS: Instructor[] = [
 ];
 
 interface CatalogScreenProps {
-  onProfile: (id: string) => void;
-  onBook: (id: string) => void;
+  onProfile: (instr: Instructor) => void;
+  onBook: (instr: Instructor) => void;
   onNotifications: () => void;
   onBecomeInstructor: () => void;
   onMasterClasses: () => void;
@@ -390,17 +466,24 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onMasterClas
   const [sort, setSort]               = useState<SortKey>('random');
   const [onlyFreeToday, setOnlyFreeToday] = useState(false);
 
-  /** Случайный порядок (Fisher-Yates), зафиксированный при открытии каталога.
-   *  Карта id → позиция, чтобы никто не оказывался всегда наверху. */
-  const randomOrder = useRef<Record<string, number>>({});
-  if (Object.keys(randomOrder.current).length === 0) {
-    const ids = INSTRUCTORS.map(i => i.id);
+  // Данные каталога — с сервера через react-query (loading/error/cache).
+  const { data, isLoading, isError, refetch, isFetching } = useQuery({
+    queryKey: ['instructors'],
+    queryFn: getInstructors,
+  });
+  const instructors = useMemo<Instructor[]>(() => (data ?? []).map(mapApiInstructor), [data]);
+
+  /** Случайный порядок (Fisher-Yates) — карта id → позиция, чтобы никто не был
+   *  всегда наверху. Перетасовывается один раз при изменении набора данных. */
+  const randomOrder = useMemo<Record<string, number>>(() => {
+    const ids = instructors.map(i => i.id);
     for (let k = ids.length - 1; k > 0; k--) {
       const j = Math.floor(Math.random() * (k + 1));
       [ids[k], ids[j]] = [ids[j], ids[k]];
     }
-    randomOrder.current = Object.fromEntries(ids.map((id, idx) => [id, idx]));
-  }
+    return Object.fromEntries(ids.map((id, idx) => [id, idx]));
+  }, [instructors]);
+
   const [localFavorites, setLocalFavorites] = useState<Set<string>>(new Set());
   const favorites = favoritesProp ?? localFavorites;
   const contentRef                    = useRef<HTMLDivElement>(null);
@@ -433,7 +516,7 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onMasterClas
     }
   }
 
-  const filtered = INSTRUCTORS
+  const filtered = instructors
     .filter(i => {
       if (blockedIds?.has(i.id)) return false;
       if (onlyFreeToday && !hasFreeToday(i)) return false;
@@ -458,7 +541,7 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onMasterClas
       if (sort === 'price-asc') return a.price - b.price;
       if (sort === 'price-desc') return b.price - a.price;
       if (sort === 'experience') return b.exp - a.exp;
-      return (randomOrder.current[a.id] ?? 0) - (randomOrder.current[b.id] ?? 0);
+      return (randomOrder[a.id] ?? 0) - (randomOrder[b.id] ?? 0);
     });
 
   const LEVELS: { key: Level; label: string }[] = [
@@ -586,17 +669,28 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onMasterClas
 
         {/* ── Карточки инструкторов ── */}
         <div className={styles.instrList}>
-          {filtered.length === 0 && (
+          {isLoading ? (
+            <div className={styles.stateBlock} role="status" aria-label="Загрузка">
+              <div className={styles.spinner} />
+            </div>
+          ) : isError ? (
+            <div className={styles.stateBlock}>
+              <div className={styles.stateText}>Не удалось загрузить инструкторов</div>
+              <button className={styles.retryBtn} onClick={() => refetch()} disabled={isFetching}>
+                {isFetching ? 'Загрузка…' : 'Повторить'}
+              </button>
+            </div>
+          ) : filtered.length === 0 ? (
             <div className={styles.emptyState}>Никого не найдено</div>
-          )}
-          {filtered.map(instr => (
+          ) : (
+            filtered.map(instr => (
             <div
               key={instr.id}
               className={styles.instrCard}
               role="button"
               tabIndex={0}
-              onClick={() => onProfile(instr.id)}
-              onKeyDown={e => e.key === 'Enter' && onProfile(instr.id)}
+              onClick={() => onProfile(instr)}
+              onKeyDown={e => e.key === 'Enter' && onProfile(instr)}
             >
               {/* Fav */}
               <button
@@ -626,10 +720,12 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onMasterClas
                     <div className={styles.onMountainBadge}>{t('catalog.onMountainNow')}</div>
                   )}
                 </div>
-                <div className={styles.icRating}>
-                  <Icon name="star" size={12} />
-                  {instr.rating.toFixed(1)}
-                </div>
+                {instr.rating > 0 && (
+                  <div className={styles.icRating}>
+                    <Icon name="star" size={12} />
+                    {instr.rating.toFixed(1)}
+                  </div>
+                )}
               </div>
 
               {/* Bottom */}
@@ -658,13 +754,14 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onMasterClas
               <div className={styles.icBookRow}>
                 <button
                   className={styles.icBookBtn}
-                  onClick={e => { e.stopPropagation(); onBook(instr.id); }}
+                  onClick={e => { e.stopPropagation(); onBook(instr); }}
                 >
                   Записаться →
                 </button>
               </div>
             </div>
-          ))}
+            ))
+          )}
         </div>
 
         <div style={{ height: 32 }} />
