@@ -52,6 +52,29 @@
   display: block;
 }
 
+.devHint {
+  font-size: 13px;
+  color: var(--text-dim);
+  margin: -20px 0 20px;
+  padding: 8px 12px;
+  background: var(--surface-1);
+  border: 1px dashed var(--border);
+  border-radius: var(--r12);
+}
+
+.devHint strong {
+  color: var(--accent);
+  letter-spacing: 2px;
+}
+
+.error {
+  font-size: 13px;
+  color: var(--danger, #ff5a5a);
+  text-align: center;
+  line-height: 1.4;
+  margin: 4px 0 0;
+}
+
 .digits {
   display: flex;
   gap: 8px;

@@ -3,9 +3,9 @@ import { BottomNav } from './components/BottomNav/BottomNav';
 import { SwipeBack } from './components/SwipeBack/SwipeBack';
 
 // Auth
-import { AuthScreen }      from './screens/Auth/AuthScreen';
 import { PhoneAuthScreen } from './screens/PhoneAuth/PhoneAuthScreen';
 import { SmsCodeScreen }   from './screens/SmsCode/SmsCodeScreen';
+import { getSession, saveSession, clearSession } from './lib/session';
 
 // Instructor tabs
 import { DashboardScreen }    from './screens/Dashboard/DashboardScreen';
@@ -43,12 +43,23 @@ import { getStudentProfileByName }  from './screens/StudentProfile/studentData';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
+// UI render fork. 'guest' = ученический интерфейс (каталог/брони/чат/профиль).
+// Серверные роли БД — 'student' | 'instructor'; маппинг в uiRole():
+//   profile.role==='instructor' → 'instructor', иначе → 'guest' (student UI).
+// Тип НЕ расширяем до 'student', чтобы не переименовывать всю развилку и
+// role-пропсы дочерних экранов (Notifications/MasterClassDetail/GroupChat).
+// «Не вошёл» = getSession()===null → стартуем на экране 'phone'.
 type Role     = 'instructor' | 'guest';
 type InstrTab = 'dashboard' | 'requests' | 'chat' | 'calendar' | 'profile';
 type GuestTab = 'catalog'   | 'bookings' | 'chat' | 'profile';
 
+/** Серверная роль ('student'|'instructor'|null) → UI-развилка. */
+function uiRole(serverRole: string | null | undefined): Role {
+  return serverRole === 'instructor' ? 'instructor' : 'guest';
+}
+
 type Screen =
-  | 'auth' | 'phone' | 'sms'
+  | 'phone' | 'sms'
   | 'instr' | 'guest'
   | 'balance' | 'reviews' | 'chat' | 'community'
   | 'notifications' | 'register' | 'instr-profile' | 'my-profile'
@@ -87,11 +98,17 @@ void (localStorage.getItem('guestId') ?? (() => {
 // ── App ─────────────────────────────────────────────────────────────────────
 
 export function App() {
-  const [stack, setStack]       = useState<Screen[]>(['auth']);
-  const [role, setRole]         = useState<Role>('instructor');
+  // Восстановление сессии на старте (доверяем localStorage; серверная
+  // валидация токена /me — следующий подшаг 2.3). Нет сессии → экран входа.
+  const bootSession = getSession();
+  const [stack, setStack]       = useState<Screen[]>(
+    bootSession ? [uiRole(bootSession.profile.role) === 'instructor' ? 'instr' : 'guest'] : ['phone']
+  );
+  const [role, setRole]         = useState<Role>(uiRole(bootSession?.profile.role));
   const [instrTab, setInstrTab] = useState<InstrTab>('dashboard');
   const [guestTab, setGuestTab] = useState<GuestTab>('catalog');
   const [phone, setPhone]           = useState('');
+  const [devCode, setDevCode]       = useState('');
   const [activeMcId, setActiveMcId] = useState('mc1');
   const [chatBookingStatus, setChatBookingStatus] = useState<BookingStatus>('PENDING');
   const [chatInstructorPhone, setChatInstructorPhone] = useState<string | undefined>(undefined);
@@ -178,6 +195,14 @@ export function App() {
 
   // Переходы без анимации (смена роли / таб-свитч)
   function goHome(r: Role)  { setRole(r); setAnimDir('none'); setAnimKey(k => k + 1); setStack([r === 'instructor' ? 'instr' : 'guest']); }
+
+  // Выход: очистка сессии + возврат на экран входа.
+  function logout() {
+    clearSession();
+    setAnimDir('none');
+    setAnimKey(k => k + 1);
+    setStack(['phone']);
+  }
   function switchInstrTab(tab: InstrTab) { setInstrTab(tab); setStack(['instr']); }
   function switchGuestTab(tab: GuestTab) { setGuestTab(tab); setStack(['guest']); }
 
@@ -196,15 +221,22 @@ export function App() {
   // ── Собираем контент ─────────────────────────────────────────────────────
   function buildContent(s: Screen): React.ReactNode {
 
-  // Auth
-  if (s === 'auth') {
-    return <AuthScreen onGuest={() => goHome('guest')} onLoginByPhone={() => push('phone')} />;
-  }
-  else if (s === 'phone') {
-    return <PhoneAuthScreen onBack={pop} onSubmit={p => { setPhone(p); push('sms'); }} />;
+  // Auth — единый вход для всех: телефон → код. Роль приходит с сервера.
+  if (s === 'phone') {
+    return <PhoneAuthScreen onBack={pop} onCodeSent={(p, code) => { setPhone(p); setDevCode(code); push('sms'); }} />;
   }
   else if (s === 'sms') {
-    return <SmsCodeScreen phone={phone} onBack={pop} onVerified={() => goHome('instructor')} />;
+    return (
+      <SmsCodeScreen
+        phone={phone}
+        devCode={devCode}
+        onBack={pop}
+        onVerified={(token, profile) => {
+          saveSession(token, profile);
+          goHome(uiRole(profile.role));   // НЕ хардкод — интерфейс по роли с сервера
+        }}
+      />
+    );
   }
 
   // Overlays
@@ -570,7 +602,7 @@ export function App() {
         <InstrProfileScreen
           onBalance={() => push('balance')}
           onMyProfile={() => push('my-profile')}
-          onLogout={() => setStack(['auth'])}
+          onLogout={logout}
         />
       );
     }
@@ -667,7 +699,7 @@ export function App() {
             localStorage.removeItem('guestId');
             localStorage.removeItem('guestName');
             localStorage.removeItem('guestPhone');
-            setStack(['auth']);
+            logout();
           }}
           favorites={favorites}
           onUnfavorite={handleToggleFavorite}

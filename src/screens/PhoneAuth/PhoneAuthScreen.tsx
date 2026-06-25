@@ -1,21 +1,26 @@
 import { useState } from 'react';
 import styles from './PhoneAuthScreen.module.css';
 import { applyPhoneMask } from '@/utils/phoneMask';
+import { requestCode } from '@/lib/api';
 
 interface PhoneAuthScreenProps {
-  onBack:   () => void;
-  onSubmit: (phone: string) => void;
+  onBack:     () => void;
+  /** Code sent OK → go to SMS step. devCode is a temp dev hint (no real SMS yet). */
+  onCodeSent: (phone: string, devCode: string) => void;
 }
 
 /**
- * Шаг 1 входа инструктора: ввод номера телефона.
- * Любой полный номер (+7 XXX XXX-XX-XX) принимается → переход к SMS-коду.
+ * Шаг 1 входа: ввод номера телефона.
+ * Вход один для всех — роль приходит с сервера после verify (см. SmsCodeScreen).
  */
-export function PhoneAuthScreen({ onBack, onSubmit }: PhoneAuthScreenProps) {
-  const [phone, setPhone] = useState('');
+export function PhoneAuthScreen({ onBack, onCodeSent }: PhoneAuthScreenProps) {
+  const [phone, setPhone]     = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError]     = useState<string | null>(null);
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     setPhone(applyPhoneMask(e.target.value));
+    if (error) setError(null);
   }
 
   function handleFocus(e: React.FocusEvent<HTMLInputElement>) {
@@ -23,11 +28,20 @@ export function PhoneAuthScreen({ onBack, onSubmit }: PhoneAuthScreenProps) {
   }
 
   // +7 (XXX) XXX-XX-XX → 18 символов
-  const canSubmit = phone.length >= 18;
+  const canSubmit = phone.length >= 18 && !loading;
 
-  function handleSubmit() {
-    if (!canSubmit) return;
-    onSubmit(phone);
+  async function handleSubmit() {
+    if (phone.length < 18 || loading) return;
+    setLoading(true);
+    setError(null);
+    const res = await requestCode(phone);
+    setLoading(false);
+    if (res.ok) {
+      onCodeSent(phone, res.devCode);
+    } else {
+      // Понятный текст из ответа сервера (INVALID_PHONE, RATE_LIMITED, …)
+      setError(res.error);
+    }
   }
 
   function handleKeyDown(e: React.KeyboardEvent) {
@@ -40,7 +54,7 @@ export function PhoneAuthScreen({ onBack, onSubmit }: PhoneAuthScreenProps) {
         ‹
       </button>
 
-      <h1 className={styles.title}>Вход для инструкторов</h1>
+      <h1 className={styles.title}>Вход по телефону</h1>
       <p className={styles.subtitle}>Введите номер телефона — отправим SMS с кодом подтверждения</p>
 
       <div className={styles.form}>
@@ -60,6 +74,7 @@ export function PhoneAuthScreen({ onBack, onSubmit }: PhoneAuthScreenProps) {
             autoFocus
           />
         </div>
+        {error && <p className={styles.error} role="alert">{error}</p>}
       </div>
 
       <button
@@ -68,7 +83,7 @@ export function PhoneAuthScreen({ onBack, onSubmit }: PhoneAuthScreenProps) {
         onClick={handleSubmit}
         disabled={!canSubmit}
       >
-        Получить код
+        {loading ? 'Отправка…' : 'Получить код'}
       </button>
 
       <p className={styles.legal}>

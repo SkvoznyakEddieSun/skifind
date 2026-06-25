@@ -108,6 +108,13 @@
 .submitBtn:active  { opacity: 0.85; }
 .submitBtn:disabled { opacity: .45; cursor: not-allowed; }
 
+.error {
+  font-size: 13px;
+  color: var(--danger, #ff5a5a);
+  line-height: 1.4;
+  margin-top: 2px;
+}
+
 .legal {
   margin-top: 20px;
   text-align: center;

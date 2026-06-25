@@ -1,23 +1,29 @@
 import { useEffect, useRef, useState } from 'react';
 import styles from './SmsCodeScreen.module.css';
+import { verify as apiVerify } from '@/lib/api';
+import type { SessionProfile } from '@/lib/session';
 
 interface SmsCodeScreenProps {
   phone:      string;
+  /** TODO: remove devCode hint when real SMS is wired up — no SMS yet, so we
+   *  show the code returned by request-code so the user can enter it. */
+  devCode?:   string;
   onBack:     () => void;
-  onVerified: (code: string) => void;
+  onVerified: (token: string, profile: SessionProfile) => void;
 }
 
 const CODE_LENGTH    = 4;
 const RESEND_SECONDS = 59;
 
 /**
- * Шаг 2 входа инструктора: 4-значный SMS-код.
- * Любой корректно заполненный 4-значный код принимается (имитация SMS).
- * Кнопка «Войти» активируется после ввода всех 4 цифр.
+ * Шаг 2 входа: 4-значный код. Код проверяется на сервере (api.verify);
+ * при успехе родитель сохраняет сессию и выбирает интерфейс по profile.role.
  */
-export function SmsCodeScreen({ phone, onBack, onVerified }: SmsCodeScreenProps) {
+export function SmsCodeScreen({ phone, devCode, onBack, onVerified }: SmsCodeScreenProps) {
   const [digits,  setDigits]  = useState<string[]>(Array(CODE_LENGTH).fill(''));
   const [seconds, setSeconds] = useState(RESEND_SECONDS);
+  const [loading, setLoading] = useState(false);
+  const [error,   setError]   = useState<string | null>(null);
   const inputRefs = useRef<Array<HTMLInputElement | null>>([]);
 
   // Auto-focus first input
@@ -35,6 +41,7 @@ export function SmsCodeScreen({ phone, onBack, onVerified }: SmsCodeScreenProps)
     const next = [...digits];
     next[idx] = char;
     setDigits(next);
+    if (error) setError(null);
     if (char && idx < CODE_LENGTH - 1) {
       inputRefs.current[idx + 1]?.focus();
     }
@@ -49,14 +56,26 @@ export function SmsCodeScreen({ phone, onBack, onVerified }: SmsCodeScreenProps)
   function handleResend() {
     setDigits(Array(CODE_LENGTH).fill(''));
     setSeconds(RESEND_SECONDS);
+    setError(null);
     inputRefs.current[0]?.focus();
   }
 
   const codeComplete = digits.every(d => d !== '');
 
-  function handleLogin() {
-    if (!codeComplete) return;
-    onVerified(digits.join(''));
+  async function handleLogin() {
+    if (!codeComplete || loading) return;
+    setLoading(true);
+    setError(null);
+    const res = await apiVerify(phone, digits.join(''));
+    setLoading(false);
+    if (res.ok) {
+      onVerified(res.token, res.profile);
+    } else {
+      // WRONG_CODE, CODE_NOT_FOUND, CODE_EXPIRED → показать и дать повторить
+      setError(res.error);
+      setDigits(Array(CODE_LENGTH).fill(''));
+      inputRefs.current[0]?.focus();
+    }
   }
 
   const timerLabel = `0:${String(seconds).padStart(2, '0')}`;
@@ -71,6 +90,11 @@ export function SmsCodeScreen({ phone, onBack, onVerified }: SmsCodeScreenProps)
       <p className={styles.subtitle}>
         Код отправлен на <strong className={styles.phoneHighlight}>{phone}</strong>
       </p>
+
+      {/* TODO: убрать подсказку при подключении реального SMS-провайдера */}
+      {devCode && (
+        <p className={styles.devHint}>Тестовый код: <strong>{devCode}</strong></p>
+      )}
 
       <div className={styles.digits}>
         {digits.map((d, i) => (
@@ -89,13 +113,15 @@ export function SmsCodeScreen({ phone, onBack, onVerified }: SmsCodeScreenProps)
         ))}
       </div>
 
+      {error && <p className={styles.error} role="alert">{error}</p>}
+
       <button
         type="button"
         className={styles.submitBtn}
         onClick={handleLogin}
-        disabled={!codeComplete}
+        disabled={!codeComplete || loading}
       >
-        Войти
+        {loading ? 'Проверка…' : 'Войти'}
       </button>
 
       <div className={styles.timer}>
