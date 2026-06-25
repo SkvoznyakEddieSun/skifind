@@ -25,6 +25,18 @@ export type VerifyResponse =
   | { ok: true; token: string; profile: SessionProfile }
   | ApiError;
 
+/**
+ * /me result is classified by *why* it failed so the caller can tell
+ * "token invalid" (→ log out) from "couldn't reach/validate" (→ stay in,
+ * degraded):
+ *   - 'unauthorized' : HTTP 401 — bad/expired token or profile gone → log out
+ *   - 'network'      : fetch threw — offline / server down → degraded
+ *   - 'server'       : HTTP 5xx or bad body → degraded
+ */
+export type MeResponse =
+  | { ok: true; profile: SessionProfile }
+  | { ok: false; reason: 'unauthorized' | 'network' | 'server' };
+
 // ── Core ─────────────────────────────────────────────────────────────────────
 
 async function post<T>(path: string, body: unknown): Promise<T | ApiError> {
@@ -62,4 +74,33 @@ export function requestCode(phone: string): Promise<RequestCodeResponse> {
 
 export function verify(phone: string, code: string): Promise<VerifyResponse> {
   return post<VerifyResponse>('/auth/verify', { phone, code });
+}
+
+/** Validate the stored token against the server and get the fresh profile. */
+export async function me(): Promise<MeResponse> {
+  const token = getToken();
+  if (!token) return { ok: false, reason: 'unauthorized' };
+
+  let res: Response;
+  try {
+    res = await fetch('/api/auth/me', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  } catch {
+    return { ok: false, reason: 'network' };   // offline / server unreachable
+  }
+
+  if (res.status === 401) return { ok: false, reason: 'unauthorized' };
+  if (!res.ok)            return { ok: false, reason: 'server' };
+
+  let data: unknown;
+  try {
+    data = await res.json();
+  } catch {
+    return { ok: false, reason: 'server' };
+  }
+
+  const body = data as { ok?: boolean; profile?: SessionProfile };
+  if (body?.ok && body.profile) return { ok: true, profile: body.profile };
+  return { ok: false, reason: 'server' };
 }

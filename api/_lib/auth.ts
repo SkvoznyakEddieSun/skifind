@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 import { getDb } from './db';
-import type { Profile, RequestCodeResult, VerifyResult } from './types';
+import type { Profile, RequestCodeResult, VerifyResult, MeResult } from './types';
 
 const OTP_TTL_MS    = 5 * 60 * 1000;  // 5 minutes
 const RATE_LIMIT_MS = 30 * 1000;       // 30 seconds
@@ -147,4 +147,59 @@ export async function verifyCode(rawPhone: string, inputCode: string): Promise<V
   );
 
   return { ok: true, token, profile };
+}
+
+// ---------------------------------------------------------------------------
+
+/**
+ * Validate a session token and return the CURRENT profile from the DB.
+ *
+ * Returns ok:false (→ caller maps to 401) for auth problems: missing token,
+ * bad/expired signature, or a profile that no longer exists. These mean
+ * "log out".
+ *
+ * THROWS for infrastructure problems (DB unreachable, misconfig) — the wrapper
+ * catches and returns 500, which the client treats as "degraded, stay in"
+ * rather than a logout. This keeps "token invalid" and "couldn't validate"
+ * cleanly separated.
+ *
+ * Role is read fresh from the DB, NOT from the token, so a role change in the
+ * DB is picked up on the next start.
+ */
+export async function getMe(authHeader: string | undefined): Promise<MeResult> {
+  const token = authHeader?.startsWith('Bearer ')
+    ? authHeader.slice('Bearer '.length).trim()
+    : null;
+  if (!token) return { ok: false, error: 'Нет токена', code: 'NO_TOKEN' };
+
+  const jwtSecret = process.env.JWT_SECRET;
+  if (!jwtSecret) throw new Error('JWT_SECRET env var is not set');
+
+  let payload: { userId?: string };
+  try {
+    payload = jwt.verify(token, jwtSecret) as { userId?: string };
+  } catch {
+    return { ok: false, error: 'Токен недействителен или истёк', code: 'INVALID_TOKEN' };
+  }
+  if (!payload.userId) {
+    return { ok: false, error: 'Токен недействителен', code: 'INVALID_TOKEN' };
+  }
+
+  const db = getDb();
+  const { data: profile, error } = await db
+    .from('profiles')
+    .select('*')
+    .eq('id', payload.userId)
+    .maybeSingle();
+
+  if (error) {
+    console.error('[getMe] db error:', error);
+    // Infra problem — throw so the wrapper returns 500 (degraded), not 401.
+    throw new Error('DB error reading profile');
+  }
+  if (!profile) {
+    return { ok: false, error: 'Профиль не найден', code: 'PROFILE_NOT_FOUND' };
+  }
+
+  return { ok: true, profile: profile as Profile };
 }

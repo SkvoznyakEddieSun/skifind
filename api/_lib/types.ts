@@ -13,3 +13,7 @@ export type RequestCodeResult =
 export type VerifyResult =
   | { ok: true; token: string; profile: Profile }
   | { ok: false; error: string; code: string };
+
+export type MeResult =
+  | { ok: true; profile: Profile }
+  | { ok: false; error: string; code: string };

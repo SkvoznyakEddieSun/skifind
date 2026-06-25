@@ -41,6 +41,13 @@ export function getToken(): string | null {
   return getSession()?.token ?? null;
 }
 
+/** Replace the stored profile (e.g. fresh role from /me), keeping the token. */
+export function updateSessionProfile(profile: SessionProfile): void {
+  const current = getSession();
+  if (!current) return;
+  saveSession(current.token, profile);
+}
+
 export function clearSession(): void {
   localStorage.removeItem(STORAGE_KEY);
 }

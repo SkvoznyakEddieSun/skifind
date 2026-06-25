@@ -12,7 +12,7 @@
  */
 import express from 'express';
 import { readFileSync } from 'node:fs';
-import { requestCode, verifyCode } from './_lib/auth';
+import { requestCode, verifyCode, getMe } from './_lib/auth';
 
 // ── Load .env.local (portable; avoids depending on a runner flag) ────────────
 try {
@@ -56,8 +56,19 @@ app.post('/api/auth/verify', async (req, res) => {
   res.status(result.ok ? 200 : 400).json(result);
 });
 
+app.get('/api/auth/me', async (req, res) => {
+  try {
+    const result = await getMe(req.headers.authorization);
+    res.status(result.ok ? 200 : 401).json(result);  // ok:false = auth problem → 401
+  } catch (e) {
+    console.error('[dev-api] /me', e);                 // infra problem → 500 (degraded)
+    res.status(500).json({ ok: false, error: 'Server error', code: 'SERVER_ERROR' });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`[dev-api] listening → http://localhost:${PORT}`);
   console.log('  POST /api/auth/request-code  { "phone": "+79991234567" }');
   console.log('  POST /api/auth/verify        { "phone": "...", "code": "..." }');
+  console.log('  GET  /api/auth/me            Authorization: Bearer <token>');
 });

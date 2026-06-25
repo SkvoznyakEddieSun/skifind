@@ -1,11 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { BottomNav } from './components/BottomNav/BottomNav';
 import { SwipeBack } from './components/SwipeBack/SwipeBack';
+import { LoadingScreen } from './components/LoadingScreen/LoadingScreen';
 
 // Auth
 import { PhoneAuthScreen } from './screens/PhoneAuth/PhoneAuthScreen';
 import { SmsCodeScreen }   from './screens/SmsCode/SmsCodeScreen';
-import { getSession, saveSession, clearSession } from './lib/session';
+import { getSession, saveSession, clearSession, updateSessionProfile } from './lib/session';
+import { me as apiMe } from './lib/api';
 
 // Instructor tabs
 import { DashboardScreen }    from './screens/Dashboard/DashboardScreen';
@@ -58,6 +60,11 @@ function uiRole(serverRole: string | null | undefined): Role {
   return serverRole === 'instructor' ? 'instructor' : 'guest';
 }
 
+/** Корневой экран интерфейса для роли. */
+function homeScreen(r: Role): Screen {
+  return r === 'instructor' ? 'instr' : 'guest';
+}
+
 type Screen =
   | 'phone' | 'sms'
   | 'instr' | 'guest'
@@ -98,11 +105,14 @@ void (localStorage.getItem('guestId') ?? (() => {
 // ── App ─────────────────────────────────────────────────────────────────────
 
 export function App() {
-  // Восстановление сессии на старте (доверяем localStorage; серверная
-  // валидация токена /me — следующий подшаг 2.3). Нет сессии → экран входа.
+  // Восстановление сессии на старте. Оптимистично показываем интерфейс по
+  // сохранённому профилю, но сначала валидируем токен на сервере (/me):
+  //   нет токена  → сразу экран входа ('ready')
+  //   есть токен  → экран загрузки ('loading'), пока /me не ответит (см. useEffect)
   const bootSession = getSession();
+  const [phase, setPhase]       = useState<'loading' | 'ready'>(bootSession ? 'loading' : 'ready');
   const [stack, setStack]       = useState<Screen[]>(
-    bootSession ? [uiRole(bootSession.profile.role) === 'instructor' ? 'instr' : 'guest'] : ['phone']
+    bootSession ? [homeScreen(uiRole(bootSession.profile.role))] : ['phone']
   );
   const [role, setRole]         = useState<Role>(uiRole(bootSession?.profile.role));
   const [instrTab, setInstrTab] = useState<InstrTab>('dashboard');
@@ -126,6 +136,35 @@ export function App() {
   const [favorites, setFavorites]       = useState<Set<string>>(new Set());
   const [activeRequestId, setActiveRequestId] = useState<string>('');
   const [activeLessonId,  setActiveLessonId]  = useState<string>('');
+
+  // ── Boot: серверная валидация токена (/me) ────────────────────────────────
+  // bootSession уже учтён в начальном state. Здесь только проверяем токен:
+  //   ok            → обновляем профиль свежими данными (роль из БД), внутрь
+  //   unauthorized  → токен невалиден/просрочен/профиль удалён → разлогин
+  //   network/server→ не достучались до /me → НЕ разлогиниваем (degraded),
+  //                    остаёмся внутри по сохранённому профилю
+  useEffect(() => {
+    if (!bootSession) return;            // токена нет — уже на 'phone', phase 'ready'
+    let cancelled = false;
+    (async () => {
+      const res = await apiMe();
+      if (cancelled) return;
+      if (res.ok) {
+        updateSessionProfile(res.profile);
+        const r = uiRole(res.profile.role);   // свежая роль из БД, не из токена
+        setRole(r);
+        setStack([homeScreen(r)]);
+      } else if (res.reason === 'unauthorized') {
+        clearSession();
+        setRole('guest');
+        setStack(['phone']);
+      }
+      // network/server → ничего не меняем, остаёмся внутри (degraded)
+      setPhase('ready');
+    })();
+    return () => { cancelled = true; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   /** Open chat pre-filled with the active instructor's identity (always guest-side). */
   function openInstrChat() {
@@ -725,6 +764,9 @@ export function App() {
 
     return null;
   } // end buildContent
+
+  // Пока валидируем токен на старте — короткий лоадер (без мигания «вошёл→выкинуло»).
+  if (phase === 'loading') return <LoadingScreen />;
 
   const content    = buildContent(screen);
   const prevScreen = stack.length > 1 ? stack[stack.length - 2] : null;
