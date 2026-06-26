@@ -32,6 +32,9 @@ export interface InstructorDTO {
   weekSchedule: Record<string, { start: string; end: string; breaks?: { start: string; end: string }[] }> | null;
   bio: string | null;
   photoUrl: string | null;
+  // Computed on the server for TODAY (Sheregesh tz), not stored:
+  hasFreeToday: boolean;
+  nextSlot: string | null;   // "HH:MM" or null
 }
 
 export type InstructorsResult =

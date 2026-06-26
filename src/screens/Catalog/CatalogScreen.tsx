@@ -174,7 +174,8 @@ export function mapApiInstructor(dto: InstructorDTO): Instructor {
     bio: dto.bio ?? undefined,
     exp: 0,                     // нет в БД
     onMountain: false,          // нет в БД (live-статус)
-    hasFreeSlotsToday: false,   // фильтр «Сегодня» считает по weekSchedule
+    hasFreeSlotsToday: dto.hasFreeToday,            // расчёт на сервере (Sheregesh tz)
+    nextSlot: dto.nextSlot ? `сегодня ${dto.nextSlot}` : undefined,
     gender: 'male',
     tags: disciplineTag ? [disciplineTag, ...specTags] : specTags,
     photoUrl: dto.photoUrl ?? undefined,
@@ -492,18 +493,6 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onMasterClas
     contentRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
 
-  /** Реальная проверка свободного времени на сегодня по weekSchedule */
-  function hasFreeToday(instr: Instructor): boolean {
-    const dow = new Date().getDay();
-    const key = (['sun','mon','tue','wed','thu','fri','sat'] as WeekDay[])[dow];
-    const sched = instr.weekSchedule?.[key];
-    if (!sched) return false;
-    const now = new Date();
-    const nowMin = now.getHours() * 60 + now.getMinutes();
-    const [h, m] = sched.end.split(':').map(Number);
-    return (h * 60 + m) > nowMin + 60; // хотя бы 1 ч до конца рабочего дня
-  }
-
   function toggleFav(id: string) {
     if (onToggleFavorite) {
       onToggleFavorite(id);
@@ -519,7 +508,7 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onMasterClas
   const filtered = instructors
     .filter(i => {
       if (blockedIds?.has(i.id)) return false;
-      if (onlyFreeToday && !hasFreeToday(i)) return false;
+      if (onlyFreeToday && !i.hasFreeSlotsToday) return false;   // расчёт с сервера
       if (type !== 'all' && !i.type.some(t => t === type)) return false;
       // ИЛИ-семантика: инструктор проходит, если у него есть хотя бы один из выбранных тегов.
       if (levels.size > 0 && !i.level.some(l => levels.has(l))) return false;
@@ -615,10 +604,12 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onMasterClas
                 onChange={e => { setSort(e.target.value as SortKey); scrollToTop(); }}
               >
                 <option value="random">По умолчанию</option>
-                <option value="rating">{t('catalog.sortByRating')}</option>
+                {/* TODO вернуть с отзывами: rating/experience пока не в БД (всегда 0),
+                    сортировка мёртвая — скрыта из UI. Логика сортировки ниже сохранена. */}
+                {/* <option value="rating">{t('catalog.sortByRating')}</option> */}
                 <option value="price-asc">{t('catalog.sortByPriceAsc')}</option>
                 <option value="price-desc">{t('catalog.sortByPriceDesc')}</option>
-                <option value="experience">{t('catalog.sortByExp')}</option>
+                {/* <option value="experience">{t('catalog.sortByExp')}</option> */}
               </select>
             </div>
           </div>
