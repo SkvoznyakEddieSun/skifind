@@ -9,7 +9,7 @@ import { RegistrationBottomSheet } from './RegistrationBottomSheet';
 // ── Types ──────────────────────────────────────────────────────────────────
 
 type Format   = 'individual' | 'miniGroup' | 'kids';
-type Duration = 45 | 60 | 120 | 180 | 240;
+type Duration = 45 | 60 | 90 | 120 | 180 | 240;
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -93,11 +93,12 @@ const FORMAT_LABELS: Record<Format, string> = {
 };
 
 const DURATION_OPTS: { value: Duration; label: string }[] = [
-  { value: 45,  label: '45 мин' },
-  { value: 60,  label: '1 час'  },
-  { value: 120, label: '2 часа' },
-  { value: 180, label: '3 часа' },
-  { value: 240, label: '4 часа' },
+  { value: 45,  label: '45 мин'   },
+  { value: 60,  label: '1 час'    },
+  { value: 90,  label: '1,5 часа' },
+  { value: 120, label: '2 часа'   },
+  { value: 180, label: '3 часа'   },
+  { value: 240, label: '4 часа'   },
 ];
 
 // ── Props ──────────────────────────────────────────────────────────────────
@@ -151,17 +152,32 @@ export function BookSlotScreen({ onBack, onBooked, instructor }: BookSlotScreenP
   // Есть ли хоть один доступный день в ближайшие 7 дней
   const hasAnyDay = DAYS.some(d => !!instructor.weekSchedule?.[WEEKDAY_KEY[d.getDay()]]);
 
+  /** Тариф индивидуального занятия по длительности — из БД-колонок (1ч/1.5ч/2ч).
+   *  null = тариф не задан. НЕ множитель price_individual. */
+  function individualPriceFor(d: Duration): number | null {
+    const p = instructor.individualDurationPrices;
+    if (!p) return null;
+    if (d === 60)  return p.d60;
+    if (d === 90)  return p.d90;
+    if (d === 120) return p.d120;
+    return null;
+  }
+
   function getPrice(): number {
     if (!instructor.pricing) return 0;
     if (isFullDay && format && format !== 'kids') {
       return instructor.pricing[format as 'individual' | 'miniGroup']?.fullDay ?? 0;
     }
     if (!format || !duration) return 0;
+    // Индивидуальное — цена строго из колонки выбранной длительности.
+    if (format === 'individual') {
+      return individualPriceFor(duration) ?? 0;
+    }
     if (duration === 45) {
       return instructor.pricing.shortSlotPrice ?? 0;
     }
     const hKey = `h${duration / 60}` as 'h1' | 'h2' | 'h3' | 'h4';
-    if (format === 'individual' || format === 'kids') {
+    if (format === 'kids') {
       return instructor.pricing.individual?.[hKey] ?? 0;
     }
     // miniGroup
@@ -309,8 +325,15 @@ export function BookSlotScreen({ onBack, onBooked, instructor }: BookSlotScreenP
         </div>
         <div className={`${styles.durationGrid} ${!format ? styles.stepDisabled : ''}`}>
           {DURATION_OPTS.filter(d => {
+            // Индивидуальное: только 1ч/1.5ч/2ч и только если тариф задан в БД
+            // (null → вариант скрыт, не показываем 0/«цена не указана»).
+            if (format === 'individual') {
+              if (d.value !== 60 && d.value !== 90 && d.value !== 120) return false;
+              return individualPriceFor(d.value) != null;
+            }
+            if (d.value === 90) return false;   // 1.5ч — только для индивидуального
             if (d.value === 45) return format === 'kids' && instructor.allowsShortSlots;
-            return true;
+            return true;                         // kids/miniGroup: 1ч/2ч/3ч/4ч
           }).map(opt => (
             <button
               key={opt.value}

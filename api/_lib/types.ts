@@ -26,6 +26,10 @@ export interface InstructorDTO {
   discipline: 'ski' | 'snowboard' | null;
   tags: string[];
   priceIndividual: number | null;
+  // Per-duration individual prices (1h / 1.5h / 2h). null = not set.
+  priceIndividual1h: number | null;
+  priceIndividual1_5h: number | null;
+  priceIndividual2h: number | null;
   priceMiniGroupBase: number | null;
   priceMiniGroupExtra: number | null;
   miniGroupMax: number | null;

@@ -45,6 +45,14 @@ export interface InstructorPricing {
   shortSlotPrice?: number;
 }
 
+/** Цены индивидуального занятия по длительности из БД (1ч/1.5ч/2ч).
+ *  null = тариф не задан → длительность скрывается в BookSlot. */
+export interface IndividualDurationPrices {
+  d60:  number | null;
+  d90:  number | null;
+  d120: number | null;
+}
+
 export interface InstructorSkill {
   name: string;
   pct: number;
@@ -83,6 +91,8 @@ export interface Instructor {
   allowsShortSlots?: boolean;  // only relevant when worksWithKids: true
   weekSchedule: Partial<Record<WeekDay, DayAvailability>>;
   pricing: InstructorPricing;
+  /** Тарифы индивидуального по длительности из БД (BookSlot: 1ч/1.5ч/2ч). */
+  individualDurationPrices?: IndividualDurationPrices;
   worksWithKids: boolean;
   bio?: string;
   exp: number;
@@ -150,7 +160,9 @@ export function mapApiInstructor(dto: InstructorDTO): Instructor {
   });
 
   const pricing: InstructorPricing = {
-    individual: { h1: dto.priceIndividual ?? 0, h2: 0, h3: 0, h4: 0 },
+    // h1 = «цена от» для мини-карточки; индивидуальные тарифы по длительности
+    // идут отдельным полем individualDurationPrices (см. ниже).
+    individual: { h1: dto.priceIndividual1h ?? dto.priceIndividual ?? 0, h2: 0, h3: 0, h4: 0 },
     miniGroup: {
       h1: dto.priceMiniGroupBase ?? 0, h2: 0, h3: 0, h4: 0,
       extraPersonPrice: dto.priceMiniGroupExtra ?? 0,
@@ -170,6 +182,11 @@ export function mapApiInstructor(dto: InstructorDTO): Instructor {
     price: dto.priceIndividual ?? 0,
     weekSchedule: (dto.weekSchedule ?? {}) as unknown as Instructor['weekSchedule'],
     pricing,
+    individualDurationPrices: {
+      d60:  dto.priceIndividual1h,
+      d90:  dto.priceIndividual1_5h,
+      d120: dto.priceIndividual2h,
+    },
     worksWithKids: dto.tags.includes('Дети'),
     bio: dto.bio ?? undefined,
     exp: 0,                     // нет в БД

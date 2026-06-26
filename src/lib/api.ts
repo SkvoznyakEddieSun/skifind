@@ -44,6 +44,9 @@ export interface InstructorDTO {
   discipline: 'ski' | 'snowboard' | null;
   tags: string[];
   priceIndividual: number | null;
+  priceIndividual1h: number | null;
+  priceIndividual1_5h: number | null;
+  priceIndividual2h: number | null;
   priceMiniGroupBase: number | null;
   priceMiniGroupExtra: number | null;
   miniGroupMax: number | null;
