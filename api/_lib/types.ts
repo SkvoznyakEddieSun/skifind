@@ -44,3 +44,46 @@ export interface InstructorDTO {
 export type InstructorsResult =
   | { ok: true; instructors: InstructorDTO[] }
   | { ok: false; error: string; code: string };
+
+// ── Bookings ────────────────────────────────────────────────────────────────
+
+export interface BookingRow {
+  id: string;
+  instructor_id: string;
+  student_id: string;
+  date: string;          // YYYY-MM-DD
+  start_time: string;    // HH:MM:SS
+  end_time: string;
+  format: 'individual' | 'mini_group' | null;
+  status: 'PENDING' | 'ACCEPTED' | 'DECLINED';
+  price: number | null;
+  commission: number | null;
+  created_at: string;
+}
+
+/** Booking as the UI needs it — with the counterparty's name resolved. */
+export interface BookingDTO {
+  id: string;
+  instructorId: string;
+  studentId: string;
+  date: string;
+  startTime: string;     // HH:MM
+  endTime: string;       // HH:MM
+  format: 'individual' | 'mini_group' | null;
+  status: 'PENDING' | 'ACCEPTED' | 'DECLINED';
+  price: number | null;
+  commission: number | null;
+  createdAt: string;
+  /** Other party relative to the requester (instructor name for a student's
+   *  list, student name for an instructor's list). */
+  counterpartyName: string | null;
+  counterpartyPhone: string | null;
+}
+
+export type CreateBookingResult =
+  | { ok: true; booking: BookingDTO }
+  | { ok: false; error: string; code: string };
+
+export type BookingsResult =
+  | { ok: true; bookings: BookingDTO[] }
+  | { ok: false; error: string; code: string };

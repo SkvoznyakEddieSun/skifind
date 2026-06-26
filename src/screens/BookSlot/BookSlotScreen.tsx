@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import styles from './BookSlotScreen.module.css';
 import type { Instructor, WeekDay, DayAvailability } from '../Catalog/CatalogScreen';
 import { hasRating } from '../Catalog/CatalogScreen';
-import { addBooking } from '@/store/bookings';
+import { createBooking } from '@/lib/api';
 import { MASTER_CLASSES } from '@/screens/MasterClass/masterClassData';
 import { Icon } from '@/components/Icon/Icon';
 import { RegistrationBottomSheet } from './RegistrationBottomSheet';
@@ -123,6 +123,8 @@ export function BookSlotScreen({ onBack, onBooked, instructor }: BookSlotScreenP
   const [groupSize, setGroupSize] = useState(2);
   const [message,   setMessage]   = useState('');
   const [submitted,    setSubmitted]    = useState(false);
+  const [submitting,   setSubmitting]   = useState(false);
+  const [bookingError, setBookingError] = useState<string | null>(null);
   const [showToast,    setShowToast]    = useState(false);
   const [showRegSheet, setShowRegSheet] = useState(false);
 
@@ -226,48 +228,53 @@ export function BookSlotScreen({ onBack, onBooked, instructor }: BookSlotScreenP
   }
 
   function handleSubmit() {
-    if (!format || (!duration && !isFullDay) || dayIdx === null || !timeStart || submitted) return;
+    if (!format || (!duration && !isFullDay) || dayIdx === null || !timeStart || submitting || submitted) return;
     // Если гость ещё не зарегистрирован — показываем BottomSheet
     if (!localStorage.getItem('guestName')) {
       setShowRegSheet(true);
       return;
     }
-    doSubmit();
+    void doSubmit();
   }
 
-  function doSubmit() {
-    if (!format || (!duration && !isFullDay) || dayIdx === null || !timeStart || submitted) return;
+  async function doSubmit() {
+    if (!format || (!duration && !isFullDay) || dayIdx === null || !timeStart || submitting || submitted) return;
     const date    = DAYS[dayIdx];
+    const dateISO = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
     const timeEnd = isFullDay && selectedDaySchedule
       ? selectedDaySchedule.end
       : addMinutes(timeStart, duration!);
 
-    addBooking({
-      instructorId:          instructor.id,
-      instructorName:        instructor.name,
-      instructorInitials:    instructor.initials,
-      instructorAvatarColor: instructor.avatarColor,
-      instructorSpec:        `${instructor.type.includes('ski') ? 'Горные лыжи' : 'Сноуборд'} · Шерегеш`,
-      instructorRating:      instructor.rating,
-      date,
-      timeStart,
-      timeEnd,
-      format,
-      formatLabel: isFullDay
-        ? (format === 'miniGroup' ? `Весь день · мини-группа ${groupSize} чел.` : 'Весь день')
-        : format === 'miniGroup'
-          ? `Мини-группа · ${groupSize} чел.`
-          : format === 'kids' ? 'Детское занятие' : 'Индивидуальное занятие',
-      discipline: instructor.type.includes('ski') ? 'ski' : 'board',
-      level:      format === 'kids' ? 'Дети' : 'Не указан',
-      groupSize:  format === 'miniGroup' ? groupSize : undefined,
-      price:      getPrice(),
-      message,
-    });
+    // Server format is individual | mini_group; price/student decided server-side.
+    const serverFormat = format === 'miniGroup' ? 'mini_group' : 'individual';
+    const durationKey = format === 'individual' && duration
+      ? ({ 60: '1h', 90: '1_5h', 120: '2h' } as Record<number, '1h' | '1_5h' | '2h'>)[duration]
+      : undefined;
 
-    setSubmitted(true);
-    setShowToast(true);
-    setTimeout(() => { setShowToast(false); onBooked(); }, 2000);
+    setSubmitting(true);
+    setBookingError(null);
+    const res = await createBooking({
+      instructorId: instructor.id,
+      date:         dateISO,
+      startTime:    timeStart,
+      endTime:      timeEnd,
+      format:       serverFormat,
+      durationKey,
+      groupSize:    format === 'miniGroup' ? groupSize : undefined,
+    });
+    setSubmitting(false);
+
+    if (res.ok) {
+      setSubmitted(true);
+      setShowToast(true);
+      setTimeout(() => { setShowToast(false); onBooked(); }, 2000);
+    } else {
+      setBookingError(
+        res.code === 'SLOT_TAKEN'
+          ? 'Этот интервал только что заняли — выберите другое время'
+          : res.error || 'Не удалось создать заявку, попробуйте ещё раз',
+      );
+    }
   }
 
   const avStyle = AV_STYLE[instructor.avatarColor] ?? AV_STYLE.mint;
@@ -531,12 +538,15 @@ export function BookSlotScreen({ onBack, onBooked, instructor }: BookSlotScreenP
             </div>
           )}
         </div>
+        {bookingError && (
+          <div className={styles.bookingError} role="alert">{bookingError}</div>
+        )}
         <button
           className={styles.submitBtn}
-          disabled={!format || (!duration && !isFullDay) || dayIdx === null || !timeStart || submitted}
+          disabled={!format || (!duration && !isFullDay) || dayIdx === null || !timeStart || submitting || submitted}
           onClick={handleSubmit}
         >
-          Отправить заявку →
+          {submitting ? 'Отправка…' : 'Отправить заявку →'}
         </button>
       </div>
 

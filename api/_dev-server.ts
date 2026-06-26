@@ -14,6 +14,7 @@ import express from 'express';
 import { readFileSync } from 'node:fs';
 import { requestCode, verifyCode, getMe } from './_lib/auth';
 import { listInstructors } from './_lib/instructors';
+import { createBooking, listBookings } from './_lib/bookings';
 
 // ── Load .env.local (portable; avoids depending on a runner flag) ────────────
 try {
@@ -77,10 +78,37 @@ app.get('/api/instructors', async (req, res) => {
   }
 });
 
+app.get('/api/bookings', async (req, res) => {
+  try {
+    const result = await listBookings(req.headers.authorization);
+    res.status(result.ok ? 200 : 401).json(result);
+  } catch (e) {
+    console.error('[dev-api] GET /bookings', e);
+    res.status(500).json({ ok: false, error: 'Server error', code: 'SERVER_ERROR' });
+  }
+});
+
+app.post('/api/bookings', async (req, res) => {
+  try {
+    const result = await createBooking(req.headers.authorization, (req.body ?? {}) as Record<string, unknown>);
+    if (result.ok) return res.status(201).json(result);
+    const status = result.code === 'UNAUTHORIZED' ? 401
+      : result.code === 'INSTRUCTOR_NOT_FOUND' ? 404
+      : result.code === 'SLOT_TAKEN' ? 409
+      : 400;
+    res.status(status).json(result);
+  } catch (e) {
+    console.error('[dev-api] POST /bookings', e);
+    res.status(500).json({ ok: false, error: 'Server error', code: 'SERVER_ERROR' });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`[dev-api] listening → http://localhost:${PORT}`);
   console.log('  POST /api/auth/request-code  { "phone": "+79991234567" }');
   console.log('  POST /api/auth/verify        { "phone": "...", "code": "..." }');
   console.log('  GET  /api/auth/me            Authorization: Bearer <token>');
   console.log('  GET  /api/instructors        Authorization: Bearer <token>');
+  console.log('  GET  /api/bookings           Authorization: Bearer <token>');
+  console.log('  POST /api/bookings           Authorization: Bearer <token>');
 });

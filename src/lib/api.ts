@@ -57,6 +57,37 @@ export interface InstructorDTO {
   nextSlot: string | null;   // "HH:MM" (Sheregesh tz) or null
 }
 
+/** Booking as returned by the server (counterparty name resolved). */
+export interface BookingDTO {
+  id: string;
+  instructorId: string;
+  studentId: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  format: 'individual' | 'mini_group' | null;
+  status: 'PENDING' | 'ACCEPTED' | 'DECLINED';
+  price: number | null;
+  commission: number | null;
+  createdAt: string;
+  counterpartyName: string | null;
+  counterpartyPhone: string | null;
+}
+
+export interface CreateBookingInput {
+  instructorId: string;
+  date: string;          // YYYY-MM-DD
+  startTime: string;     // HH:MM
+  endTime: string;       // HH:MM
+  format: 'individual' | 'mini_group';
+  durationKey?: '1h' | '1_5h' | '2h';
+  groupSize?: number;
+}
+
+export type CreateBookingResponse =
+  | { ok: true; booking: BookingDTO }
+  | ApiError;
+
 // ── Core ─────────────────────────────────────────────────────────────────────
 
 async function post<T>(path: string, body: unknown): Promise<T | ApiError> {
@@ -146,4 +177,33 @@ export async function getInstructors(): Promise<InstructorDTO[]> {
   const data = (await res.json()) as { ok?: boolean; instructors?: InstructorDTO[] };
   if (!data?.ok || !data.instructors) throw new Error('Некорректный ответ сервера');
   return data.instructors;
+}
+
+/**
+ * Create a booking. Returns a typed result (object, not throw) so the form can
+ * branch on SLOT_TAKEN / validation errors. student_id & price are decided by
+ * the server — anything sent here for them is ignored.
+ */
+export function createBooking(input: CreateBookingInput): Promise<CreateBookingResponse> {
+  return post<CreateBookingResponse>('/bookings', input);
+}
+
+/** Current user's bookings (student → own, instructor → incoming). THROWS on
+ *  failure (react-query idiom). */
+export async function getBookings(): Promise<BookingDTO[]> {
+  const token = getToken();
+  const headers: Record<string, string> = {};
+  if (token) headers.Authorization = `Bearer ${token}`;
+
+  let res: Response;
+  try {
+    res = await fetch('/api/bookings', { headers });
+  } catch {
+    throw new Error('Нет связи с сервером');
+  }
+  if (!res.ok) throw new Error('Не удалось загрузить брони');
+
+  const data = (await res.json()) as { ok?: boolean; bookings?: BookingDTO[] };
+  if (!data?.ok || !data.bookings) throw new Error('Некорректный ответ сервера');
+  return data.bookings;
 }
