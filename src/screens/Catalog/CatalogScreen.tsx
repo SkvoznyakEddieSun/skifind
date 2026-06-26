@@ -117,6 +117,13 @@ export interface Instructor {
 
 export const ACTIVE_RESORTS = ['Шерегеш'] as const;
 
+/** Рейтинг показываем только при наличии (>0). До отзывов в БД рейтинга нет —
+ *  серверные инструкторы приходят с rating=0, и блок рейтинга скрывается.
+ *  Моковые инструкторы (rating>0) продолжают показывать рейтинг как раньше. */
+export function hasRating(rating: number | null | undefined): boolean {
+  return typeof rating === 'number' && rating > 0;
+}
+
 // ── Маппинг серверного DTO → view-model Instructor ───────────────────────────
 // БД хранит теги как человекочитаемые ярлыки; словарь связывает ярлык с ключом
 // фильтра (level) и цветом чипа. Ярлык на карточке = строка из БД как есть.
@@ -728,7 +735,7 @@ export function CatalogScreen({ onProfile, onBook, onNotifications, onMasterClas
                     <div className={styles.onMountainBadge}>{t('catalog.onMountainNow')}</div>
                   )}
                 </div>
-                {instr.rating > 0 && (
+                {hasRating(instr.rating) && (
                   <div className={styles.icRating}>
                     <Icon name="star" size={12} />
                     {instr.rating.toFixed(1)}

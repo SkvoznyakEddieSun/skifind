@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import styles from './BookSlotScreen.module.css';
 import type { Instructor, WeekDay, DayAvailability } from '../Catalog/CatalogScreen';
+import { hasRating } from '../Catalog/CatalogScreen';
 import { addBooking } from '@/store/bookings';
 import { MASTER_CLASSES } from '@/screens/MasterClass/masterClassData';
 import { Icon } from '@/components/Icon/Icon';
@@ -293,7 +294,9 @@ export function BookSlotScreen({ onBack, onBooked, instructor }: BookSlotScreenP
               {instructor.type.includes('ski') ? 'Горные лыжи' : 'Сноуборд'} · от {(instructor.pricing?.individual?.h1 ?? 0).toLocaleString('ru')} ₽/ч
             </div>
           </div>
-          <div className={styles.instrRating}>★ {instructor.rating.toFixed(1)}</div>
+          {hasRating(instructor.rating) && (
+            <div className={styles.instrRating}>★ {instructor.rating.toFixed(1)}</div>
+          )}
         </div>
 
         <div className={styles.divider} />

@@ -2,6 +2,7 @@ import { useState, useRef, useCallback } from 'react';
 import styles from './ProfileScreen.module.css';
 import { useTranslation } from '@/i18n/useTranslation';
 import type { Instructor } from '@/screens/Catalog/CatalogScreen';
+import { hasRating } from '@/screens/Catalog/CatalogScreen';
 import { ShareModal } from '@/components/ShareModal/ShareModal';
 
 interface PriceRow {
@@ -223,10 +224,12 @@ export function ProfileScreen({ instructor, onBack, onBook, onAskQuestion, onAll
 
       {/* ── Stats ── */}
       <div className={styles.profStats}>
-        <div className={styles.profStat}>
-          <div className={`${styles.psVal} ${styles.psValGold}`}>{p.rating}★</div>
-          <div className={styles.psLbl}>{t('profile.rating')}</div>
-        </div>
+        {hasRating(p.rating) && (
+          <div className={styles.profStat}>
+            <div className={`${styles.psVal} ${styles.psValGold}`}>{p.rating}★</div>
+            <div className={styles.psLbl}>{t('profile.rating')}</div>
+          </div>
+        )}
         <div className={`${styles.profStat} ${styles.profStatBorder}`}>
           <div className={styles.psVal}>{p.students}</div>
           <div className={styles.psLbl}>{t('profile.students')}</div>
