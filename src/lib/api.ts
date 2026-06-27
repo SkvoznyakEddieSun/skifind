@@ -45,8 +45,10 @@ export interface InstructorDTO {
   tags: string[];
   priceIndividual: number | null;
   priceIndividual1h: number | null;
-  priceIndividual1_5h: number | null;
   priceIndividual2h: number | null;
+  priceIndividual3h: number | null;
+  priceIndividual4h: number | null;
+  priceIndividualFullDay: number | null;
   priceMiniGroupBase: number | null;
   priceMiniGroupExtra: number | null;
   miniGroupMax: number | null;
@@ -80,7 +82,7 @@ export interface CreateBookingInput {
   startTime: string;     // HH:MM
   endTime: string;       // HH:MM
   format: 'individual' | 'mini_group';
-  durationKey?: '1h' | '1_5h' | '2h';
+  durationKey?: '1h' | '2h' | '3h' | '4h' | 'full_day';
   groupSize?: number;
 }
 

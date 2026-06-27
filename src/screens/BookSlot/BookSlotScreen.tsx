@@ -10,7 +10,25 @@ import { RegistrationBottomSheet } from './RegistrationBottomSheet';
 // ── Types ──────────────────────────────────────────────────────────────────
 
 type Format   = 'individual' | 'miniGroup' | 'kids';
-type Duration = 45 | 60 | 90 | 120 | 180 | 240;
+// 360 = полный день (FULL_DAY_HOURS * 60). Прочие — 45мин и 1/2/3/4 часа.
+type Duration = 45 | 60 | 120 | 180 | 240 | 360;
+
+// Длительность полного дня (часы) — при необходимости менять тут.
+// Должно совпадать с FULL_DAY_HOURS на сервере (api/_lib/bookings.ts).
+const FULL_DAY_HOURS = 6;
+const FULL_DAY_MIN: Duration = (FULL_DAY_HOURS * 60) as Duration;   // 360
+
+// Длительность индивидуального (минуты) → ключ тарифа/колонки на сервере.
+const INDIVIDUAL_DURATION_KEY: Record<number, '1h' | '2h' | '3h' | '4h' | 'full_day'> = {
+  60: '1h', 120: '2h', 180: '3h', 240: '4h', 360: 'full_day',
+};
+
+/** Человеко-читаемая длительность для подписей слота/summary. */
+function durationLabel(d: Duration): string {
+  if (d === 45)           return '45 мин';
+  if (d === FULL_DAY_MIN) return `Весь день (${FULL_DAY_HOURS} ч)`;
+  return `${d / 60} ч`;
+}
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -94,12 +112,12 @@ const FORMAT_LABELS: Record<Format, string> = {
 };
 
 const DURATION_OPTS: { value: Duration; label: string }[] = [
-  { value: 45,  label: '45 мин'   },
-  { value: 60,  label: '1 час'    },
-  { value: 90,  label: '1,5 часа' },
-  { value: 120, label: '2 часа'   },
-  { value: 180, label: '3 часа'   },
-  { value: 240, label: '4 часа'   },
+  { value: 45,  label: '45 мин'    },
+  { value: 60,  label: '1 час'     },
+  { value: 120, label: '2 часа'    },
+  { value: 180, label: '3 часа'    },
+  { value: 240, label: '4 часа'    },
+  { value: 360, label: 'Весь день' },
 ];
 
 // ── Props ──────────────────────────────────────────────────────────────────
@@ -155,15 +173,13 @@ export function BookSlotScreen({ onBack, onBooked, instructor }: BookSlotScreenP
   // Есть ли хоть один доступный день в ближайшие 7 дней
   const hasAnyDay = DAYS.some(d => !!instructor.weekSchedule?.[WEEKDAY_KEY[d.getDay()]]);
 
-  /** Тариф индивидуального занятия по длительности — из БД-колонок (1ч/1.5ч/2ч).
-   *  null = тариф не задан. НЕ множитель price_individual. */
+  /** Тариф индивидуального занятия по длительности — из БД-колонок
+   *  (1ч/2ч/3ч/4ч/полный день). null = тариф не задан. НЕ множитель. */
   function individualPriceFor(d: Duration): number | null {
     const p = instructor.individualDurationPrices;
-    if (!p) return null;
-    if (d === 60)  return p.d60;
-    if (d === 90)  return p.d90;
-    if (d === 120) return p.d120;
-    return null;
+    const key = INDIVIDUAL_DURATION_KEY[d];
+    if (!p || !key) return null;
+    return p[key] ?? null;
   }
 
   function getPrice(): number {
@@ -248,7 +264,7 @@ export function BookSlotScreen({ onBack, onBooked, instructor }: BookSlotScreenP
     // Server format is individual | mini_group; price/student decided server-side.
     const serverFormat = format === 'miniGroup' ? 'mini_group' : 'individual';
     const durationKey = format === 'individual' && duration
-      ? ({ 60: '1h', 90: '1_5h', 120: '2h' } as Record<number, '1h' | '1_5h' | '2h'>)[duration]
+      ? INDIVIDUAL_DURATION_KEY[duration]
       : undefined;
 
     setSubmitting(true);
@@ -335,13 +351,13 @@ export function BookSlotScreen({ onBack, onBooked, instructor }: BookSlotScreenP
         </div>
         <div className={`${styles.durationGrid} ${!format ? styles.stepDisabled : ''}`}>
           {DURATION_OPTS.filter(d => {
-            // Индивидуальное: только 1ч/1.5ч/2ч и только если тариф задан в БД
-            // (null → вариант скрыт, не показываем 0/«цена не указана»).
+            // Индивидуальное: 1ч/2ч/3ч/4ч + «Весь день», только если тариф задан
+            // в БД (null → вариант скрыт, не показываем 0/«цена не указана»).
             if (format === 'individual') {
-              if (d.value !== 60 && d.value !== 90 && d.value !== 120) return false;
+              if (![60, 120, 180, 240, 360].includes(d.value)) return false;
               return individualPriceFor(d.value) != null;
             }
-            if (d.value === 90) return false;   // 1.5ч — только для индивидуального
+            if (d.value === 360) return false;  // «Весь день» (6ч) — только индивидуальное
             if (d.value === 45) return format === 'kids' && instructor.allowsShortSlots;
             return true;                         // kids/miniGroup: 1ч/2ч/3ч/4ч
           }).map(opt => (
@@ -452,7 +468,7 @@ export function BookSlotScreen({ onBack, onBooked, instructor }: BookSlotScreenP
                   onClick={() => setTimeStart(isSelected ? null : t)}
                 >
                   <span className={styles.timeBtnTime}>{t} — {addMinutes(t, duration!)}</span>
-                  <span className={styles.timeBtnDur}>{duration === 45 ? '45 мин' : `${duration! / 60} ч`}</span>
+                  <span className={styles.timeBtnDur}>{durationLabel(duration!)}</span>
                 </button>
               );
             })}
@@ -510,7 +526,7 @@ export function BookSlotScreen({ onBack, onBooked, instructor }: BookSlotScreenP
                 <span className={styles.summaryMeta}>Весь день</span>
               ) : duration ? (
                 <span className={styles.summaryMeta}>
-                  {duration === 45 ? '45 мин' : `${duration / 60} ч`}
+                  {durationLabel(duration)}
                 </span>
               ) : null}
             </div>

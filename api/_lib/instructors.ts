@@ -24,7 +24,8 @@ export async function listInstructors(authHeader: string | undefined): Promise<I
     .from('instructors')
     .select(
       'profile_id, discipline, tags, price_individual, ' +
-      'price_individual_1h, price_individual_1_5h, price_individual_2h, ' +
+      'price_individual_1h, price_individual_2h, price_individual_3h, ' +
+      'price_individual_4h, price_individual_full_day, ' +
       'price_mini_group_base, price_mini_group_extra, mini_group_max, ' +
       'week_schedule, bio, photo_url, profiles!inner(name)'
     );
@@ -60,11 +61,13 @@ export async function listInstructors(authHeader: string | undefined): Promise<I
       name:                profile?.name ?? null,
       discipline:          (row.discipline as InstructorDTO['discipline']) ?? null,
       tags:                (row.tags as string[] | null) ?? [],
-      priceIndividual:     (row.price_individual as number | null) ?? null,
-      priceIndividual1h:   (row.price_individual_1h as number | null) ?? null,
-      priceIndividual1_5h: (row.price_individual_1_5h as number | null) ?? null,
-      priceIndividual2h:   (row.price_individual_2h as number | null) ?? null,
-      priceMiniGroupBase:  (row.price_mini_group_base as number | null) ?? null,
+      priceIndividual:        (row.price_individual as number | null) ?? null,
+      priceIndividual1h:      (row.price_individual_1h as number | null) ?? null,
+      priceIndividual2h:      (row.price_individual_2h as number | null) ?? null,
+      priceIndividual3h:      (row.price_individual_3h as number | null) ?? null,
+      priceIndividual4h:      (row.price_individual_4h as number | null) ?? null,
+      priceIndividualFullDay: (row.price_individual_full_day as number | null) ?? null,
+      priceMiniGroupBase:     (row.price_mini_group_base as number | null) ?? null,
       priceMiniGroupExtra: (row.price_mini_group_extra as number | null) ?? null,
       miniGroupMax:        (row.mini_group_max as number | null) ?? null,
       weekSchedule,

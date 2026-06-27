@@ -45,12 +45,14 @@ export interface InstructorPricing {
   shortSlotPrice?: number;
 }
 
-/** Цены индивидуального занятия по длительности из БД (1ч/1.5ч/2ч).
+/** Цены индивидуального занятия по длительности из БД (канон: 1ч/2ч/3ч/4ч/полный день).
  *  null = тариф не задан → длительность скрывается в BookSlot. */
 export interface IndividualDurationPrices {
-  d60:  number | null;
-  d90:  number | null;
-  d120: number | null;
+  '1h':       number | null;
+  '2h':       number | null;
+  '3h':       number | null;
+  '4h':       number | null;
+  'full_day': number | null;
 }
 
 export interface InstructorSkill {
@@ -190,9 +192,11 @@ export function mapApiInstructor(dto: InstructorDTO): Instructor {
     weekSchedule: (dto.weekSchedule ?? {}) as unknown as Instructor['weekSchedule'],
     pricing,
     individualDurationPrices: {
-      d60:  dto.priceIndividual1h,
-      d90:  dto.priceIndividual1_5h,
-      d120: dto.priceIndividual2h,
+      '1h':       dto.priceIndividual1h,
+      '2h':       dto.priceIndividual2h,
+      '3h':       dto.priceIndividual3h,
+      '4h':       dto.priceIndividual4h,
+      'full_day': dto.priceIndividualFullDay,
     },
     worksWithKids: dto.tags.includes('Дети'),
     bio: dto.bio ?? undefined,

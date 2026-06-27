@@ -8,11 +8,17 @@ import type {
 const BOOKING_HORIZON_DAYS = 7;   // today .. today+6
 const COMMISSION_RATE = 0.05;
 
-// Individual duration → minutes + the instructors price column.
+// Длительность полного дня (часы) — при необходимости менять тут.
+// Должно совпадать с FULL_DAY_HOURS на фронте (BookSlotScreen).
+const FULL_DAY_HOURS = 6;
+
+// Individual duration key → minutes + the instructors price column (canon).
 const DURATIONS: Record<string, { minutes: number; column: string }> = {
-  '1h':   { minutes: 60,  column: 'price_individual_1h' },
-  '1_5h': { minutes: 90,  column: 'price_individual_1_5h' },
-  '2h':   { minutes: 120, column: 'price_individual_2h' },
+  '1h':       { minutes: 60,                 column: 'price_individual_1h' },
+  '2h':       { minutes: 120,                column: 'price_individual_2h' },
+  '3h':       { minutes: 180,                column: 'price_individual_3h' },
+  '4h':       { minutes: 240,                column: 'price_individual_4h' },
+  'full_day': { minutes: FULL_DAY_HOURS * 60, column: 'price_individual_full_day' },
 };
 
 const DAY_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
@@ -93,7 +99,7 @@ export async function createBooking(authHeader: string | undefined, body: Create
   const db = getDb();
   const { data: instr, error: instrErr } = await db
     .from('instructors')
-    .select('profile_id, price_individual_1h, price_individual_1_5h, price_individual_2h, price_mini_group_base, price_mini_group_extra, mini_group_max, week_schedule')
+    .select('profile_id, price_individual_1h, price_individual_2h, price_individual_3h, price_individual_4h, price_individual_full_day, price_mini_group_base, price_mini_group_extra, mini_group_max, week_schedule')
     .eq('profile_id', instructorId)
     .maybeSingle();
   if (instrErr) { console.error('[createBooking] instr error:', instrErr); throw new Error('DB error reading instructor'); }
