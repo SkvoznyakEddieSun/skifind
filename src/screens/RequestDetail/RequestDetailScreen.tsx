@@ -6,6 +6,7 @@ import {
   declineBooking,
   getCommission,
 } from '@/store/bookings';
+import type { BookingStatus } from '@/lib/bookingStatus';
 
 // Дефолтные данные — показываются если requestId не найден
 const FALLBACK = {
@@ -56,21 +57,21 @@ export function RequestDetailScreen({ requestId, onBack, onChat, onAccepted }: R
       }
     : FALLBACK;
 
-  const initialStatus = booking
-    ? (booking.status === 'accepted' ? 'accepted' : booking.status === 'declined' ? 'declined' : 'pending')
-    : 'pending';
+  const initialStatus: BookingStatus = booking
+    ? (booking.status === 'ACCEPTED' ? 'ACCEPTED' : booking.status === 'DECLINED' ? 'DECLINED' : 'PENDING')
+    : 'PENDING';
 
-  const [status, setStatus] = useState<'pending' | 'accepted' | 'declined'>(initialStatus);
+  const [status, setStatus] = useState<BookingStatus>(initialStatus);
 
   function handleAccept() {
     if (requestId) acceptBooking(requestId);
-    setStatus('accepted');
+    setStatus('ACCEPTED');
     onAccepted?.();
   }
 
   function handleDecline() {
     if (requestId) declineBooking(requestId);
-    setStatus('declined');
+    setStatus('DECLINED');
   }
 
   return (
@@ -83,7 +84,7 @@ export function RequestDetailScreen({ requestId, onBack, onChat, onAccepted }: R
             <div className={styles.tbTitle}>Заявка от {data.studentName}</div>
             <div className={styles.tbSub}>{data.time}</div>
           </div>
-          {status === 'pending' && <span className={styles.newBadge}>Новая</span>}
+          {status === 'PENDING' && <span className={styles.newBadge}>Новая</span>}
         </div>
       </div>
 
@@ -152,11 +153,11 @@ export function RequestDetailScreen({ requestId, onBack, onChat, onAccepted }: R
           </div>
 
           {/* Actions */}
-          {status === 'declined' ? (
+          {status === 'DECLINED' ? (
             <div style={{ padding: '16px 0', textAlign: 'center', color: 'var(--text-dim)', fontSize: 14 }}>
               Заявка отклонена
             </div>
-          ) : status === 'accepted' ? (
+          ) : status === 'ACCEPTED' ? (
             <div className={styles.acceptedBanner}>✓ Заявка принята · Ученик добавлен</div>
           ) : (
             <div className={styles.actions}>

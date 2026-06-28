@@ -4,8 +4,7 @@ import { useTranslation } from '@/i18n/useTranslation';
 import { Icon } from '@/components/Icon/Icon';
 import { getGuestBookings, guestCancelBooking } from '@/store/bookings';
 import type { Booking as StoreBooking } from '@/store/bookings';
-
-type BookingStatus = 'confirmed' | 'pending' | 'completed' | 'cancelled';
+import { type BookingStatus, statusLabel } from '@/lib/bookingStatus';
 
 interface Booking {
   id: string;
@@ -24,18 +23,10 @@ interface Booking {
   price: string;
 }
 
-const STATUS_MAP: Record<StoreBooking['status'], BookingStatus> = {
-  pending:   'pending',
-  accepted:  'confirmed',
-  declined:  'cancelled',
-  cancelled: 'cancelled',
-  completed: 'completed',
-};
-
 function toDisplay(b: StoreBooking): Booking {
   return {
     id:                    b.id,
-    status:                STATUS_MAP[b.status],
+    status:                b.status,   // канон напрямую (стор уже UPPER)
     instructorId:          b.instructorId,
     instructorName:        b.instructorName,
     instructorInitials:    b.instructorInitials,
@@ -46,22 +37,25 @@ function toDisplay(b: StoreBooking): Booking {
     dayMon:                b.dayMon,
     timeRange:             `${b.timeStart} — ${b.timeEnd}`,
     lessonType:            b.formatLabel,
-    meta: b.status === 'accepted'
+    meta: b.status === 'ACCEPTED'
       ? 'Место встречи уточните у инструктора'
-      : b.status === 'pending'
+      : b.status === 'PENDING'
       ? `Заявка отправлена · ${b.createdAt}`
-      : b.status === 'completed'
+      : b.status === 'COMPLETED'
       ? 'Занятие завершено'
       : 'Отменено',
     price: `${b.price.toLocaleString('ru')} ₽`,
   };
 }
 
-const STATUS_LABEL: Record<BookingStatus, string> = {
-  confirmed: '● Подтверждено',
-  pending:   '⏳ Ожидает подтверждения',
-  completed: '✓ Завершено',
-  cancelled: '✕ Отменено',
+// Статус → CSS-модификатор бейджа (только презентация, не значение статуса).
+// ACCEPTED делит вид с «Подтверждено», DECLINED — с «Отменено».
+const STATUS_CSS: Record<BookingStatus, string> = {
+  PENDING:   'pending',
+  ACCEPTED:  'confirmed',
+  COMPLETED: 'completed',
+  CANCELLED: 'cancelled',
+  DECLINED:  'cancelled',
 };
 
 const REVIEW_TAGS = [
@@ -107,7 +101,7 @@ export function BookingsScreen({ onChat, onCancel, onBookAgain, onBack }: Bookin
   function handleCancel(bookingId: string) {
     guestCancelBooking(bookingId); // гость отменяет — не инструктор
     setBookings(prev => prev.map(b =>
-      b.id === bookingId ? { ...b, status: 'cancelled' as const } : b
+      b.id === bookingId ? { ...b, status: 'CANCELLED' as const } : b
     ));
     onCancel?.(bookingId);
   }
@@ -141,8 +135,8 @@ export function BookingsScreen({ onChat, onCancel, onBookAgain, onBack }: Bookin
     showToast('✓ Отзыв опубликован');
   }
 
-  const pendingBookings = bookings.filter(b => b.status === 'pending');
-  const otherBookings   = bookings.filter(b => b.status !== 'pending');
+  const pendingBookings = bookings.filter(b => b.status === 'PENDING');
+  const otherBookings   = bookings.filter(b => b.status !== 'PENDING');
 
   return (
     <div className={styles.screen}>
@@ -208,11 +202,11 @@ export function BookingsScreen({ onChat, onCancel, onBookAgain, onBack }: Bookin
             <div
               key={b.id}
               className={styles.bookingCard}
-              style={b.status === 'completed' || b.status === 'cancelled' ? { opacity: .75 } : undefined}
+              style={b.status === 'COMPLETED' || b.status === 'CANCELLED' ? { opacity: .75 } : undefined}
             >
               {/* Status strip */}
-              <div className={`${styles.bcStatus} ${styles[`bcStatus-${b.status}`]}`}>
-                {STATUS_LABEL[b.status]}
+              <div className={`${styles.bcStatus} ${styles[`bcStatus-${STATUS_CSS[b.status]}`]}`}>
+                {statusLabel(b.status)}
               </div>
 
               {/* Body */}
@@ -247,7 +241,7 @@ export function BookingsScreen({ onChat, onCancel, onBookAgain, onBack }: Bookin
                 </div>
 
                 <div className={styles.bcActions}>
-                  {b.status === 'confirmed' && (
+                  {b.status === 'ACCEPTED' && (
                     <>
                       <button className={`${styles.btn} ${styles.btnSecondary} ${styles.btnSm}`} style={{ flex: 1 }} onClick={() => onChat(b.instructorId)}>
                         <Icon name="chat" size={14} /> {t('bookings.chat')}
@@ -257,7 +251,7 @@ export function BookingsScreen({ onChat, onCancel, onBookAgain, onBack }: Bookin
                       </button>
                     </>
                   )}
-                  {b.status === 'completed' && (
+                  {b.status === 'COMPLETED' && (
                     <>
                       <button
                         className={`${styles.btn} ${styles.btnSm} ${submittedIds.has(b.id) ? styles.btnReviewed : styles.btnSecondary}`}

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import styles from './ChatScreen.module.css';
 import { useTranslation } from '@/i18n/useTranslation';
 import { Icon } from '@/components/Icon/Icon';
+import type { ChatBookingStatus } from '@/lib/bookingStatus';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -338,13 +339,11 @@ const QUICK_REPLIES = [
 
 // ── Props ──────────────────────────────────────────────────────────────────
 
-export type BookingStatus = 'NONE' | 'PENDING' | 'ACCEPTED' | 'DECLINED' | 'CANCELLED';
-
 interface ChatScreenProps {
   onBack: () => void;
   onProfile?: () => void;
   onBook?: () => void;
-  bookingStatus?: BookingStatus;   // default: 'PENDING'
+  bookingStatus?: ChatBookingStatus;   // default: 'PENDING' (NONE = чат без брони)
   instructorPhone?: string;
   personName?: string;
   personInitials?: string;
@@ -425,7 +424,7 @@ export function ChatScreen({
   // confirmed === true → превью завершено, замок звонка снят, контакт открыт.
   // Учитывает и проп bookingStatus (гость), и локальное принятие инструктором
   // (cardAccepted), чтобы обе стороны разблокировались без рассинхрона.
-  const confirmed = bookingStatus === 'ACCEPTED' || cardAccepted;
+  const confirmed = bookingStatus === 'ACCEPTED' || bookingStatus === 'COMPLETED' || cardAccepted;
   const isDeclined = bookingStatus === 'DECLINED';
   // PENDING значит заявка уже отправлена — превью не исчерпывается, гость может писать свободно.
   // CANCELLED — гость отменил заявку: превью возобновляется как при NONE.

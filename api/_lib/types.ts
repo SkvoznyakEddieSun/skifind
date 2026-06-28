@@ -57,7 +57,7 @@ export interface BookingRow {
   start_time: string;    // HH:MM:SS
   end_time: string;
   format: 'individual' | 'mini_group' | null;
-  status: 'PENDING' | 'ACCEPTED' | 'DECLINED';
+  status: 'PENDING' | 'ACCEPTED' | 'DECLINED' | 'CANCELLED' | 'COMPLETED';
   price: number | null;
   commission: number | null;
   created_at: string;
@@ -72,7 +72,7 @@ export interface BookingDTO {
   startTime: string;     // HH:MM
   endTime: string;       // HH:MM
   format: 'individual' | 'mini_group' | null;
-  status: 'PENDING' | 'ACCEPTED' | 'DECLINED';
+  status: 'PENDING' | 'ACCEPTED' | 'DECLINED' | 'CANCELLED' | 'COMPLETED';
   price: number | null;
   commission: number | null;
   createdAt: string;

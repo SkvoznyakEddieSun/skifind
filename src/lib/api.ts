@@ -8,6 +8,7 @@
  * - parses JSON and returns a typed result — never throws a raw fetch error
  */
 import { getToken, type SessionProfile } from './session';
+import type { BookingStatus } from './bookingStatus';
 
 // ── Result shapes ────────────────────────────────────────────────────────────
 
@@ -68,7 +69,7 @@ export interface BookingDTO {
   startTime: string;
   endTime: string;
   format: 'individual' | 'mini_group' | null;
-  status: 'PENDING' | 'ACCEPTED' | 'DECLINED';
+  status: BookingStatus;
   price: number | null;
   commission: number | null;
   createdAt: string;

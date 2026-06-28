@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import styles from './ChatListScreen.module.css';
-import type { BookingStatus } from '../Chat/ChatScreen';
+import type { ChatBookingStatus } from '@/lib/bookingStatus';
 import { MASTER_CLASSES } from '../MasterClass/masterClassData';
 import { Icon } from '@/components/Icon/Icon';
 
@@ -15,7 +15,7 @@ interface ChatItem {
   msg: string;
   myMsg?: boolean;
   unread?: number;
-  bookingStatus: BookingStatus;
+  bookingStatus: ChatBookingStatus;
   instructorPhone?: string;
 }
 
@@ -88,7 +88,7 @@ export function addInstrRecentChat(item: ChatItem): void {
  * чата статус читался отсюда (а не из захардкоженной константы) и не сбрасывался.
  * Ищет в обоих списках (RECENT и OLDER), правит объект на месте.
  */
-export function setInstrChatStatus(id: string, status: BookingStatus): void {
+export function setInstrChatStatus(id: string, status: ChatBookingStatus): void {
   const item = INSTR_RECENT.find(c => c.id === id) ?? INSTR_OLDER.find(c => c.id === id);
   if (item) item.bookingStatus = status;
 }
@@ -191,7 +191,7 @@ const GUEST_OLDER: ChatItem[] = [
 
 interface ChatListScreenProps {
   onBack?: () => void;
-  onChat?: (id: string, status: BookingStatus, phone?: string, name?: string, initials?: string, avColor?: string, role?: string) => void;
+  onChat?: (id: string, status: ChatBookingStatus, phone?: string, name?: string, initials?: string, avColor?: string, role?: string) => void;
   onCommunity?: () => void;
   joinedMcIds?: Set<string>;
   onGroupChat?: (mcId: string) => void;

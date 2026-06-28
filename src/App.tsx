@@ -26,7 +26,7 @@ import { GuestProfileScreen } from './screens/GuestProfile/GuestProfileScreen';
 import { BalanceScreen }         from './screens/Balance/BalanceScreen';
 import { ReviewsScreen }         from './screens/Reviews/ReviewsScreen';
 import { ChatScreen }            from './screens/Chat/ChatScreen';
-import type { BookingStatus }   from './screens/Chat/ChatScreen';
+import type { ChatBookingStatus } from './lib/bookingStatus';
 import { CommunityScreen }       from './screens/Community/CommunityScreen';
 import { NotificationsScreen }   from './screens/Notifications/NotificationsScreen';
 import { RegisterScreen }        from './screens/Register/RegisterScreen';
@@ -120,7 +120,7 @@ export function App() {
   const [phone, setPhone]           = useState('');
   const [devCode, setDevCode]       = useState('');
   const [activeMcId, setActiveMcId] = useState('mc1');
-  const [chatBookingStatus, setChatBookingStatus] = useState<BookingStatus>('PENDING');
+  const [chatBookingStatus, setChatBookingStatus] = useState<ChatBookingStatus>('PENDING');
   const [chatInstructorPhone, setChatInstructorPhone] = useState<string | undefined>(undefined);
   const [chatPersonName, setChatPersonName] = useState('');
   const [chatPersonInitials, setChatPersonInitials] = useState('');
@@ -190,7 +190,7 @@ export function App() {
     setChatPersonHasProfile(true);
     setChatPersonProfileType('student');
     setActiveStudentId(profile?.id ?? '');
-    setChatBookingStatus(b?.status === 'accepted' ? 'ACCEPTED' : 'PENDING');
+    setChatBookingStatus(b?.status ?? 'PENDING');   // канон напрямую из стора
     setChatIsInstructor(true);
     setActiveChatBookingId(bookingId);
     push('chat');
@@ -395,12 +395,7 @@ export function App() {
             setChatPersonProfileType('instructor');
             setChatIsInstructor(false);
             const bk = getGuestBookings().find(b => b.instructorId === instructorId);
-            setChatBookingStatus(
-              bk?.status === 'accepted'  ? 'ACCEPTED'   :
-              bk?.status === 'declined'  ? 'DECLINED'   :
-              bk?.status === 'cancelled' ? 'CANCELLED'  :
-              bk?.status === 'completed' ? 'ACCEPTED'   : 'PENDING'
-            );
+            setChatBookingStatus(bk?.status ?? 'PENDING');   // канон напрямую, без store→Chat маппинга
             push('chat');
           }}
           onBookAgain={instructorId => {
@@ -692,12 +687,7 @@ export function App() {
             setChatPersonProfileType('instructor');
             setChatIsInstructor(false);
             const bk = getGuestBookings().find(b => b.instructorId === instructorId);
-            setChatBookingStatus(
-              bk?.status === 'accepted'  ? 'ACCEPTED'   :
-              bk?.status === 'declined'  ? 'DECLINED'   :
-              bk?.status === 'cancelled' ? 'CANCELLED'  :
-              bk?.status === 'completed' ? 'ACCEPTED'   : 'PENDING'
-            );
+            setChatBookingStatus(bk?.status ?? 'PENDING');   // канон напрямую, без store→Chat маппинга
             push('chat');
           }}
           onBookAgain={instructorId => {

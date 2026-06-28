@@ -19,9 +19,9 @@ beforeEach(() => {
   BOOKINGS.splice(INITIAL_LENGTH);
   // Reset statuses of the seeded bookings back to their original values.
   const origStatuses: Record<string, string> = {
-    b1: 'accepted', b2: 'pending', b3: 'completed',
-    l1: 'accepted', l2: 'accepted',
-    'req-roman': 'pending', 'req-anna': 'pending', 'req-mikhail': 'pending',
+    b1: 'ACCEPTED', b2: 'PENDING', b3: 'COMPLETED',
+    l1: 'ACCEPTED', l2: 'ACCEPTED',
+    'req-roman': 'PENDING', 'req-anna': 'PENDING', 'req-mikhail': 'PENDING',
   };
   for (const b of BOOKINGS) {
     if (origStatuses[b.id]) {
@@ -46,7 +46,7 @@ describe('getGuestBookings', () => {
 describe('getPendingRequests', () => {
   it('returns pending non-guest bookings for a given instructor', () => {
     const result = getPendingRequests('aleksey');
-    expect(result.every(b => !b.isGuestBooking && b.status === 'pending')).toBe(true);
+    expect(result.every(b => !b.isGuestBooking && b.status === 'PENDING')).toBe(true);
   });
 
   it('returns 3 pending requests for aleksey in seed data', () => {
@@ -62,7 +62,7 @@ describe('getPendingRequests', () => {
 describe('getAcceptedLessons', () => {
   it('returns accepted or completed non-guest lessons for instructor', () => {
     const result = getAcceptedLessons('aleksey');
-    expect(result.every(b => !b.isGuestBooking && (b.status === 'accepted' || b.status === 'completed'))).toBe(true);
+    expect(result.every(b => !b.isGuestBooking && (b.status === 'ACCEPTED' || b.status === 'COMPLETED'))).toBe(true);
   });
 
   it('returns 2 accepted lessons for aleksey in seed data', () => {
@@ -85,7 +85,7 @@ describe('getBookingById', () => {
 describe('acceptBooking', () => {
   it('changes a pending booking status to accepted', () => {
     acceptBooking('req-roman');
-    expect(getBookingById('req-roman')!.status).toBe('accepted');
+    expect(getBookingById('req-roman')!.status).toBe('ACCEPTED');
   });
 
   it('moves booking from pending to accepted lessons list', () => {
@@ -104,7 +104,7 @@ describe('acceptBooking', () => {
 describe('declineBooking', () => {
   it('changes a pending booking status to declined', () => {
     declineBooking('req-anna');
-    expect(getBookingById('req-anna')!.status).toBe('declined');
+    expect(getBookingById('req-anna')!.status).toBe('DECLINED');
   });
 
   it('removes booking from pending requests', () => {
@@ -159,7 +159,7 @@ describe('addBooking', () => {
       price: 3500,
       message: '',
     });
-    expect(booking.status).toBe('pending');
+    expect(booking.status).toBe('PENDING');
     expect(booking.isGuestBooking).toBe(true);
   });
 

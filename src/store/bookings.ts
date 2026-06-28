@@ -1,4 +1,5 @@
 import { pushNotification } from './notifications';
+import type { BookingStatus } from '@/lib/bookingStatus';
 
 /**
  * Единое хранилище бронирований — общий источник данных
@@ -9,7 +10,7 @@ import { pushNotification } from './notifications';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
-export type BookingStatus  = 'pending' | 'accepted' | 'declined' | 'cancelled' | 'completed';
+export type { BookingStatus };   // канон из @/lib/bookingStatus, реэкспорт для совместимости импортов
 export type BookingFormat  = 'individual' | 'miniGroup' | 'kids';
 export type BookingDiscipline = 'ski' | 'board';
 
@@ -98,7 +99,7 @@ export const BOOKINGS: Booking[] = [
     groupSize: 2,
     price: 7000,
     message: 'Хотим с женой научиться с нуля.',
-    status: 'accepted',
+    status: 'ACCEPTED',
     createdAt: '28 апр, 09:00',
     isGuestBooking: true,
   },
@@ -122,7 +123,7 @@ export const BOOKINGS: Booking[] = [
     level: 'Дети',
     price: 2800,
     message: '',
-    status: 'pending',
+    status: 'PENDING',
     createdAt: 'сегодня, 10:00',
     isGuestBooking: true,
   },
@@ -146,7 +147,7 @@ export const BOOKINGS: Booking[] = [
     level: 'Продвинутый',
     price: 2500,
     message: '',
-    status: 'completed',
+    status: 'COMPLETED',
     createdAt: '15 мар, 14:00',
     isGuestBooking: true,
   },
@@ -173,7 +174,7 @@ export const BOOKINGS: Booking[] = [
     level: 'Средний',
     price: 7000,
     message: '',
-    status: 'accepted',
+    status: 'ACCEPTED',
     createdAt: '25 апр, 14:00',
     isGuestBooking: false,
   },
@@ -197,7 +198,7 @@ export const BOOKINGS: Booking[] = [
     level: 'Дети',
     price: 2800,
     message: '',
-    status: 'accepted',
+    status: 'ACCEPTED',
     createdAt: '22 апр, 11:00',
     isGuestBooking: false,
   },
@@ -225,7 +226,7 @@ export const BOOKINGS: Booking[] = [
     groupSize: 2,
     price: 7000,
     message: 'Хотим с женой научиться с нуля. Можете взять сразу двоих? Снаряжение возьмём в прокате.',
-    status: 'pending',
+    status: 'PENDING',
     createdAt: 'сегодня 11:42',
     isGuestBooking: false,
   },
@@ -249,7 +250,7 @@ export const BOOKINGS: Booking[] = [
     level: 'Продвинутый',
     price: 10500,
     message: 'Хочу поработать над техникой карвинга на красных трассах.',
-    status: 'pending',
+    status: 'PENDING',
     createdAt: 'вчера 19:05',
     isGuestBooking: false,
   },
@@ -273,7 +274,7 @@ export const BOOKINGS: Booking[] = [
     level: 'Дети · 8 лет',
     price: 2800,
     message: 'Сын первый раз на горе. Работаете с такими маленькими?',
-    status: 'pending',
+    status: 'PENDING',
     createdAt: 'вчера 14:30',
     isGuestBooking: false,
   },
@@ -289,7 +290,7 @@ export function getGuestBookings(): Booking[] {
 /** Входящие заявки инструктора (все pending — и с платформы, и от гостей) */
 export function getPendingRequests(instructorId: string): Booking[] {
   return BOOKINGS.filter(
-    b => b.instructorId === instructorId && b.status === 'pending',
+    b => b.instructorId === instructorId && b.status === 'PENDING',
   );
 }
 
@@ -298,7 +299,7 @@ export function getAcceptedLessons(instructorId: string): Booking[] {
   return BOOKINGS.filter(
     b => b.instructorId === instructorId &&
          !b.isGuestBooking &&
-         (b.status === 'accepted' || b.status === 'completed'),
+         (b.status === 'ACCEPTED' || b.status === 'COMPLETED'),
   );
 }
 
@@ -354,7 +355,7 @@ export function addBooking(params: AddBookingParams): Booking {
     groupSize:   params.groupSize,
     price:       params.price,
     message:     params.message,
-    status:      'pending',
+    status:      'PENDING',
     createdAt:   nowLabel(),
     isGuestBooking: true,
   };
@@ -379,21 +380,21 @@ export function addBooking(params: AddBookingParams): Booking {
 
 export function acceptBooking(id: string): void {
   const b = BOOKINGS.find(b => b.id === id);
-  if (b) b.status = 'accepted';
+  if (b) b.status = 'ACCEPTED';
 }
 
 export function declineBooking(id: string): void {
   const b = BOOKINGS.find(b => b.id === id);
-  if (b) b.status = 'declined';
+  if (b) b.status = 'DECLINED';
 }
 
 /** Отмена бронирования гостем (отличается от declineBooking — инструктором) */
 export function guestCancelBooking(id: string): void {
   const b = BOOKINGS.find(b => b.id === id);
-  if (b) b.status = 'cancelled';
+  if (b) b.status = 'CANCELLED';
 }
 
 export function completeBooking(id: string): void {
   const b = BOOKINGS.find(b => b.id === id);
-  if (b) b.status = 'completed';
+  if (b) b.status = 'COMPLETED';
 }

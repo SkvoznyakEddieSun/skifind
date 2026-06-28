@@ -9,7 +9,7 @@ const DISCIPLINE_LABEL: Record<string, string> = {
 
 // Статичный фолбэк если lessonId не найден (например, при открытии без ID)
 const FALLBACK = {
-  status:     'confirmed' as const,
+  status:     'ACCEPTED' as const,
   date:       '28 апреля, понедельник',
   time:       '10:00 — 12:00',
   duration:   '2 часа',
@@ -64,8 +64,8 @@ export function LessonDetailScreen({ lessonId, onBack, onChat, onCancel, onCompl
       })()
     : FALLBACK;
 
-  const confirmed = data.status === 'accepted' || data.status === 'confirmed' as string;
-  const completed = data.status === 'completed';
+  const confirmed = data.status === 'ACCEPTED';
+  const completed = data.status === 'COMPLETED';
 
   return (
     <div className={styles.screen}>
