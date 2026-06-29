@@ -3,6 +3,7 @@ import styles from './ChatScreen.module.css';
 import { useTranslation } from '@/i18n/useTranslation';
 import { Icon } from '@/components/Icon/Icon';
 import type { ChatBookingStatus } from '@/lib/bookingStatus';
+import { getMessages, sendMessage as apiSendMessage, type MessageDTO } from '@/lib/api';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -354,6 +355,13 @@ interface ChatScreenProps {
   onDeclineBooking?: () => void;   // инструктор отклоняет заявку из чата
   /** Ключ истории в HISTORY_CACHE: instructorId (гость) или bookingId (инструктор). */
   chatId?: string;
+  // ── Серверный режим (direct-чат на сервере). Если задан serverChatId —
+  //    лента и отправка идут через API + поллинг, а не через мок HISTORY_CACHE. ──
+  serverChatId?: string;
+  /** Реальный profile.id текущего пользователя (для направления сообщений на сервере). */
+  serverCurrentUserId?: string;
+  /** Карточка-предложение из реальной брони (date/format/place/price — строки для показа). */
+  serverCard?: { date: string; format: string; place: string; price: string };
 }
 
 // ── Component ──────────────────────────────────────────────────────────────
@@ -383,8 +391,13 @@ export function ChatScreen({
   onAcceptBooking,
   onDeclineBooking,
   chatId,
+  serverChatId,
+  serverCurrentUserId,
+  serverCard,
 }: ChatScreenProps) {
   const { t } = useTranslation();
+
+  const serverMode = !!serverChatId;
 
   /**
    * ID текущего пользователя:
@@ -393,10 +406,12 @@ export function ChatScreen({
    *
    * Используется для определения направления каждого сообщения.
    */
-  const currentUserId = role === 'instructor' ? INSTR_ID : STUDENT_ID;
+  // В серверном режиме отправитель — реальный profile.id; в мок-режиме — роль-константа.
+  const currentUserId = serverMode ? (serverCurrentUserId ?? '') : (role === 'instructor' ? INSTR_ID : STUDENT_ID);
   const isInstructor  = role === 'instructor';
 
-  const [items, setItems] = useState<ChatItem[]>(() => getOrInitHistory(chatId, role));
+  // Серверный режим стартует с пустой ленты (наполняется поллингом); мок — из HISTORY_CACHE.
+  const [items, setItems] = useState<ChatItem[]>(() => serverMode ? [] : getOrInitHistory(chatId, role));
   const [inputVal, setInputVal] = useState('');
   const [bookingVisible, setBookingVisible] = useState(true);
   const [typing, setTyping] = useState(false);
@@ -460,10 +475,60 @@ export function ChatScreen({
     window.location.href = phone.startsWith('tel:') ? phone : `tel:${phone}`;
   }
 
-  // Синхронизируем кэш истории при каждом изменении items
+  // Синхронизируем кэш истории при каждом изменении items (только мок-режим).
   useEffect(() => {
+    if (serverMode) return;
     HISTORY_CACHE.set(`${role}:${chatId ?? '__default'}`, items);
-  }, [chatId, role, items]);
+  }, [chatId, role, items, serverMode]);
+
+  // ── Серверный режим: лента + поллинг новых сообщений ──────────────────────
+  // Карточка-предложение строится из реальной брони (serverCard) и идёт первой.
+  // Поллинг: полная загрузка на маунте, затем каждые 4 c — только новые (since
+  // последнего created_at). Интервал останавливается при размонтировании.
+  useEffect(() => {
+    if (!serverMode || !serverChatId) return;
+    let cancelled = false;
+    let lastTs: string | undefined;
+
+    const fmtTime = (iso: string) =>
+      new Date(iso).toLocaleTimeString('ru', { hour: '2-digit', minute: '2-digit' });
+    const toMsg = (m: MessageDTO): Message => ({
+      id: m.id,
+      sender: m.senderId ?? '',
+      type: 'text',
+      text: m.text ?? '',
+      time: fmtTime(m.createdAt),
+      ticks: m.senderId === currentUserId ? '✓✓' : undefined,
+    });
+    const cardItem: ChatItem[] = serverCard
+      ? [{ id: 'card-server', sender: '__proposal__', type: 'card', time: '', card: serverCard }]
+      : [];
+
+    (async () => {
+      try {
+        const full = await getMessages(serverChatId);
+        if (cancelled) return;
+        lastTs = full.length ? full[full.length - 1].createdAt : undefined;
+        setItems([...cardItem, ...full.map(toMsg)]);
+      } catch { /* поллинг переживает разовый сбой сети */ }
+    })();
+
+    const iv = setInterval(async () => {
+      try {
+        const fresh = await getMessages(serverChatId, lastTs);
+        if (cancelled || fresh.length === 0) return;
+        lastTs = fresh[fresh.length - 1].createdAt;
+        setItems(prev => {
+          const ids = new Set(prev.map(i => i.id));
+          const add = fresh.filter(m => !ids.has(m.id)).map(toMsg);
+          return add.length ? [...prev, ...add] : prev;
+        });
+      } catch { /* пропускаем тик */ }
+    }, 4000);
+
+    return () => { cancelled = true; clearInterval(iv); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [serverMode, serverChatId, currentUserId]);
 
   // После подтверждения заявки снимаем плашку-предупреждение об обмене контактами.
   // (сам hasPhone-фильтр отправки не трогаем — политика контактов решается отдельно)
@@ -486,7 +551,35 @@ export function ChatScreen({
     sendingRef.current = true;
     setTimeout(() => { sendingRef.current = false; }, 300);
 
-    // Phone filter
+    if (serverMode && serverChatId) {
+      // Оптимистичная вставка временного сообщения; правило телефонов решает сервер
+      // (блок до ACCEPTED) — на клиенте hasPhone в этом режиме не применяем.
+      const tempId = `tmp-${Date.now()}`;
+      const temp: Message = {
+        id: tempId, sender: currentUserId, type: 'text', text: msg,
+        time: new Date().toLocaleTimeString('ru', { hour: '2-digit', minute: '2-digit' }), ticks: '✓',
+      };
+      setItems(prev => [...prev, temp]);
+      setInputVal('');
+      if (textareaRef.current) textareaRef.current.style.height = 'auto';
+      void (async () => {
+        const res = await apiSendMessage(serverChatId, msg);
+        if (res.ok) {
+          // заменяем временное на реальное (поллинг тоже подтянет — дедуп по id)
+          setItems(prev => prev.map(i => i.id === tempId
+            ? { id: res.message.id, sender: res.message.senderId ?? currentUserId, type: 'text',
+                text: res.message.text ?? '', time: new Date(res.message.createdAt).toLocaleTimeString('ru', { hour: '2-digit', minute: '2-digit' }), ticks: '✓✓' }
+            : i));
+        } else {
+          setItems(prev => prev.filter(i => i.id !== tempId));   // откат
+          if (res.code === 'PHONE_BLOCKED') setPhoneBlocked(true);
+          else fireToast(res.error || 'Не удалось отправить');
+        }
+      })();
+      return;
+    }
+
+    // ── Мок-режим (переходный, для чатов из ChatList и т.п.) ──
     if (hasPhone(msg)) {
       setPhoneBlocked(true);
       return;

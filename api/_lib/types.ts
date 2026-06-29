@@ -80,6 +80,8 @@ export interface BookingDTO {
    *  list, student name for an instructor's list). */
   counterpartyName: string | null;
   counterpartyPhone: string | null;
+  /** id строки chats (direct), привязанной к этой брони. null — чата нет (старые брони). */
+  chatId: string | null;
 }
 
 export type CreateBookingResult =
@@ -96,4 +98,31 @@ export type AcceptBookingResult =
 
 export type DeclineBookingResult =
   | { ok: true; booking: BookingDTO }
+  | { ok: false; error: string; code: string };
+
+// ── Messages ──────────────────────────────────────────────────────────────────
+
+export interface MessageRow {
+  id: string;
+  chat_id: string;
+  sender_id: string | null;
+  text: string | null;
+  card_data: Record<string, unknown> | null;
+  created_at: string;
+}
+
+export interface MessageDTO {
+  id: string;
+  senderId: string | null;
+  text: string | null;
+  cardData: Record<string, unknown> | null;
+  createdAt: string;
+}
+
+export type MessagesResult =
+  | { ok: true; messages: MessageDTO[] }
+  | { ok: false; error: string; code: string };
+
+export type SendMessageResult =
+  | { ok: true; message: MessageDTO }
   | { ok: false; error: string; code: string };

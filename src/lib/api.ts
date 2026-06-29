@@ -75,6 +75,7 @@ export interface BookingDTO {
   createdAt: string;
   counterpartyName: string | null;
   counterpartyPhone: string | null;
+  chatId: string | null;
 }
 
 export interface CreateBookingInput {
@@ -89,6 +90,18 @@ export interface CreateBookingInput {
 
 export type CreateBookingResponse =
   | { ok: true; booking: BookingDTO }
+  | ApiError;
+
+export interface MessageDTO {
+  id: string;
+  senderId: string | null;
+  text: string | null;
+  cardData: Record<string, unknown> | null;
+  createdAt: string;
+}
+
+export type SendMessageResponse =
+  | { ok: true; message: MessageDTO }
   | ApiError;
 
 export type AcceptBookingResponse =
@@ -207,6 +220,33 @@ export function acceptBooking(bookingId: string): Promise<AcceptBookingResponse>
 /** Instructor declines a PENDING booking → DECLINED. */
 export function declineBooking(bookingId: string): Promise<DeclineBookingResponse> {
   return post<DeclineBookingResponse>('/bookings', { action: 'decline', bookingId });
+}
+
+/** Chat messages (oldest first). `since` (ISO created_at) → only newer ones (polling).
+ *  THROWS on failure so callers/react-query can handle it. */
+export async function getMessages(chatId: string, since?: string): Promise<MessageDTO[]> {
+  const token = getToken();
+  const headers: Record<string, string> = {};
+  if (token) headers.Authorization = `Bearer ${token}`;
+  const qs = new URLSearchParams({ chatId });
+  if (since) qs.set('since', since);
+
+  let res: Response;
+  try {
+    res = await fetch(`/api/messages?${qs.toString()}`, { headers });
+  } catch {
+    throw new Error('Нет связи с сервером');
+  }
+  if (!res.ok) throw new Error('Не удалось загрузить сообщения');
+  const data = (await res.json()) as { ok?: boolean; messages?: MessageDTO[] };
+  if (!data?.ok || !data.messages) throw new Error('Некорректный ответ сервера');
+  return data.messages;
+}
+
+/** Send a text message to a chat. Returns a typed result (object, not throw)
+ *  so the UI can branch on PHONE_BLOCKED / FORBIDDEN. */
+export function sendMessage(chatId: string, text: string): Promise<SendMessageResponse> {
+  return post<SendMessageResponse>('/messages', { chatId, text });
 }
 
 /** Current user's bookings (student → own, instructor → incoming). THROWS on

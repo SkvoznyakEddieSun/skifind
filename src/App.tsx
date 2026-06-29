@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { BottomNav } from './components/BottomNav/BottomNav';
 import { SwipeBack } from './components/SwipeBack/SwipeBack';
 import { LoadingScreen } from './components/LoadingScreen/LoadingScreen';
@@ -7,7 +8,9 @@ import { LoadingScreen } from './components/LoadingScreen/LoadingScreen';
 import { PhoneAuthScreen } from './screens/PhoneAuth/PhoneAuthScreen';
 import { SmsCodeScreen }   from './screens/SmsCode/SmsCodeScreen';
 import { getSession, saveSession, clearSession, updateSessionProfile } from './lib/session';
-import { me as apiMe } from './lib/api';
+import { me as apiMe, acceptBooking as apiAcceptBooking, declineBooking as apiDeclineBooking, type BookingDTO } from './lib/api';
+import { shortStudentName } from './lib/displayName';
+import { MONTH_SHORT } from './store/bookings';
 
 // Instructor tabs
 import { DashboardScreen }    from './screens/Dashboard/DashboardScreen';
@@ -63,6 +66,20 @@ function uiRole(serverRole: string | null | undefined): Role {
 /** Корневой экран интерфейса для роли. */
 function homeScreen(r: Role): Screen {
   return r === 'instructor' ? 'instr' : 'guest';
+}
+
+/** Активный серверный direct-чат: реальный chatId + бронь + роль зрителя. */
+interface ActiveServerChat { chatId: string; booking: BookingDTO; role: Role; }
+
+/** Карточка-предложение из реальной брони (строки для показа). place в БД нет. */
+function serverCardFromBooking(b: BookingDTO): { date: string; format: string; place: string; price: string } {
+  const d = new Date(`${b.date}T00:00:00`);
+  return {
+    date:   `${d.getDate()} ${MONTH_SHORT[d.getMonth()]}, ${b.startTime}–${b.endTime}`,
+    format: b.format === 'mini_group' ? 'Мини-группа' : 'Индивидуально',
+    place:  'Уточните у инструктора',
+    price:  `${(b.price ?? 0).toLocaleString('ru')} ₽`,
+  };
 }
 
 type Screen =
@@ -128,6 +145,8 @@ export function App() {
   const [chatPersonHasProfile, setChatPersonHasProfile] = useState(false);
   const [chatPersonProfileType, setChatPersonProfileType] = useState<'instructor' | 'student'>('instructor');
   const [chatIsInstructor, setChatIsInstructor] = useState(false);
+  const [activeServerChat, setActiveServerChat] = useState<ActiveServerChat | null>(null);
+  const queryClient = useQueryClient();
   const [activeChatBookingId, setActiveChatBookingId] = useState('');
   const [activeStudentId, setActiveStudentId] = useState('');
   const [activeInstructor, setActiveInstructor] = useState<Instructor>(INSTRUCTORS[0]);
@@ -166,8 +185,29 @@ export function App() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  /**
+   * Открыть СЕРВЕРНЫЙ direct-чат по реальной брони (есть chatId).
+   * Если у брони нет chatId (старые/мок) — тихо уходим в мок-открыватель.
+   */
+  function openServerChat(booking: BookingDTO, viewer: Role) {
+    if (!booking.chatId) return;
+    const sessionId = getSession()?.profile.id;
+    // Заголовок: ученику показываем инструктора (имя как есть), инструктору — ученика (короткое ФИО).
+    const headerName = viewer === 'instructor'
+      ? shortStudentName(booking.counterpartyName, booking.counterpartyPhone)
+      : (booking.counterpartyName || 'Инструктор');
+    setActiveServerChat({ chatId: booking.chatId, booking, role: viewer });
+    setChatPersonName(headerName);
+    setChatPersonInitials('');
+    setChatPersonHasProfile(false);
+    setChatIsInstructor(viewer === 'instructor');
+    void sessionId;
+    push('chat');
+  }
+
   /** Open chat pre-filled with the active instructor's identity (always guest-side). */
   function openInstrChat() {
+    setActiveServerChat(null);   // мок-чат
     setChatPersonName(activeInstructor.name);
     setChatPersonInitials(activeInstructor.initials);
     setChatPersonAvColor(activeInstructor.avatarColor);
@@ -179,6 +219,7 @@ export function App() {
 
   /** Open instructor-side chat with a student by booking id. */
   function openStudentChat(bookingId: string) {
+    setActiveServerChat(null);   // мок-чат (детали/расписание ещё на моках)
     const b = getBookingById(bookingId);
     const profile = b ? getStudentProfileByName(b.studentName) : undefined;
     if (b && !profile) {
@@ -286,6 +327,39 @@ export function App() {
     return <ReviewsScreen onBack={pop} />;
   }
   else if (s === 'chat') {
+    // Серверный direct-чат (реальная бронь) или мок-чат (переходные точки входа).
+    if (activeServerChat) {
+      const sb = activeServerChat.booking;
+      const isInstr = activeServerChat.role === 'instructor';
+      return (
+        <ChatScreen
+          onBack={pop}
+          onBook={() => push('book-slot')}
+          bookingStatus={sb.status}
+          personName={chatPersonName || undefined}
+          role={activeServerChat.role}
+          serverChatId={activeServerChat.chatId}
+          serverCurrentUserId={getSession()?.profile.id}
+          serverCard={serverCardFromBooking(sb)}
+          onAcceptBooking={isInstr ? () => {
+            void apiAcceptBooking(sb.id).then(res => {
+              if (res.ok) {
+                setActiveServerChat(c => c ? { ...c, booking: { ...c.booking, status: 'ACCEPTED' } } : c);
+                queryClient.invalidateQueries({ queryKey: ['bookings'] });
+              }
+            });
+          } : undefined}
+          onDeclineBooking={isInstr ? () => {
+            void apiDeclineBooking(sb.id).then(res => {
+              if (res.ok) {
+                setActiveServerChat(c => c ? { ...c, booking: { ...c.booking, status: 'DECLINED' } } : c);
+                queryClient.invalidateQueries({ queryKey: ['bookings'] });
+              }
+            });
+          } : undefined}
+        />
+      );
+    }
     return (
       <ChatScreen
         onBack={pop}
@@ -341,6 +415,7 @@ export function App() {
             setChatPersonName(name ?? ''); setChatPersonInitials(initials ?? ''); setChatPersonAvColor(avColor ?? 'ice');
             setActiveChatBookingId(id);   // ← без этого chatId/onAcceptBooking приходят пустыми
             setChatIsInstructor(true);
+            setActiveServerChat(null);
             push('chat');
           }}
           isInstructor
@@ -354,6 +429,7 @@ export function App() {
             setChatBookingStatus(status); setChatInstructorPhone(phone);
             setChatPersonName(name ?? ''); setChatPersonInitials(initials ?? ''); setChatPersonAvColor(avColor ?? 'ice');
             setChatIsInstructor(false);
+            setActiveServerChat(null);
             push('chat');
           }}
           joinedMcIds={joinedMcIds}
@@ -374,6 +450,7 @@ export function App() {
         <RequestsScreen
           onBack={pop}
           onChat={openStudentChat}
+          onOpenChat={b => openServerChat(b, 'instructor')}
           onRequest={id => { setActiveRequestId(id); push('request-detail'); }}
           onMasterClass={id => { setActiveMcId(id); push('mc-detail'); }}
           onMcGroupChat={id => { setActiveMcId(id); push('mc-group-chat'); }}
@@ -396,6 +473,7 @@ export function App() {
             setChatIsInstructor(false);
             const bk = getGuestBookings().find(b => b.instructorId === instructorId);
             setChatBookingStatus(bk?.status ?? 'PENDING');   // канон напрямую, без store→Chat маппинга
+            setActiveServerChat(null);
             push('chat');
           }}
           onBookAgain={instructorId => {
@@ -594,6 +672,7 @@ export function App() {
         <RequestsScreen
           onBack={() => switchInstrTab('dashboard')}
           onChat={openStudentChat}
+          onOpenChat={b => openServerChat(b, 'instructor')}
           onRequest={id => { setActiveRequestId(id); push('request-detail'); }}
           onMasterClass={id => { setActiveMcId(id); push('mc-detail'); }}
           onMcGroupChat={id => { setActiveMcId(id); push('mc-group-chat'); }}
@@ -623,6 +702,7 @@ export function App() {
             setChatPersonAvColor(avColor ?? 'ice');
             setActiveChatBookingId(id);   // ← без этого chatId/onAcceptBooking приходят пустыми
             setChatIsInstructor(true);
+            setActiveServerChat(null);
             push('chat');
           }}
           onCommunity={() => push('community')}
@@ -630,7 +710,7 @@ export function App() {
         />
       );
     } else if (instrTab === 'calendar') {
-      tabContent = <ScheduleScreen onLesson={id => { setActiveLessonId(id ?? ''); push('lesson-detail'); }} onChat={() => { setChatIsInstructor(true); push('chat'); }} onCreateMasterClass={() => push('mc-create')} />;
+      tabContent = <ScheduleScreen onLesson={id => { setActiveLessonId(id ?? ''); push('lesson-detail'); }} onChat={() => { setActiveServerChat(null); setChatIsInstructor(true); push('chat'); }} onCreateMasterClass={() => push('mc-create')} />;
     } else {
       tabContent = (
         <InstrProfileScreen
@@ -688,8 +768,10 @@ export function App() {
             setChatIsInstructor(false);
             const bk = getGuestBookings().find(b => b.instructorId === instructorId);
             setChatBookingStatus(bk?.status ?? 'PENDING');   // канон напрямую, без store→Chat маппинга
+            setActiveServerChat(null);
             push('chat');
           }}
+          onOpenChat={b => openServerChat(b, 'guest')}
           onBookAgain={instructorId => {
             const instr = INSTRUCTORS.find(i => i.id === instructorId) ?? INSTRUCTORS[0];
             setActiveInstructor(instr);
@@ -712,6 +794,7 @@ export function App() {
             setChatPersonInitials(initials ?? '');
             setChatPersonAvColor(avColor ?? 'ice');
             setChatIsInstructor(false);
+            setActiveServerChat(null);
             push('chat');
           }}
           joinedMcIds={joinedMcIds}

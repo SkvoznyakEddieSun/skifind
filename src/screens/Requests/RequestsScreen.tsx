@@ -120,6 +120,8 @@ const STATUS_LABEL: Record<string, string> = {
 // ── Props ──────────────────────────────────────────────────────────────────
 
 interface RequestsScreenProps {
+  /** Открыть серверный direct-чат по брони (если у неё есть chatId). */
+  onOpenChat?: (b: BookingDTO) => void;
   onBack:    () => void;
   onChat:    (id: string) => void;
   onRequest: (id: string) => void;
@@ -129,7 +131,7 @@ interface RequestsScreenProps {
 
 // ── Component ──────────────────────────────────────────────────────────────
 
-export function RequestsScreen({ onBack, onChat, onRequest, onMasterClass, onMcGroupChat }: RequestsScreenProps) {
+export function RequestsScreen({ onBack, onChat, onOpenChat, onRequest, onMasterClass, onMcGroupChat }: RequestsScreenProps) {
   const [tab, setTab] = useState<'new' | 'mine' | 'mc'>('new');
   const [toast, setToast] = useState<string | null>(null);
   const [tabAnimDir, setTabAnimDir] = useState<'left' | 'right' | null>(null);
@@ -331,7 +333,7 @@ export function RequestsScreen({ onBack, onChat, onRequest, onMasterClass, onMcG
                     </button>
                     <button
                       className={`${styles.btn} ${styles.btnSecondary}`}
-                      onClick={e => { e.stopPropagation(); onChat(b.id); }}
+                      onClick={e => { e.stopPropagation(); if (b.chatId && onOpenChat) onOpenChat(b); else onChat(b.id); }}
                     >
                       Написать
                     </button>

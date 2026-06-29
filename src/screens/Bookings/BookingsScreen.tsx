@@ -89,18 +89,27 @@ const REVIEW_TAGS = [
 
 interface BookingsScreenProps {
   onChat: (instructorId: string) => void;
+  /** Открыть серверный direct-чат по брони (если у неё есть chatId). */
+  onOpenChat?: (b: BookingDTO) => void;
   onCancel?: (bookingId: string) => void;
   onLeaveReview?: (bookingId: string) => void;
   onBookAgain: (instructorId: string) => void;
   onBack?: () => void;
 }
 
-export function BookingsScreen({ onChat, onBookAgain, onBack }: BookingsScreenProps) {
+export function BookingsScreen({ onChat, onOpenChat, onBookAgain, onBack }: BookingsScreenProps) {
   const { t } = useTranslation();
 
   // Реальные брони ученика с сервера (GET /api/bookings → student → свои).
   const { data: serverBookings = [] } = useQuery({ queryKey: ['bookings'], queryFn: getBookings });
   const bookings = useMemo(() => serverBookings.map(toDisplay), [serverBookings]);
+
+  // Открыть чат: серверный (по chatId брони) или мок-фолбэк по инструктору.
+  function openChat(bookingId: string, instructorId: string) {
+    const raw = serverBookings.find(x => x.id === bookingId);
+    if (raw?.chatId && onOpenChat) onOpenChat(raw);
+    else onChat(instructorId);
+  }
   const [reviewBookingId, setReviewBookingId] = useState<string | null>(null);
   const [reviewStars, setReviewStars]         = useState(5);
   const [reviewText, setReviewText]           = useState('');
@@ -195,7 +204,7 @@ export function BookingsScreen({ onChat, onBookAgain, onBack }: BookingsScreenPr
                     <button
                       className={`${styles.btn} ${styles.btnSecondary} ${styles.btnSm}`}
                       style={{ flex: 1 }}
-                      onClick={() => onChat(b.instructorId)}
+                      onClick={() => openChat(b.id, b.instructorId)}
                     >
                       <Icon name="chat" size={14} /> {t('bookings.chat')}
                     </button>
@@ -260,10 +269,10 @@ export function BookingsScreen({ onChat, onBookAgain, onBack }: BookingsScreenPr
                 <div className={styles.bcActions}>
                   {b.status === 'ACCEPTED' && (
                     <>
-                      <button className={`${styles.btn} ${styles.btnSecondary} ${styles.btnSm}`} style={{ flex: 1 }} onClick={() => onChat(b.instructorId)}>
+                      <button className={`${styles.btn} ${styles.btnSecondary} ${styles.btnSm}`} style={{ flex: 1 }} onClick={() => openChat(b.id, b.instructorId)}>
                         <Icon name="chat" size={14} /> {t('bookings.chat')}
                       </button>
-                      <button className={`${styles.btn} ${styles.btnPrimary} ${styles.btnSm}`} style={{ flex: 1 }} onClick={() => onChat(b.instructorId)}>
+                      <button className={`${styles.btn} ${styles.btnPrimary} ${styles.btnSm}`} style={{ flex: 1 }} onClick={() => openChat(b.id, b.instructorId)}>
                         <Icon name="phone" size={14} /> {t('bookings.call')}
                       </button>
                     </>

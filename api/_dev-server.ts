@@ -15,6 +15,7 @@ import { readFileSync } from 'node:fs';
 import { requestCode, verifyCode, getMe } from './_lib/auth';
 import { listInstructors } from './_lib/instructors';
 import { createBooking, listBookings, acceptBookingRequest, declineBookingRequest } from './_lib/bookings';
+import { listMessages, sendMessage } from './_lib/messages';
 
 // ── Load .env.local (portable; avoids depending on a runner flag) ────────────
 try {
@@ -110,6 +111,29 @@ app.post('/api/bookings', async (req, res) => {
   }
 });
 
+app.get('/api/messages', async (req, res) => {
+  try {
+    const chatId = String(req.query.chatId ?? '');
+    const since  = req.query.since ? String(req.query.since) : undefined;
+    const result = await listMessages(req.headers.authorization, chatId, since);
+    res.status(result.ok ? 200 : statusForCode(result.code)).json(result);
+  } catch (e) {
+    console.error('[dev-api] GET /messages', e);
+    res.status(500).json({ ok: false, error: 'Server error', code: 'SERVER_ERROR' });
+  }
+});
+
+app.post('/api/messages', async (req, res) => {
+  try {
+    const body = (req.body ?? {}) as Record<string, unknown>;
+    const result = await sendMessage(req.headers.authorization, String(body.chatId ?? ''), String(body.text ?? ''));
+    res.status(result.ok ? 201 : statusForCode(result.code)).json(result);
+  } catch (e) {
+    console.error('[dev-api] POST /messages', e);
+    res.status(500).json({ ok: false, error: 'Server error', code: 'SERVER_ERROR' });
+  }
+});
+
 function statusForCode(code: string): number {
   switch (code) {
     case 'UNAUTHORIZED':         return 401;
@@ -119,6 +143,7 @@ function statusForCode(code: string): number {
     case 'NOT_PENDING':          return 409;
     case 'SLOT_TAKEN':           return 409;
     case 'SLOT_ALREADY_ACCEPTED': return 409;
+    case 'PHONE_BLOCKED':        return 422;
     default:                     return 400;
   }
 }

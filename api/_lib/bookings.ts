@@ -40,7 +40,12 @@ function err(code: string, error: string): { ok: false; error: string; code: str
 
 type WeekWindow = { start: string; end: string; breaks?: { start: string; end: string }[]; off?: boolean };
 
-function rowToDTO(b: BookingRow, counterpartyName: string | null, counterpartyPhone: string | null): BookingDTO {
+function rowToDTO(
+  b: BookingRow,
+  counterpartyName: string | null,
+  counterpartyPhone: string | null,
+  chatId: string | null = null,
+): BookingDTO {
   return {
     id: b.id,
     instructorId: b.instructor_id,
@@ -55,6 +60,7 @@ function rowToDTO(b: BookingRow, counterpartyName: string | null, counterpartyPh
     createdAt: b.created_at,
     counterpartyName,
     counterpartyPhone,
+    chatId,
   };
 }
 
@@ -148,22 +154,19 @@ export async function createBooking(authHeader: string | undefined, body: Create
   }
   const commission = Math.round(price * COMMISSION_RATE);
 
-  // ── Insert (student_id from token only) ─────────────────────────────────────
-  const { data: created, error: insErr } = await db
-    .from('bookings')
-    .insert({
-      instructor_id: instructorId,
-      student_id:    auth.userId,        // from JWT, never the body
-      date,
-      start_time:    startTime,
-      end_time:      endTime,
-      format,
-      status:        'PENDING',
-      price,
-      commission,
-    })
-    .select()
-    .single();
+  // ── Atomic insert: booking + its direct chat (RPC, one transaction) ─────────
+  // student_id from JWT only. The RPC also creates chats(booking_id,type='direct'),
+  // so there's never a booking without a chat.
+  const { data, error: insErr } = await db.rpc('create_booking_with_chat', {
+    p_instructor_id: instructorId,
+    p_student_id:    auth.userId,
+    p_date:          date,
+    p_start:         startTime,
+    p_end:           endTime,
+    p_format:        format,
+    p_price:         price,
+    p_commission:    commission,
+  });
 
   if (insErr) {
     // Overlap trigger raises P0001 with "занят". Под маркетплейс-моделью триггер
@@ -172,11 +175,12 @@ export async function createBooking(authHeader: string | undefined, body: Create
     if (insErr.code === 'P0001' || /занят/i.test(insErr.message ?? '')) {
       return err('SLOT_TAKEN', 'Это время уже подтверждено у инструктора — выберите другое');
     }
-    console.error('[createBooking] insert error:', insErr);
+    console.error('[createBooking] rpc error:', insErr);
     throw new Error('DB error creating booking');
   }
 
-  return { ok: true, booking: rowToDTO(created as BookingRow, null, null) };
+  const result = data as { booking: BookingRow; chatId: string };
+  return { ok: true, booking: rowToDTO(result.booking, null, null, result.chatId) };
 }
 
 // ── LIST ──────────────────────────────────────────────────────────────────────
@@ -218,9 +222,23 @@ export async function listBookings(authHeader: string | undefined): Promise<Book
     }
   }
 
+  // chat id per booking (direct chat is 1:1 with the booking)
+  const chatByBooking = new Map<string, string>();
+  const bookingIds = rows.map(r => r.id);
+  if (bookingIds.length > 0) {
+    const { data: chats, error: cErr } = await db
+      .from('chats')
+      .select('id, booking_id')
+      .in('booking_id', bookingIds);
+    if (cErr) { console.error('[listBookings] chats error:', cErr); throw new Error('DB error reading chats'); }
+    for (const c of (chats ?? []) as { id: string; booking_id: string }[]) {
+      chatByBooking.set(c.booking_id, c.id);
+    }
+  }
+
   const bookings = rows.map(r => {
     const cp = nameById.get(asInstructor ? r.student_id : r.instructor_id);
-    return rowToDTO(r, cp?.name ?? null, cp?.phone ?? null);
+    return rowToDTO(r, cp?.name ?? null, cp?.phone ?? null, chatByBooking.get(r.id) ?? null);
   });
   return { ok: true, bookings };
 }
@@ -237,7 +255,9 @@ async function loadInstructorBookingDTO(
   const b = row as BookingRow;
   const { data: prof } = await db.from('profiles').select('name, phone').eq('id', b.student_id).maybeSingle();
   const p = prof as { name: string | null; phone: string | null } | null;
-  return rowToDTO(b, p?.name ?? null, p?.phone ?? null);
+  const { data: chat } = await db.from('chats').select('id').eq('booking_id', id).maybeSingle();
+  const chatId = (chat as { id: string } | null)?.id ?? null;
+  return rowToDTO(b, p?.name ?? null, p?.phone ?? null, chatId);
 }
 
 /**
