@@ -3,6 +3,7 @@ import { verifyToken } from './auth';
 import { sheregeshToday, toMinutes } from './availability';
 import type {
   BookingRow, BookingDTO, CreateBookingResult, BookingsResult,
+  AcceptBookingResult, DeclineBookingResult,
 } from './types';
 
 const BOOKING_HORIZON_DAYS = 7;   // today .. today+6
@@ -165,9 +166,11 @@ export async function createBooking(authHeader: string | undefined, body: Create
     .single();
 
   if (insErr) {
-    // Overlap trigger raises a generic EXCEPTION (SQLSTATE P0001) with "занят".
+    // Overlap trigger raises P0001 with "занят". Под маркетплейс-моделью триггер
+    // блокирует только пересечение с ПОДТВЕРЖДЁННОЙ (ACCEPTED) бронью или МК —
+    // конкурирующие PENDING-заявки разрешены. SLOT_TAKEN = слот уже подтверждён.
     if (insErr.code === 'P0001' || /занят/i.test(insErr.message ?? '')) {
-      return err('SLOT_TAKEN', 'Этот интервал только что заняли — выберите другое время');
+      return err('SLOT_TAKEN', 'Это время уже подтверждено у инструктора — выберите другое');
     }
     console.error('[createBooking] insert error:', insErr);
     throw new Error('DB error creating booking');
@@ -220,4 +223,78 @@ export async function listBookings(authHeader: string | undefined): Promise<Book
     return rowToDTO(r, cp?.name ?? null, cp?.phone ?? null);
   });
   return { ok: true, bookings };
+}
+
+// ── ACCEPT / DECLINE (instructor only) ────────────────────────────────────────
+
+/** Fetch one booking as a DTO with the student as counterparty (instructor view). */
+async function loadInstructorBookingDTO(
+  db: ReturnType<typeof getDb>,
+  id: string,
+): Promise<BookingDTO | null> {
+  const { data: row } = await db.from('bookings').select('*').eq('id', id).maybeSingle();
+  if (!row) return null;
+  const b = row as BookingRow;
+  const { data: prof } = await db.from('profiles').select('name, phone').eq('id', b.student_id).maybeSingle();
+  const p = prof as { name: string | null; phone: string | null } | null;
+  return rowToDTO(b, p?.name ?? null, p?.phone ?? null);
+}
+
+/**
+ * Accept a PENDING booking and auto-decline overlapping PENDING ones — atomically
+ * via the accept_booking_tx RPC (one transaction, row locked FOR UPDATE).
+ * Ownership (JWT userId === instructor_id) and the PENDING precondition are
+ * checked inside the function. Returns the updated booking + auto-declined ids.
+ */
+export async function acceptBookingRequest(authHeader: string | undefined, bookingId: string): Promise<AcceptBookingResult> {
+  const auth = verifyToken(authHeader);
+  if (!auth) return err('UNAUTHORIZED', 'Требуется авторизация');
+  if (!bookingId) return err('INVALID_BODY', 'Не указана бронь');
+
+  const db = getDb();
+  const { data, error } = await db.rpc('accept_booking_tx', {
+    p_booking_id:    bookingId,
+    p_instructor_id: auth.userId,   // from JWT, never the body
+  });
+  if (error) { console.error('[acceptBooking] rpc error:', error); throw new Error('DB error accepting booking'); }
+
+  const res = data as { ok: boolean; code?: string; declinedIds?: string[] };
+  if (!res.ok) {
+    if (res.code === 'NOT_FOUND')             return err('NOT_FOUND', 'Бронь не найдена');
+    if (res.code === 'FORBIDDEN')             return err('FORBIDDEN', 'Нет доступа к этой брони');
+    if (res.code === 'SLOT_ALREADY_ACCEPTED') return err('SLOT_ALREADY_ACCEPTED', 'На это время уже есть подтверждённая бронь');
+    return err('NOT_PENDING', 'Заявку уже обработали');
+  }
+
+  const booking = await loadInstructorBookingDTO(db, bookingId);
+  if (!booking) return err('NOT_FOUND', 'Бронь не найдена');
+  return { ok: true, booking, declinedIds: res.declinedIds ?? [] };
+}
+
+/** Decline a PENDING booking (instructor only). Others untouched. */
+export async function declineBookingRequest(authHeader: string | undefined, bookingId: string): Promise<DeclineBookingResult> {
+  const auth = verifyToken(authHeader);
+  if (!auth) return err('UNAUTHORIZED', 'Требуется авторизация');
+  if (!bookingId) return err('INVALID_BODY', 'Не указана бронь');
+
+  const db = getDb();
+  const { data: row, error } = await db.from('bookings').select('*').eq('id', bookingId).maybeSingle();
+  if (error) { console.error('[declineBooking] read error:', error); throw new Error('DB error reading booking'); }
+  if (!row) return err('NOT_FOUND', 'Бронь не найдена');
+
+  const b = row as BookingRow;
+  if (b.instructor_id !== auth.userId) return err('FORBIDDEN', 'Нет доступа к этой брони');
+  if (b.status !== 'PENDING')          return err('NOT_PENDING', 'Заявку уже обработали');
+
+  // Conditional update guards against a concurrent transition (idempotent).
+  const { error: upErr } = await db
+    .from('bookings')
+    .update({ status: 'DECLINED' })
+    .eq('id', bookingId)
+    .eq('status', 'PENDING');
+  if (upErr) { console.error('[declineBooking] update error:', upErr); throw new Error('DB error declining booking'); }
+
+  const booking = await loadInstructorBookingDTO(db, bookingId);
+  if (!booking) return err('NOT_FOUND', 'Бронь не найдена');
+  return { ok: true, booking };
 }

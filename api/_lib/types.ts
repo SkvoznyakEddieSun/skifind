@@ -89,3 +89,11 @@ export type CreateBookingResult =
 export type BookingsResult =
   | { ok: true; bookings: BookingDTO[] }
   | { ok: false; error: string; code: string };
+
+export type AcceptBookingResult =
+  | { ok: true; booking: BookingDTO; declinedIds: string[] }
+  | { ok: false; error: string; code: string };
+
+export type DeclineBookingResult =
+  | { ok: true; booking: BookingDTO }
+  | { ok: false; error: string; code: string };

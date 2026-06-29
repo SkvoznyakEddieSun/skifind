@@ -1,21 +1,36 @@
 import { useState, useRef } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import styles from './RequestsScreen.module.css';
 import { applyPhoneMask } from '@/utils/phoneMask';
 import { useTabSwipe } from '@/hooks/useTabSwipe';
+import { getCommission, MONTH_SHORT } from '@/store/bookings';
 import {
-  getPendingRequests,
-  getAcceptedLessons,
-  acceptBooking,
-  declineBooking,
-  getCommission,
-} from '@/store/bookings';
-import type { Booking } from '@/store/bookings';
-import { addInstrRecentChat } from '@/screens/ChatList/ChatListScreen';
-import { getStudentProfileByName } from '@/screens/StudentProfile/studentData';
+  getBookings,
+  acceptBooking as apiAccept,
+  declineBooking as apiDecline,
+  type BookingDTO,
+} from '@/lib/api';
+import { shortStudentName } from '@/lib/displayName';
 import { MASTER_CLASSES } from '@/screens/MasterClass/masterClassData';
 
-// Текущий залогиненный инструктор (демо) — совпадает с источником заявок
+// Мастер-классы текущего инструктора берём из мока по этому id (МК ещё на моках).
 const CURRENT_INSTRUCTOR_ID = 'aleksey';
+
+const AV_KEYS = ['ice', 'mint', 'straw', 'purple'] as const;
+function initialsOf(name: string): string {
+  const p = name.trim().split(/\s+/);
+  return ((p[0]?.[0] ?? '') + (p[1]?.[0] ?? '')).toUpperCase() || '?';
+}
+function avColorFor(id: string): typeof AV_KEYS[number] {
+  let h = 0;
+  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
+  return AV_KEYS[h % AV_KEYS.length];
+}
+function lessonDateLabel(b: BookingDTO): string {
+  const d = new Date(`${b.date}T00:00:00`);
+  return `${d.getDate()} ${MONTH_SHORT[d.getMonth()]} · ${b.startTime}–${b.endTime}`;
+}
+const formatLabelOf = (b: BookingDTO) => (b.format === 'mini_group' ? 'Мини-группа' : 'Индивидуально');
 
 // ── Pre-existing "own" students (без комиссии, добавлены до платформы) ──────
 
@@ -74,11 +89,6 @@ const OWN_STUDENTS_INACTIVE: OwnStudent[] = [
 ];
 
 // ── Helpers ────────────────────────────────────────────────────────────────
-
-const DISCIPLINE_LABEL: Record<string, string> = {
-  ski:   'Горные лыжи',
-  board: 'Сноуборд',
-};
 
 const TAG_CLASS: Record<string, string> = {
   blue:   styles.tagBlue,
@@ -158,61 +168,58 @@ export function RequestsScreen({ onBack, onChat, onRequest, onMasterClass, onMcG
     else setInviteDragY(0);
   }
 
-  // Читаем из хранилища; локальный state для реакции на изменения
-  const [pending,  setPending]  = useState<Booking[]>(() => getPendingRequests('aleksey'));
-  const [accepted, setAccepted] = useState<Booking[]>(() => getAcceptedLessons('aleksey'));
+  // Реальные заявки инструктора с сервера (GET /api/bookings → instructor → входящие).
+  const queryClient = useQueryClient();
+  const { data: serverBookings = [], isLoading, isError, refetch } = useQuery({
+    queryKey: ['bookings'],
+    queryFn: getBookings,
+  });
+  const pending  = serverBookings.filter(b => b.status === 'PENDING');
+  const accepted = serverBookings.filter(b => b.status === 'ACCEPTED');
+
+  const [processingId, setProcessingId] = useState<string | null>(null);
 
   function showToast(msg: string) {
     setToast(msg);
     setTimeout(() => setToast(null), 2500);
   }
 
-  function handleAccept(id: string) {
-    const booking = pending.find(b => b.id === id);
-    acceptBooking(id);
-    setPending(getPendingRequests('aleksey'));
-    setAccepted(getAcceptedLessons('aleksey'));
-    if (booking) {
-      const colorMap: Record<string, string> = {
-        ice: 'avIce', mint: 'avMint', straw: 'avStraw',
-        purple: 'avPurple', coral: 'avCoral', blue: 'avBlue',
-      };
-      const studentProfile = getStudentProfileByName(booking.studentName);
-      if (!studentProfile) {
-        console.error(`Профиль студента не найден: ${booking.studentName}`);
-      }
-      addInstrRecentChat({
-        id:            studentProfile?.id ?? booking.id,
-        initials:      booking.studentInitials,
-        avClass:       colorMap[booking.studentColor] ?? 'avIce',
-        name:          booking.studentName,
-        role:          'ученик',
-        online:        true,
-        time:          'сейчас',
-        msg:           'Заявка принята ✓',
-        myMsg:         true,
-        bookingStatus: 'ACCEPTED',
-      });
+  async function handleAccept(id: string) {
+    setProcessingId(id);
+    const res = await apiAccept(id);
+    setProcessingId(null);
+    await queryClient.invalidateQueries({ queryKey: ['bookings'] });
+    if (res.ok) {
+      const n = res.declinedIds.length;
+      showToast(n > 0
+        ? `✓ Принято; ${n} ${n === 1 ? 'конфликтующая заявка отклонена' : 'конфликтующих заявок отклонено'}`
+        : '✓ Заявка принята');
+    } else {
+      showToast(res.code === 'NOT_PENDING' ? 'Заявку уже обработали' : (res.error || 'Не удалось принять'));
     }
-    showToast('✓ Заявка принята — ученик добавлен в список');
   }
 
-  function handleDecline(id: string) {
-    declineBooking(id);
-    setPending(getPendingRequests('aleksey'));
-    showToast('Заявка отклонена');
+  async function handleDecline(id: string) {
+    setProcessingId(id);
+    const res = await apiDecline(id);
+    setProcessingId(null);
+    await queryClient.invalidateQueries({ queryKey: ['bookings'] });
+    showToast(res.ok ? 'Заявка отклонена' : (res.error || 'Не удалось отклонить'));
   }
 
-  // Принятые заявки с платформы → превращаем в «учеников» для вкладки «Мои»
-  const acceptedStudents = accepted.map(b => ({
-    id:       b.id,
-    initials: b.studentInitials,
-    color:    b.studentColor,
-    name:     b.studentName,
-    meta:     `${DISCIPLINE_LABEL[b.discipline] ?? b.discipline} · ${b.dayNum} ${b.dayMon} ${b.timeStart}`,
-    stats:    [`${b.formatLabel}`, `${b.dayNum} ${b.dayMon} · ${b.timeStart} — ${b.timeEnd}`],
-    status:   'active' as const,
-  }));
+  // Принятые брони с платформы → «ученики» для вкладки «Мои» (имя — короткая форма).
+  const acceptedStudents = accepted.map(b => {
+    const name = shortStudentName(b.counterpartyName, b.counterpartyPhone);
+    return {
+      id:       b.id,
+      initials: initialsOf(name),
+      color:    avColorFor(b.id),
+      name,
+      meta:     `${formatLabelOf(b)} · ${lessonDateLabel(b)}`,
+      stats:    [`${(b.price ?? 0).toLocaleString('ru')} ₽`],
+      status:   'active' as const,
+    };
+  });
 
   const totalStudents = OWN_STUDENTS.length + OWN_STUDENTS_INACTIVE.length + acceptedStudents.length;
 
@@ -269,68 +276,76 @@ export function RequestsScreen({ onBack, onChat, onRequest, onMasterClass, onMcG
               Заявки с платформы — комиссия 5% при подтверждении
             </div>
 
-            {pending.length === 0 && (
+            {isLoading && (
+              <div style={{ padding: '40px 20px', textAlign: 'center', color: 'var(--text-dim)', fontSize: 14 }}>
+                Загрузка заявок…
+              </div>
+            )}
+            {isError && (
+              <div style={{ padding: '32px 20px', textAlign: 'center', color: 'var(--text-dim)', fontSize: 14 }}>
+                Не удалось загрузить заявки
+                <div style={{ marginTop: 12 }}>
+                  <button className={`${styles.btn} ${styles.btnPrimary}`} onClick={() => refetch()}>Повторить</button>
+                </div>
+              </div>
+            )}
+            {!isLoading && !isError && pending.length === 0 && (
               <div style={{ padding: '40px 20px', textAlign: 'center', color: 'var(--text-dim)', fontSize: 14 }}>
                 Новых заявок нет
               </div>
             )}
 
             <div className={styles.reqList}>
-              {pending.map(r => (
-                <div key={r.id} className={styles.reqCard} onClick={() => onRequest(r.id)}>
+              {pending.map(b => {
+                const name = shortStudentName(b.counterpartyName, b.counterpartyPhone);
+                const busy = processingId === b.id;
+                return (
+                <div key={b.id} className={styles.reqCard} onClick={() => onRequest(b.id)}>
                   <div className={styles.rcTop}>
                     <div>
-                      <div className={styles.rcName}>{r.studentName}</div>
+                      <div className={styles.rcName}>{name}</div>
                       <span className={styles.lsPlat}>С платформы</span>
                     </div>
-                    <div className={styles.rcTime}>{r.createdAt}</div>
+                    <div className={styles.rcTime}>{lessonDateLabel(b)}</div>
                   </div>
 
                   <div className={styles.rcTags}>
-                    <span className={`${styles.tag} ${TAG_CLASS.blue}`}>
-                      {DISCIPLINE_LABEL[r.discipline] ?? r.discipline}
-                    </span>
-                    <span className={`${styles.tag} ${r.format === 'kids' ? TAG_CLASS.purple : TAG_CLASS.mint}`}>
-                      {r.level}
-                    </span>
-                    <span className={`${styles.tag} ${TAG_CLASS.gray}`}>
-                      {r.dayNum} {r.dayMon} · {r.timeStart}
-                    </span>
+                    <span className={`${styles.tag} ${TAG_CLASS.blue}`}>{formatLabelOf(b)}</span>
+                    <span className={`${styles.tag} ${TAG_CLASS.gray}`}>{b.startTime}–{b.endTime}</span>
                   </div>
-
-                  {r.message ? (
-                    <div className={styles.rcMsg}>«{r.message}»</div>
-                  ) : null}
 
                   <div className={styles.rcFee}>
                     <span className={styles.rcFeeAmt}>
-                      Стоимость: <strong>{r.price.toLocaleString('ru')} ₽</strong>
+                      Стоимость: <strong>{(b.price ?? 0).toLocaleString('ru')} ₽</strong>
                     </span>
-                    <span className={styles.rcFeeComm}>Комиссия {getCommission(r.price).toLocaleString('ru')} ₽</span>
+                    <span className={styles.rcFeeComm}>Комиссия {(b.commission ?? getCommission(b.price ?? 0)).toLocaleString('ru')} ₽</span>
                   </div>
 
                   <div className={styles.rcActions}>
                     <button
                       className={`${styles.btn} ${styles.btnPrimary}`}
-                      onClick={e => { e.stopPropagation(); handleAccept(r.id); }}
+                      disabled={busy}
+                      onClick={e => { e.stopPropagation(); handleAccept(b.id); }}
                     >
-                      Принять
+                      {busy ? '…' : 'Принять'}
                     </button>
                     <button
                       className={`${styles.btn} ${styles.btnSecondary}`}
-                      onClick={e => { e.stopPropagation(); onChat(r.id); }}
+                      onClick={e => { e.stopPropagation(); onChat(b.id); }}
                     >
                       Написать
                     </button>
                     <button
                       className={`${styles.btn} ${styles.btnSecondary}`}
-                      onClick={e => { e.stopPropagation(); handleDecline(r.id); }}
+                      disabled={busy}
+                      onClick={e => { e.stopPropagation(); handleDecline(b.id); }}
                     >
                       Отказать
                     </button>
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           </>
           </div>

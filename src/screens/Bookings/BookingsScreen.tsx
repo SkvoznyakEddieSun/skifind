@@ -1,10 +1,12 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import styles from './BookingsScreen.module.css';
 import { useTranslation } from '@/i18n/useTranslation';
 import { Icon } from '@/components/Icon/Icon';
-import { getGuestBookings, guestCancelBooking } from '@/store/bookings';
-import type { Booking as StoreBooking } from '@/store/bookings';
+import { MONTH_SHORT } from '@/store/bookings';
+import { getBookings, type BookingDTO } from '@/lib/api';
 import { type BookingStatus, statusLabel } from '@/lib/bookingStatus';
+import { hasRating } from '@/screens/Catalog/CatalogScreen';
 
 interface Booking {
   id: string;
@@ -23,28 +25,42 @@ interface Booking {
   price: string;
 }
 
-function toDisplay(b: StoreBooking): Booking {
+const AV_KEYS = ['ice', 'mint', 'straw', 'purple'] as const;
+function initialsOf(name: string): string {
+  const p = name.trim().split(/\s+/);
+  return ((p[0]?.[0] ?? '') + (p[1]?.[0] ?? '')).toUpperCase() || '?';
+}
+function avColorFor(id: string): string {
+  let h = 0;
+  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
+  return AV_KEYS[h % AV_KEYS.length];
+}
+
+// Имя инструктора в DTO уже короткое («Имя Фамилия») — НЕ переставляем.
+function toDisplay(b: BookingDTO): Booking {
+  const name = b.counterpartyName || b.counterpartyPhone || 'Инструктор';
+  const d = new Date(`${b.date}T00:00:00`);
   return {
     id:                    b.id,
-    status:                b.status,   // канон напрямую (стор уже UPPER)
+    status:                b.status,
     instructorId:          b.instructorId,
-    instructorName:        b.instructorName,
-    instructorInitials:    b.instructorInitials,
-    instructorAvatarColor: b.instructorAvatarColor,
-    instructorSpec:        b.instructorSpec,
-    rating:                b.instructorRating,
-    dayNum:                b.dayNum,
-    dayMon:                b.dayMon,
-    timeRange:             `${b.timeStart} — ${b.timeEnd}`,
-    lessonType:            b.formatLabel,
+    instructorName:        name,
+    instructorInitials:    initialsOf(name),
+    instructorAvatarColor: avColorFor(b.instructorId),
+    instructorSpec:        'Шерегеш',
+    rating:                0,   // рейтинга нет в DTO — скрываем через hasRating
+    dayNum:                String(d.getDate()),
+    dayMon:                MONTH_SHORT[d.getMonth()],
+    timeRange:             `${b.startTime} — ${b.endTime}`,
+    lessonType:            b.format === 'mini_group' ? 'Мини-группа' : 'Индивидуальное занятие',
     meta: b.status === 'ACCEPTED'
       ? 'Место встречи уточните у инструктора'
       : b.status === 'PENDING'
-      ? `Заявка отправлена · ${b.createdAt}`
+      ? 'Заявка отправлена'
       : b.status === 'COMPLETED'
       ? 'Занятие завершено'
       : 'Отменено',
-    price: `${b.price.toLocaleString('ru')} ₽`,
+    price: `${(b.price ?? 0).toLocaleString('ru')} ₽`,
   };
 }
 
@@ -79,11 +95,12 @@ interface BookingsScreenProps {
   onBack?: () => void;
 }
 
-export function BookingsScreen({ onChat, onCancel, onBookAgain, onBack }: BookingsScreenProps) {
+export function BookingsScreen({ onChat, onBookAgain, onBack }: BookingsScreenProps) {
   const { t } = useTranslation();
 
-  // Читаем из хранилища при каждом монтировании (свежие данные после нового бронирования)
-  const [bookings, setBookings]               = useState<Booking[]>(() => getGuestBookings().map(toDisplay));
+  // Реальные брони ученика с сервера (GET /api/bookings → student → свои).
+  const { data: serverBookings = [] } = useQuery({ queryKey: ['bookings'], queryFn: getBookings });
+  const bookings = useMemo(() => serverBookings.map(toDisplay), [serverBookings]);
   const [reviewBookingId, setReviewBookingId] = useState<string | null>(null);
   const [reviewStars, setReviewStars]         = useState(5);
   const [reviewText, setReviewText]           = useState('');
@@ -98,12 +115,10 @@ export function BookingsScreen({ onChat, onCancel, onBookAgain, onBack }: Bookin
     setTimeout(() => setToast(null), 2500);
   }
 
-  function handleCancel(bookingId: string) {
-    guestCancelBooking(bookingId); // гость отменяет — не инструктор
-    setBookings(prev => prev.map(b =>
-      b.id === bookingId ? { ...b, status: 'CANCELLED' as const } : b
-    ));
-    onCancel?.(bookingId);
+  function handleCancel(_bookingId: string) {
+    // TODO: подключить отмену брони учеником к серверу (POST CANCELLED).
+    // Пока серверного роута отмены нет — не мутируем, показываем заглушку.
+    showToast('Отмена брони будет доступна позже');
   }
 
   function toggleTag(tag: string) {
@@ -219,9 +234,11 @@ export function BookingsScreen({ onChat, onCancel, onBookAgain, onBack }: Bookin
                     <div className={styles.bcInstrName}>{b.instructorName}</div>
                     <div className={styles.bcInstrSpec}>{b.instructorSpec}</div>
                   </div>
-                  <div className={styles.bcRating}>
-                    <span className={styles.star}>★</span> {b.rating.toFixed(1)}
-                  </div>
+                  {hasRating(b.rating) && (
+                    <div className={styles.bcRating}>
+                      <span className={styles.star}>★</span> {b.rating.toFixed(1)}
+                    </div>
+                  )}
                 </div>
 
                 <div className={styles.bcDate}>

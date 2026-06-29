@@ -91,6 +91,14 @@ export type CreateBookingResponse =
   | { ok: true; booking: BookingDTO }
   | ApiError;
 
+export type AcceptBookingResponse =
+  | { ok: true; booking: BookingDTO; declinedIds: string[] }
+  | ApiError;
+
+export type DeclineBookingResponse =
+  | { ok: true; booking: BookingDTO }
+  | ApiError;
+
 // ── Core ─────────────────────────────────────────────────────────────────────
 
 async function post<T>(path: string, body: unknown): Promise<T | ApiError> {
@@ -189,6 +197,16 @@ export async function getInstructors(): Promise<InstructorDTO[]> {
  */
 export function createBooking(input: CreateBookingInput): Promise<CreateBookingResponse> {
   return post<CreateBookingResponse>('/bookings', input);
+}
+
+/** Instructor accepts a PENDING booking → ACCEPTED (+ auto-declines overlaps). */
+export function acceptBooking(bookingId: string): Promise<AcceptBookingResponse> {
+  return post<AcceptBookingResponse>('/bookings', { action: 'accept', bookingId });
+}
+
+/** Instructor declines a PENDING booking → DECLINED. */
+export function declineBooking(bookingId: string): Promise<DeclineBookingResponse> {
+  return post<DeclineBookingResponse>('/bookings', { action: 'decline', bookingId });
 }
 
 /** Current user's bookings (student → own, instructor → incoming). THROWS on
