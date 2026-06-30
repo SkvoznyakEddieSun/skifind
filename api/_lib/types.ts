@@ -126,3 +126,18 @@ export type MessagesResult =
 export type SendMessageResult =
   | { ok: true; message: MessageDTO }
   | { ok: false; error: string; code: string };
+
+// ── Chat list ─────────────────────────────────────────────────────────────────
+
+export interface ChatListItemDTO {
+  chatId: string;
+  /** Превью: текст последнего сообщения (null — сообщений ещё нет). */
+  lastMessageText: string | null;
+  lastMessageAt: string | null;
+  /** Бронь чата — для имени собеседника, статуса-бейджа и карточки при открытии. */
+  booking: BookingDTO;
+}
+
+export type ChatsResult =
+  | { ok: true; chats: ChatListItemDTO[] }
+  | { ok: false; error: string; code: string };

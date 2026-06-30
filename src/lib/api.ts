@@ -104,6 +104,13 @@ export type SendMessageResponse =
   | { ok: true; message: MessageDTO }
   | ApiError;
 
+export interface ChatListItemDTO {
+  chatId: string;
+  lastMessageText: string | null;
+  lastMessageAt: string | null;
+  booking: BookingDTO;
+}
+
 export type AcceptBookingResponse =
   | { ok: true; booking: BookingDTO; declinedIds: string[] }
   | ApiError;
@@ -247,6 +254,25 @@ export async function getMessages(chatId: string, since?: string): Promise<Messa
  *  so the UI can branch on PHONE_BLOCKED / FORBIDDEN. */
 export function sendMessage(chatId: string, text: string): Promise<SendMessageResponse> {
   return post<SendMessageResponse>('/messages', { chatId, text });
+}
+
+/** Direct chats of the current user (with real last-message preview).
+ *  THROWS on failure (react-query idiom). */
+export async function getChats(): Promise<ChatListItemDTO[]> {
+  const token = getToken();
+  const headers: Record<string, string> = {};
+  if (token) headers.Authorization = `Bearer ${token}`;
+
+  let res: Response;
+  try {
+    res = await fetch('/api/chats', { headers });
+  } catch {
+    throw new Error('Нет связи с сервером');
+  }
+  if (!res.ok) throw new Error('Не удалось загрузить чаты');
+  const data = (await res.json()) as { ok?: boolean; chats?: ChatListItemDTO[] };
+  if (!data?.ok || !data.chats) throw new Error('Некорректный ответ сервера');
+  return data.chats;
 }
 
 /** Current user's bookings (student → own, instructor → incoming). THROWS on

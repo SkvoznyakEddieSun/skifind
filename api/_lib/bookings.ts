@@ -40,7 +40,7 @@ function err(code: string, error: string): { ok: false; error: string; code: str
 
 type WeekWindow = { start: string; end: string; breaks?: { start: string; end: string }[]; off?: boolean };
 
-function rowToDTO(
+export function rowToDTO(
   b: BookingRow,
   counterpartyName: string | null,
   counterpartyPhone: string | null,

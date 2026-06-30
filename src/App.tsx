@@ -16,7 +16,7 @@ import { MONTH_SHORT } from './store/bookings';
 import { DashboardScreen }    from './screens/Dashboard/DashboardScreen';
 import { RequestsScreen }     from './screens/Requests/RequestsScreen';
 import { ScheduleScreen }     from './screens/Schedule/ScheduleScreen';
-import { ChatListScreen, setInstrChatStatus } from './screens/ChatList/ChatListScreen';
+import { ChatListScreen } from './screens/ChatList/ChatListScreen';
 import { InstrProfileScreen } from './screens/InstrProfile/InstrProfileScreen';
 
 // Guest tabs
@@ -138,7 +138,9 @@ export function App() {
   const [devCode, setDevCode]       = useState('');
   const [activeMcId, setActiveMcId] = useState('mc1');
   const [chatBookingStatus, setChatBookingStatus] = useState<ChatBookingStatus>('PENDING');
-  const [chatInstructorPhone, setChatInstructorPhone] = useState<string | undefined>(undefined);
+  // Телефон инструктора в мок-чате (openInstrChat/openStudentChat). Серверный чат
+  // контакты не передаёт через этот путь — поэтому только чтение, дефолт undefined.
+  const [chatInstructorPhone] = useState<string | undefined>(undefined);
   const [chatPersonName, setChatPersonName] = useState('');
   const [chatPersonInitials, setChatPersonInitials] = useState('');
   const [chatPersonAvColor, setChatPersonAvColor] = useState('ice');
@@ -373,13 +375,11 @@ export function App() {
         role={chatIsInstructor ? 'instructor' : 'guest'}
         chatId={chatIsInstructor ? activeChatBookingId : activeInstructor.id}
         onAcceptBooking={chatIsInstructor && activeChatBookingId ? () => {
-          acceptBooking(activeChatBookingId);            // стор броней (RequestsScreen-флоу)
-          setInstrChatStatus(activeChatBookingId, 'ACCEPTED'); // сессионный источник чат-листа
+          acceptBooking(activeChatBookingId);            // мок-стор (request/lesson-detail ещё на нём)
           setChatBookingStatus('ACCEPTED');
         } : undefined}
         onDeclineBooking={chatIsInstructor && activeChatBookingId ? () => {
           declineBooking(activeChatBookingId);
-          setInstrChatStatus(activeChatBookingId, 'DECLINED');
           setChatBookingStatus('DECLINED');
         } : undefined}
       />
@@ -404,34 +404,12 @@ export function App() {
     const chatContent = role === 'instructor'
       ? <ChatListScreen
           onBack={pop}
-          onChat={(id, status, phone, name, initials, avColor, chatRole) => {
-            const isStudent = chatRole === 'ученик' || chatRole === 'ученица';
-            const instr = INSTRUCTORS.find(i => i.id === id);
-            if (isStudent) { setActiveStudentId(id); setChatPersonHasProfile(true); setChatPersonProfileType('student'); }
-            else if (instr) { setActiveInstructor(instr); setChatPersonHasProfile(true); setChatPersonProfileType('instructor'); }
-            else { setChatPersonHasProfile(false); }
-            setChatBookingStatus(status);
-            setChatInstructorPhone(phone);
-            setChatPersonName(name ?? ''); setChatPersonInitials(initials ?? ''); setChatPersonAvColor(avColor ?? 'ice');
-            setActiveChatBookingId(id);   // ← без этого chatId/onAcceptBooking приходят пустыми
-            setChatIsInstructor(true);
-            setActiveServerChat(null);
-            push('chat');
-          }}
+          onOpenServerChat={item => openServerChat(item.booking, 'instructor')}
           isInstructor
         />
       : <ChatListScreen
           onBack={pop}
-          onChat={(id, status, phone, name, initials, avColor) => {
-            const instr = INSTRUCTORS.find(i => i.id === id);
-            if (instr) setActiveInstructor(instr);
-            setChatPersonHasProfile(true); setChatPersonProfileType('instructor');
-            setChatBookingStatus(status); setChatInstructorPhone(phone);
-            setChatPersonName(name ?? ''); setChatPersonInitials(initials ?? ''); setChatPersonAvColor(avColor ?? 'ice');
-            setChatIsInstructor(false);
-            setActiveServerChat(null);
-            push('chat');
-          }}
+          onOpenServerChat={item => openServerChat(item.booking, 'guest')}
           joinedMcIds={joinedMcIds}
           onGroupChat={mcId => { setActiveMcId(mcId); push('mc-group-chat'); }}
         />;
@@ -681,30 +659,7 @@ export function App() {
     } else if (instrTab === 'chat') {
       tabContent = (
         <ChatListScreen
-          onChat={(id, status, phone, name, initials, avColor, role) => {
-            const isStudent = role === 'ученик' || role === 'ученица';
-            const instr = INSTRUCTORS.find(i => i.id === id);
-            if (isStudent) {
-              setActiveStudentId(id);
-              setChatPersonHasProfile(true);
-              setChatPersonProfileType('student');
-            } else if (instr) {
-              setActiveInstructor(instr);
-              setChatPersonHasProfile(true);
-              setChatPersonProfileType('instructor');
-            } else {
-              setChatPersonHasProfile(false);
-            }
-            setChatBookingStatus(status);
-            setChatInstructorPhone(phone);
-            setChatPersonName(name ?? '');
-            setChatPersonInitials(initials ?? '');
-            setChatPersonAvColor(avColor ?? 'ice');
-            setActiveChatBookingId(id);   // ← без этого chatId/onAcceptBooking приходят пустыми
-            setChatIsInstructor(true);
-            setActiveServerChat(null);
-            push('chat');
-          }}
+          onOpenServerChat={item => openServerChat(item.booking, 'instructor')}
           onCommunity={() => push('community')}
           isInstructor
         />
@@ -782,21 +737,7 @@ export function App() {
     } else if (guestTab === 'chat') {
       tabContent = (
         <ChatListScreen
-          onChat={(id, status, phone, name, initials, avColor) => {
-            // Гостевые чаты — только инструкторы
-            const instr = INSTRUCTORS.find(i => i.id === id);
-            if (instr) setActiveInstructor(instr);
-            setChatPersonHasProfile(true);
-            setChatPersonProfileType('instructor');
-            setChatBookingStatus(status);
-            setChatInstructorPhone(phone);
-            setChatPersonName(name ?? '');
-            setChatPersonInitials(initials ?? '');
-            setChatPersonAvColor(avColor ?? 'ice');
-            setChatIsInstructor(false);
-            setActiveServerChat(null);
-            push('chat');
-          }}
+          onOpenServerChat={item => openServerChat(item.booking, 'guest')}
           joinedMcIds={joinedMcIds}
           onGroupChat={mcId => { setActiveMcId(mcId); push('mc-group-chat'); }}
         />

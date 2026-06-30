@@ -16,6 +16,7 @@ import { requestCode, verifyCode, getMe } from './_lib/auth';
 import { listInstructors } from './_lib/instructors';
 import { createBooking, listBookings, acceptBookingRequest, declineBookingRequest } from './_lib/bookings';
 import { listMessages, sendMessage } from './_lib/messages';
+import { listChats } from './_lib/chats';
 
 // ── Load .env.local (portable; avoids depending on a runner flag) ────────────
 try {
@@ -107,6 +108,16 @@ app.post('/api/bookings', async (req, res) => {
     return res.status(result.ok ? 201 : statusForCode(result.code)).json(result);
   } catch (e) {
     console.error('[dev-api] POST /bookings', e);
+    res.status(500).json({ ok: false, error: 'Server error', code: 'SERVER_ERROR' });
+  }
+});
+
+app.get('/api/chats', async (req, res) => {
+  try {
+    const result = await listChats(req.headers.authorization);
+    res.status(result.ok ? 200 : 401).json(result);
+  } catch (e) {
+    console.error('[dev-api] GET /chats', e);
     res.status(500).json({ ok: false, error: 'Server error', code: 'SERVER_ERROR' });
   }
 });
